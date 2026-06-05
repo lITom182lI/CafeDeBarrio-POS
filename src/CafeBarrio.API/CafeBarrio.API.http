@@ -1,0 +1,6 @@
+@CafeBarrio.API_HostAddress = http://localhost:5138
+
+GET {{CafeBarrio.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
