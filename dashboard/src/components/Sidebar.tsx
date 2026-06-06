@@ -1,12 +1,23 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 const links = [
-  { to: '/dashboard',      icon: '📊', label: 'Dashboard' },
-  { to: '/productos',      icon: '📦', label: 'Productos' },
-  { to: '/transacciones',  icon: '💳', label: 'Transacciones' },
+  { to: '/dashboard',     icon: '📊', label: 'Dashboard' },
+  { to: '/productos',     icon: '📦', label: 'Productos' },
+  { to: '/transacciones', icon: '💳', label: 'Transacciones' },
+  { to: '/operadores',    icon: '👤', label: 'Operadores' },
+  { to: '/configuracion', icon: '⚙', label: 'Configuracion' },
 ]
 
 export function Sidebar() {
+  const { logout } = useAuth()
+  const navigate   = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
@@ -22,7 +33,7 @@ export function Sidebar() {
         ))}
       </nav>
       <div className="sidebar-footer">
-        <button className="nav-link btn-logout">
+        <button className="nav-link btn-logout" onClick={handleLogout}>
           ↩ Logout
         </button>
       </div>

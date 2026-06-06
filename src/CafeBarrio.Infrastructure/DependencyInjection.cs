@@ -5,6 +5,8 @@ using CafeBarrio.Infrastructure.Persistence.Interceptors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using CafeBarrio.Infrastructure.Security;
+using CafeBarrio.Infrastructure.External;
 
 namespace CafeBarrio.Infrastructure;
 
@@ -28,7 +30,9 @@ public static class DependencyInjection
         services.AddScoped<IReportesRepository, ReportesRepository>();
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         services.AddSingleton<CafeBarrio.Application.Common.Interfaces.IJwtService, CafeBarrio.Infrastructure.Security.JwtService>();
+        services.AddScoped<IPasswordHasher, Argon2PasswordHasher>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<ISunatService, SunatStubService>();
 
         return services;
     }

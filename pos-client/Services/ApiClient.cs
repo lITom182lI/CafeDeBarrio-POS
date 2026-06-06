@@ -15,10 +15,14 @@ public class ApiClient
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
-    public ApiClient(string baseUrl)
+    public ApiClient(string baseUrl, bool acceptSelfSigned = false)
     {
         _base = baseUrl.TrimEnd('/');
-        _http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+        var handler = new HttpClientHandler();
+        if (acceptSelfSigned)
+            handler.ServerCertificateCustomValidationCallback =
+                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+        _http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(5) };
     }
 
     public async Task<bool> IsAvailableAsync()

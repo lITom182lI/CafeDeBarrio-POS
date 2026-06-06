@@ -482,3 +482,11 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# MUIS_DEVOPS
+release/
+*.pfx
+certs/*.pfx
+src/CafeBarrio.API/appsettings.Production.json
+pos-client/App.config
+

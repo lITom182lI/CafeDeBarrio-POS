@@ -10,7 +10,42 @@ export interface ProductoDto {
   productoId: number; nombre: string; precio: number;
   cantidadDisponible: number; stockMinimo: number; unidadMedida: string;
   categoriaId: number; categoriaNombre?: string; activo: boolean;
+  descripcion?: string;
+  costo?: number;
+  seguimientoInventario?: boolean;
+  esMayorista?: boolean;
 }
 export interface TransaccionListItemDto { transaccionId: number; clienteNombre: string; total: number; fecha: string; metodoPago: string; anulada: boolean; }
 export interface TransaccionDetalleDto { transaccionId: number; clienteNombre: string; total: number; subtotal: number; igv: number; fecha: string; metodoPago: string; anulada: boolean; items: DetalleItemDto[]; }
 export interface DetalleItemDto { nombreProducto: string; cantidad: number; precioUnitario: number; subtotalLinea: number; }
+export interface CategoriaCafeDto {
+  categoriaId: number
+  codigo: string
+  nombre: string
+}
+
+export interface ProductoFormData {
+  nombre: string
+  descripcion: string
+  costo: number
+  precio: number
+  cantidadDisponible: number
+  stockMinimo: number
+  unidadMedida: string
+  seguimientoInventario: boolean
+  esMayorista: boolean
+  categoriaId: number
+  activo: boolean
+}
+
+export interface OperadorDto {
+  operadorId: number
+  nombre: string
+  activo: boolean
+}
+
+export interface OperadorFormData {
+  nombre: string
+  activo: boolean
+  nuevoPin: string
+}

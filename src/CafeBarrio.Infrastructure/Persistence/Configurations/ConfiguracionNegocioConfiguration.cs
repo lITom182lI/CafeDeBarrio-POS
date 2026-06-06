@@ -21,15 +21,5 @@ public class ConfiguracionNegocioConfiguration : IEntityTypeConfiguration<Config
                .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(c => new { c.SedeId, c.Activo });
-
-        builder.HasData(new ConfiguracionNegocio
-        {
-            ConfiguracionNegocioId = 1,
-            SedeId = 1,
-            TasaIGV = 0.08m,
-            TasaIPM = 0.025m,
-            FechaVigencia = new DateTime(2026, 1, 1),
-            Activo = true
-        });
     }
 }

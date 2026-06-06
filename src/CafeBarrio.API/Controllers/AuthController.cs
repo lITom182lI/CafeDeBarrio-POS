@@ -2,6 +2,7 @@ using CafeBarrio.Application.Common.Interfaces;
 using CafeBarrio.Application.Features.Auth.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace CafeBarrio.API.Controllers;
 
@@ -11,20 +12,29 @@ public class AuthController : ControllerBase
 {
     private readonly IUsuarioRepository _usuarios;
     private readonly IJwtService _jwt;
+    private readonly IPasswordHasher _hasher;
+    private readonly IUnitOfWork _uow;
 
-    public AuthController(IUsuarioRepository usuarios, IJwtService jwt)
+    public AuthController(
+        IUsuarioRepository usuarios,
+        IJwtService jwt,
+        IPasswordHasher hasher,
+        IUnitOfWork uow)
     {
         _usuarios = usuarios;
-        _jwt = jwt;
+        _jwt      = jwt;
+        _hasher   = hasher;
+        _uow      = uow;
     }
 
     [HttpPost("login")]
     [AllowAnonymous]
-    public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken ct)
+    [EnableRateLimiting("login-policy")]
+    public async Task<IActionResult> Login(
+        [FromBody] LoginRequest request, CancellationToken ct)
     {
         var usuario = await _usuarios.GetByEmailAsync(request.Email, ct);
-
-        if (usuario is null || !BCrypt.Net.BCrypt.Verify(request.Password, usuario.PasswordHash))
+        if (usuario is null || !_hasher.Verify(request.Password, usuario.PasswordHash))
             return Unauthorized(new { message = "Credenciales incorrectas" });
 
         var token = _jwt.GenerateToken(usuario);
@@ -38,5 +48,30 @@ public class AuthController : ControllerBase
         var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
         var rol   = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
         return Ok(new { email, rol });
+    }
+
+    [HttpPut("change-password")]
+    [Authorize]
+    public async Task<IActionResult> ChangePassword(
+        [FromBody] ChangePasswordRequest request, CancellationToken ct)
+    {
+        var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+        if (email is null)
+            return Unauthorized(new { message = "Token invalido." });
+
+        if (request.NewPassword.Length < 8)
+            return BadRequest(new { message = "La nueva contraseña debe tener al menos 8 caracteres." });
+
+        var usuario = await _usuarios.GetByEmailAsync(email, ct);
+        if (usuario is null)
+            return NotFound(new { message = "Usuario no encontrado." });
+
+        if (!_hasher.Verify(request.CurrentPassword, usuario.PasswordHash))
+            return BadRequest(new { message = "La contraseña actual es incorrecta." });
+
+        usuario.PasswordHash = _hasher.Hash(request.NewPassword);
+        await _uow.SaveChangesAsync(ct);
+
+        return NoContent();
     }
 }

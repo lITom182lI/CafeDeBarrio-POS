@@ -8,6 +8,7 @@ public class FormPOS : Form
     // Servicios
     private readonly PosService _pos;
     private readonly SyncService _sync;
+    private readonly bool _printTicket;
 
     // Carrito: (ProductoId, Nombre, Precio, Cantidad)
     private readonly List<(int ProductoId, string Nombre, decimal Precio, int Cantidad)> _cart = [];
@@ -27,10 +28,11 @@ public class FormPOS : Form
     private StatusStrip _statusStrip = null!;
     private ToolStripStatusLabel _lblApi = null!, _lblPendientes = null!;
 
-    public FormPOS(PosService pos, SyncService sync)
+    public FormPOS(PosService pos, SyncService sync, bool printTicket = true)
     {
         _pos = pos;
         _sync = sync;
+        _printTicket = printTicket;
         InitializeForm();
         _sync.OnSyncCompleted += RefreshStatus;
     }
@@ -316,16 +318,24 @@ public class FormPOS : Form
         _btnCobrar.Enabled = false;
         _btnCobrar.Text = "Procesando...";
 
+        // Snapshot antes de limpiar (necesario para el ticket)
+        var cartSnapshot     = _cart.ToList();
+        var (sub, igv, total) = _pos.CalcularTotales(_cart);
+        var metodoPagoNombre = metodo.Nombre;
+
         var sincronizado = await _pos.RegistrarVentaAsync(metodo.MetodoPagoId, _cart);
         _cart.Clear();
         RefreshCart();
         RefreshStatus();
 
         var msg = sincronizado
-            ? "✓ Venta registrada y sincronizada con el servidor."
-            : "✓ Venta guardada localmente.\nSe sincronizará cuando la API esté disponible.";
+            ? "Venta registrada y sincronizada con el servidor."
+            : "Venta guardada localmente.\nSe sincronizará cuando la API esté disponible.";
         var icon = sincronizado ? MessageBoxIcon.Information : MessageBoxIcon.Warning;
         MessageBox.Show(msg, "Venta completada", MessageBoxButtons.OK, icon);
+
+        if (_printTicket)
+            TicketPrinter.Print(cartSnapshot, sub, igv, total, metodoPagoNombre);
 
         _btnCobrar.Enabled = true;
         _btnCobrar.Text = "COBRAR";

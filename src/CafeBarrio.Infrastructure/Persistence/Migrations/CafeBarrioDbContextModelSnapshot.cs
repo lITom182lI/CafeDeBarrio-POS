@@ -245,17 +245,6 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                     b.HasIndex("SedeId", "Activo");
 
                     b.ToTable("ConfiguracionNegocio", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            ConfiguracionNegocioId = 1,
-                            Activo = true,
-                            FechaVigencia = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            SedeId = 1,
-                            TasaIGV = 0.08m,
-                            TasaIPM = 0.025m
-                        });
                 });
 
             modelBuilder.Entity("CafeBarrio.Domain.Entities.DetalleTransaccion", b =>
