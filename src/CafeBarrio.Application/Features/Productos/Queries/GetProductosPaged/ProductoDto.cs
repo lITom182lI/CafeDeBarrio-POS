@@ -5,7 +5,10 @@ public record ProductoDto(
     string Nombre,
     string? Descripcion,
     decimal Precio,
-    int CantidadDisponible,
+    decimal CantidadDisponible,
+    decimal StockMinimo,
+    string UnidadMedida,
     string CategoriaNombre,
-    bool EsMayorista
+    bool EsMayorista,
+    bool Activo
 );

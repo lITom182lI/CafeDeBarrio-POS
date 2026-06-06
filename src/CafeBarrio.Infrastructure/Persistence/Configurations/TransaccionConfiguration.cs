@@ -15,11 +15,14 @@ public class TransaccionConfiguration : IEntityTypeConfiguration<Transaccion>
         builder.Property(x => x.SedeId).HasColumnName("sede_id");
         builder.Property(x => x.MetodoPagoId).HasColumnName("metodo_pago_id");
         builder.Property(x => x.OpcionEnvioId).HasColumnName("opcion_envio_id");
+        builder.Property(x => x.TurnoId).HasColumnName("turno_id");
+        builder.Property(x => x.OperadorId).HasColumnName("operador_id");
         builder.Property(x => x.EsMayorista).HasColumnName("es_mayorista").IsRequired();
         builder.Property(x => x.Canal).HasColumnName("canal").HasMaxLength(20).IsRequired();
         builder.Property(x => x.Fecha).HasColumnName("fecha").IsRequired();
         builder.Property(x => x.Subtotal).HasColumnName("subtotal").HasPrecision(18, 2).IsRequired();
         builder.Property(x => x.Impuesto).HasColumnName("impuesto").HasPrecision(18, 2).IsRequired();
+        builder.Property(x => x.RecargoPropina).HasColumnName("recargo_propina").HasPrecision(10, 2).HasDefaultValue(0m);
         builder.Property(x => x.CostoEnvio).HasColumnName("costo_envio").HasPrecision(18, 2).IsRequired();
         builder.Property(x => x.Total).HasColumnName("total").HasPrecision(18, 2).IsRequired();
         builder.Property(x => x.Notas).HasColumnName("notas");
@@ -39,5 +42,18 @@ public class TransaccionConfiguration : IEntityTypeConfiguration<Transaccion>
         builder.HasOne(x => x.OpcionEnvio)
                .WithMany(o => o.Transacciones)
                .HasForeignKey(x => x.OpcionEnvioId);
+
+        builder.HasOne(x => x.Turno)
+               .WithMany(t => t.Transacciones)
+               .HasForeignKey(x => x.TurnoId)
+               .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(x => x.Operador)
+               .WithMany(o => o.Transacciones)
+               .HasForeignKey(x => x.OperadorId)
+               .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(x => x.Fecha);
+        builder.HasIndex(x => x.TurnoId);
     }
 }

@@ -16,7 +16,10 @@ public class ProductoConfiguration : IEntityTypeConfiguration<Producto>
         builder.Property(x => x.Descripcion).HasColumnName("descripcion");
         builder.Property(x => x.Costo).HasColumnName("costo").HasPrecision(18, 2).IsRequired();
         builder.Property(x => x.Precio).HasColumnName("precio").HasPrecision(18, 2).IsRequired();
-        builder.Property(x => x.CantidadDisponible).HasColumnName("cantidad_disponible").IsRequired();
+        builder.Property(x => x.CantidadDisponible).HasColumnName("cantidad_disponible").HasPrecision(10, 3).IsRequired();
+        builder.Property(x => x.StockMinimo).HasColumnName("stock_minimo").HasPrecision(10, 3).HasDefaultValue(0m);
+        builder.Property(x => x.UnidadMedida).HasColumnName("unidad_medida").HasMaxLength(20).HasDefaultValue("unidad");
+        builder.Property(x => x.SeguimientoInventario).HasColumnName("seguimiento_inventario").HasDefaultValue(true);
         builder.Property(x => x.CantidadPorUnidad).HasColumnName("cantidad_por_unidad").HasMaxLength(50);
         builder.Property(x => x.ImagenUrl).HasColumnName("imagen_url").HasMaxLength(500);
         builder.Property(x => x.EsMayorista).HasColumnName("es_mayorista").IsRequired();

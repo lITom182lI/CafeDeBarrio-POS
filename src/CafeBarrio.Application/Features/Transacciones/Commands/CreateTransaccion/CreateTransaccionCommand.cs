@@ -11,5 +11,7 @@ public record CreateTransaccionCommand(
     int MetodoPagoId,
     int? OpcionEnvioId,
     string Canal,
-    IReadOnlyList<CreateTransaccionItemDto> Items
+    IReadOnlyList<CreateTransaccionItemDto> Items,
+    int? TurnoId = null,
+    int? OperadorId = null
 ) : IRequest<Result<int>>;
