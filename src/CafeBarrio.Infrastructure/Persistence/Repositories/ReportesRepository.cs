@@ -63,11 +63,16 @@ public class ReportesRepository : IReportesRepository
             .Take(200)
             .Select(t => new TransaccionListItemDto(
                 t.TransaccionId,
-                t.Cliente != null ? t.Cliente.Nombre : "Sin cliente",
+                t.RazonSocial != null ? t.RazonSocial : (t.Cliente != null ? t.Cliente.Nombre : "Sin cliente"),
                 t.Total,
                 t.Fecha,
                 t.MetodoPago.Nombre,
-                t.Anulacion != null))
+                t.Anulacion != null,
+                t.Operador != null ? t.Operador.Nombre : null,
+                t.TipoDocumento,
+                t.NumeroDocumento,
+                t.RazonSocial,
+                t.MetodoPagoSecundario != null ? t.MetodoPagoSecundario.Nombre : null))
             .ToListAsync(ct);
 
     public async Task<TransaccionDetalleDto?> GetTransaccionDetalleAsync(int transaccionId, CancellationToken ct)
@@ -76,6 +81,8 @@ public class ReportesRepository : IReportesRepository
             .Include(t => t.Cliente)
             .Include(t => t.MetodoPago)
             .Include(t => t.Anulacion)
+            .Include(t => t.Operador)
+            .Include(t => t.MetodoPagoSecundario)
             .Include(t => t.Detalles).ThenInclude(d => d.Producto)
             .FirstOrDefaultAsync(t => t.TransaccionId == transaccionId, ct);
 
@@ -83,7 +90,7 @@ public class ReportesRepository : IReportesRepository
 
         return new TransaccionDetalleDto(
             t.TransaccionId,
-            t.Cliente != null ? t.Cliente.Nombre : "Sin cliente",
+            t.RazonSocial != null ? t.RazonSocial : (t.Cliente != null ? t.Cliente.Nombre : "Sin cliente"),
             t.Total,
             t.Subtotal,
             t.Impuesto,
@@ -94,17 +101,26 @@ public class ReportesRepository : IReportesRepository
                 d.Producto.Nombre,
                 d.Cantidad,
                 d.PrecioUnitario,
-                d.SubtotalLinea)).ToList());
+                d.SubtotalLinea)).ToList(),
+            t.Operador?.Nombre,
+            t.TipoDocumento,
+            t.NumeroDocumento,
+            t.RazonSocial,
+            t.MetodoPagoSecundario?.Nombre,
+            t.MontoMetodoPrimario);
     }
 
     public async Task<IReadOnlyList<VentasPorDiaDto>> GetVentasPorDiaAsync(int sedeId, DateTime desde, DateTime hasta, CancellationToken ct)
-        => await _context.Transacciones
+    {
+        var rows = await _context.Transacciones
             .Where(t => t.SedeId == sedeId && t.Fecha >= desde && t.Fecha <= hasta)
-            .GroupBy(t => t.Fecha.Date)
-            .Select(g => new VentasPorDiaDto(
-                g.Key,
-                g.Sum(t => t.Total),
-                g.Count()))
-            .OrderBy(x => x.Fecha)
+            .Select(t => new { t.Fecha, t.Total })
             .ToListAsync(ct);
+
+        return rows
+            .GroupBy(t => t.Fecha.Date)
+            .Select(g => new VentasPorDiaDto(g.Key, g.Sum(t => t.Total), g.Count()))
+            .OrderBy(x => x.Fecha)
+            .ToList();
+    }
 }

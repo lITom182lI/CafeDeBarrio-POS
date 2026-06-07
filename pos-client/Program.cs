@@ -48,7 +48,11 @@ var apiClient = new ApiClient(apiBaseUrl, acceptSelfSigned);
 var posService = new PosService(db, apiClient, sedeId);
 var syncService = new SyncService(db, apiClient);
 
-var form = new FormPOS(posService, syncService, printTicket);
+using var loginForm = new FormLogin(apiClient);
+if (loginForm.ShowDialog() != DialogResult.OK)
+    return;
+
+var form = new FormPOS(posService, syncService, printTicket, loginForm.OperadorId);
 form.SetApiCheck(() => apiClient.IsAvailableAsync());
 
 Application.Run(form);

@@ -8,16 +8,16 @@ import { api } from '../api/client'
 import type { VentasResumenDto, VentasPorMetodoPagoDto, VentasPorDiaDto, TurnoActivoDto } from '../types'
 
 const fmtS = (n: number) => `S/ ${n.toFixed(2)}`
-const hoy  = () => new Date().toLocaleDateString('es-PE', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
+const hoy = () => new Date().toLocaleDateString('es-PE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
 export function DashboardPage() {
-  const [periodo, setPeriodo]   = useState<Periodo>('dia')
-  const [resumen, setResumen]   = useState<VentasResumenDto | null>(null)
-  const [metodos, setMetodos]   = useState<VentasPorMetodoPagoDto[]>([])
-  const [porDia,  setPorDia]    = useState<VentasPorDiaDto[]>([])
+  const [periodo, setPeriodo] = useState<Periodo>('dia')
+  const [resumen, setResumen] = useState<VentasResumenDto | null>(null)
+  const [metodos, setMetodos] = useState<VentasPorMetodoPagoDto[]>([])
+  const [porDia, setPorDia] = useState<VentasPorDiaDto[]>([])
   const [stockCount, setStockCount] = useState(0)
-  const [turno, setTurno]       = useState<TurnoActivoDto | null>(null)
-  const [err, setErr]           = useState('')
+  const [turno, setTurno] = useState<TurnoActivoDto | null>(null)
+  const [err, setErr] = useState('')
 
   const cargar = useCallback(async () => {
     setErr('')
@@ -48,7 +48,7 @@ export function DashboardPage() {
   return (
     <div className="page">
       <div className="page-header">
-        <h1 className="page-title">Point of Sale System</h1>
+        <h1 className="page-title">Panel de Control</h1>
         <div className="page-meta">{hoy()}</div>
       </div>
 

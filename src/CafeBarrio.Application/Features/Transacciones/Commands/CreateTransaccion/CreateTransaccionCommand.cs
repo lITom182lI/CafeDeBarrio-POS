@@ -6,12 +6,17 @@ namespace CafeBarrio.Application.Features.Transacciones.Commands.CreateTransacci
 public record CreateTransaccionItemDto(int ProductoId, int Cantidad);
 
 public record CreateTransaccionCommand(
-    int ClienteId,
     int SedeId,
     int MetodoPagoId,
-    int? OpcionEnvioId,
-    string Canal,
     IReadOnlyList<CreateTransaccionItemDto> Items,
-    int? TurnoId = null,
-    int? OperadorId = null
+    int? ClienteId        = null,
+    int? OpcionEnvioId    = null,
+    string Canal          = "POS",
+    int? TurnoId          = null,
+    int? OperadorId       = null,
+    string? TipoDocumento  = null,
+    string? NumeroDocumento = null,
+    string? RazonSocial    = null,
+    int? MetodoPagoSecundarioId = null,
+    decimal? MontoMetodoPrimario = null
 ) : IRequest<Result<int>>;

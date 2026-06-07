@@ -11,11 +11,12 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var allowedOrigin = builder.Configuration["Cors:AllowedOrigin"]
-                    ?? "http://localhost:5173";
+var allowedOrigins = (builder.Configuration["Cors:AllowedOrigin"]
+                     ?? "http://localhost:5173,http://localhost:5174")
+                     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 builder.Services.AddCors(options =>
     options.AddPolicy("Dashboard", policy =>
-        policy.WithOrigins(allowedOrigin)
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()));
 
@@ -95,7 +96,9 @@ using (var scope = app.Services.CreateScope())
     {
         db.MetodosPago.AddRange(
             new MetodoPago { Nombre = "Efectivo", Activo = true },
-            new MetodoPago { Nombre = "Tarjeta",  Activo = true }
+            new MetodoPago { Nombre = "Tarjeta",  Activo = true },
+            new MetodoPago { Nombre = "Yape",     Activo = true },
+            new MetodoPago { Nombre = "Plin",     Activo = true }
         );
     }
 

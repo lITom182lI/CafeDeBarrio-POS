@@ -82,41 +82,49 @@ public class PosService
 
     public async Task<bool> RegistrarVentaAsync(
         int metodoPagoId,
-        List<(int ProductoId, string Nombre, decimal Precio, int Cantidad)> items)
+        List<(int ProductoId, string Nombre, decimal Precio, int Cantidad)> items,
+        int? operadorId = null,
+        string? tipoDocumento = null,
+        string? numeroDocumento = null,
+        string? razonSocial = null)
     {
         var (subtotal, igv, total) = CalcularTotales(items);
-
         var dtoItems = items.Select(i => new ItemDto(i.ProductoId, i.Cantidad)).ToList();
 
         var pending = new PendingTransaccion
         {
-            SedeId = _sedeId,
-            MetodoPagoId = metodoPagoId,
-            Subtotal = subtotal,
-            Igv = igv,
-            Total = total,
-            FechaLocal = DateTime.UtcNow,
-            ItemsJson = JsonSerializer.Serialize(dtoItems),
-            Sincronizada = false
+            SedeId          = _sedeId,
+            MetodoPagoId    = metodoPagoId,
+            OperadorId      = operadorId,
+            Subtotal        = subtotal,
+            Igv             = igv,
+            Total           = total,
+            FechaLocal      = DateTime.UtcNow,
+            ItemsJson       = JsonSerializer.Serialize(dtoItems),
+            Sincronizada    = false,
+            TipoDocumento   = tipoDocumento,
+            NumeroDocumento = numeroDocumento,
+            RazonSocial     = razonSocial
         };
 
         _db.PendingTransacciones.Add(pending);
         await _db.SaveChangesAsync();
 
-        // Intentar sincronizar inmediatamente
         try
         {
-            var request = new CreateTransaccionRequest(_sedeId, null, metodoPagoId, dtoItems);
+            var request = new CreateTransaccionRequest(
+                _sedeId, null, metodoPagoId, dtoItems,
+                operadorId, tipoDocumento, numeroDocumento, razonSocial);
             var id = await _api.PostTransaccionAsync(request);
-            pending.Sincronizada = true;
-            pending.FechaSincronizacion = DateTime.UtcNow;
+            pending.Sincronizada          = true;
+            pending.FechaSincronizacion   = DateTime.UtcNow;
             pending.TransaccionIdServidor = id;
             await _db.SaveChangesAsync();
-            return true; // sincronizado al instante
+            return true;
         }
         catch
         {
-            return false; // guardado local, se sincronizará después
+            return false;
         }
     }
 

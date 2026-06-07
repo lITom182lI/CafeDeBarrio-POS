@@ -19,7 +19,8 @@ export function TransaccionesPage() {
     return txs.filter(t =>
       String(t.transaccionId).includes(q) ||
       t.clienteNombre.toLowerCase().includes(q) ||
-      String(t.total).includes(q)
+      String(t.total).includes(q) ||
+      (t.operadorNombre ?? '').toLowerCase().includes(q)
     )
   }, [txs, busqueda])
 
@@ -48,12 +49,13 @@ export function TransaccionesPage() {
               <th className="w-100">Monto</th>
               <th className="w-80">Hora</th>
               <th className="w-110">Método</th>
+              <th className="w-110">Operador</th>
               <th className="w-110">Estado</th>
             </tr>
           </thead>
           <tbody>
             {filtradas.length === 0
-              ? <tr><td colSpan={7}><div className="empty-state">Sin transacciones</div></td></tr>
+              ? <tr><td colSpan={8}><div className="empty-state">Sin transacciones</div></td></tr>
               : filtradas.map(tx => <TransaccionRow key={tx.transaccionId} tx={tx} />)
             }
           </tbody>

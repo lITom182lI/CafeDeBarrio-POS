@@ -606,11 +606,13 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Canal")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("POS")
                         .HasColumnName("canal");
 
-                    b.Property<int>("ClienteId")
+                    b.Property<int?>("ClienteId")
                         .HasColumnType("int")
                         .HasColumnName("cliente_id");
 
@@ -642,9 +644,23 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                         .HasColumnType("int")
                         .HasColumnName("metodo_pago_id");
 
+                    b.Property<int?>("MetodoPagoSecundarioId")
+                        .HasColumnType("int")
+                        .HasColumnName("metodo_pago_secundario_id");
+
+                    b.Property<decimal?>("MontoMetodoPrimario")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("monto_metodo_primario");
+
                     b.Property<string>("Notas")
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("notas");
+
+                    b.Property<string>("NumeroDocumento")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("numero_documento");
 
                     b.Property<int?>("OpcionEnvioId")
                         .HasColumnType("int")
@@ -653,6 +669,11 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                     b.Property<int?>("OperadorId")
                         .HasColumnType("int")
                         .HasColumnName("operador_id");
+
+                    b.Property<string>("RazonSocial")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
+                        .HasColumnName("razon_social");
 
                     b.Property<decimal>("RecargoPropina")
                         .ValueGeneratedOnAdd()
@@ -669,6 +690,11 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("subtotal");
+
+                    b.Property<string>("TipoDocumento")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("tipo_documento");
 
                     b.Property<decimal>("Total")
                         .HasPrecision(18, 2)
@@ -690,6 +716,8 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                     b.HasIndex("Fecha");
 
                     b.HasIndex("MetodoPagoId");
+
+                    b.HasIndex("MetodoPagoSecundarioId");
 
                     b.HasIndex("OpcionEnvioId");
 
@@ -1011,14 +1039,18 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                     b.HasOne("CafeBarrio.Domain.Entities.Cliente", "Cliente")
                         .WithMany("Transacciones")
                         .HasForeignKey("ClienteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("CafeBarrio.Domain.Entities.MetodoPago", "MetodoPago")
                         .WithMany("Transacciones")
                         .HasForeignKey("MetodoPagoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("CafeBarrio.Domain.Entities.MetodoPago", "MetodoPagoSecundario")
+                        .WithMany()
+                        .HasForeignKey("MetodoPagoSecundarioId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("CafeBarrio.Domain.Entities.OpcionEnvio", "OpcionEnvio")
                         .WithMany("Transacciones")
@@ -1043,6 +1075,8 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                     b.Navigation("Cliente");
 
                     b.Navigation("MetodoPago");
+
+                    b.Navigation("MetodoPagoSecundario");
 
                     b.Navigation("OpcionEnvio");
 

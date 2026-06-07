@@ -67,6 +67,8 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
             ClienteId      = request.ClienteId,
             SedeId         = request.SedeId,
             MetodoPagoId   = request.MetodoPagoId,
+            MetodoPagoSecundarioId = request.MetodoPagoSecundarioId,
+            MontoMetodoPrimario    = request.MontoMetodoPrimario,
             OpcionEnvioId  = request.OpcionEnvioId,
             TurnoId        = request.TurnoId,
             OperadorId     = request.OperadorId,
@@ -78,7 +80,10 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
             RecargoPropina = 0m,
             CostoEnvio     = 0m,
             Total          = subtotal + impuesto,
-            Detalles       = detalles
+            Detalles       = detalles,
+            TipoDocumento  = request.TipoDocumento,
+            NumeroDocumento = request.NumeroDocumento,
+            RazonSocial    = request.RazonSocial
         };
 
         var result = await _transacciones.AddAsync(transaccion, ct);

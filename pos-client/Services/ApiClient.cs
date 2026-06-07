@@ -68,4 +68,29 @@ public class ApiClient
             ? v.GetInt32()
             : doc.RootElement.GetInt32();
     }
+
+    public async Task<List<OperadorDto>> GetOperadoresAsync()
+    {
+        try
+        {
+            var r = await _http.GetAsync($"{_base}/api/operadores");
+            if (!r.IsSuccessStatusCode) return [];
+            var json = await r.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<List<OperadorDto>>(json, _json) ?? [];
+        }
+        catch { return []; }
+    }
+
+    public async Task<OperadorLoginResult?> ValidarPinAsync(int operadorId, string pin)
+    {
+        var body    = JsonSerializer.Serialize(new { OperadorId = operadorId, Pin = pin }, _json);
+        var content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
+        var r       = await _http.PostAsync($"{_base}/api/operadores/validar-pin", content);
+        if (!r.IsSuccessStatusCode) return null;
+        var json = await r.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<OperadorLoginResult>(json, _json);
+    }
 }
+
+public record OperadorLoginResult(int OperadorId, string Nombre);
+public record OperadorDto(int OperadorId, string Nombre);

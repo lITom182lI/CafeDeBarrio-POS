@@ -1,0 +1,19 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": [
+      "/api/*",
+      "/*.{js,css,ico,png,svg,json,webmanifest,woff,woff2,txt}"
+    ]
+  },
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://cafedebarrio-api.azurewebsites.net; worker-src 'self'; manifest-src 'self'"
+  },
+  "mimeTypes": {
+    ".webmanifest": "application/manifest+json"
+  }
+}

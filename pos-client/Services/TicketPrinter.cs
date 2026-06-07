@@ -11,9 +11,13 @@ public static class TicketPrinter
         decimal subtotal,
         decimal igv,
         decimal total,
-        string metodoPago)
+        string metodoPago,
+        string? tipoDocumento = null,
+        string? numeroDocumento = null,
+        string? razonSocial = null)
     {
-        var lines = BuildLines(items, subtotal, igv, total, metodoPago);
+        var lines = BuildLines(items, subtotal, igv, total, metodoPago,
+                               tipoDocumento, numeroDocumento, razonSocial);
         var doc = new PrintDocument();
         doc.DefaultPageSettings.Margins = new Margins(10, 10, 10, 10);
         doc.PrintPage += (_, e) =>
@@ -50,7 +54,8 @@ public static class TicketPrinter
 
     private static List<(string Text, LineStyle Style)> BuildLines(
         List<(int ProductoId, string Nombre, decimal Precio, int Cantidad)> items,
-        decimal subtotal, decimal igv, decimal total, string metodoPago)
+        decimal subtotal, decimal igv, decimal total, string metodoPago,
+        string? tipoDocumento = null, string? numeroDocumento = null, string? razonSocial = null)
     {
         const string sep  = "--------------------------------";
         const string sep2 = "================================";
@@ -61,6 +66,20 @@ public static class TicketPrinter
         ls.Add((Center("CAFE DE BARRIO"),                                LineStyle.Header));
         ls.Add((sep2,                                                    LineStyle.Normal));
         ls.Add((now.ToString("dd/MM/yyyy  HH:mm:ss"),                   LineStyle.Normal));
+
+        if (razonSocial is not null)
+        {
+            const string sepBol = "--------------------------------";
+            ls.Add(("",                                                   LineStyle.Normal));
+            ls.Add((Center("-- BOLETA NOMINADA --"),                     LineStyle.Bold));
+            ls.Add((sepBol,                                              LineStyle.Normal));
+            if (tipoDocumento is not null && numeroDocumento is not null)
+                ls.Add(($"{tipoDocumento}: {numeroDocumento}",           LineStyle.Normal));
+            var rsTrunc = razonSocial.Length > 32 ? razonSocial[..31] + "." : razonSocial;
+            ls.Add((rsTrunc,                                             LineStyle.Normal));
+            ls.Add((sepBol,                                              LineStyle.Normal));
+        }
+
         ls.Add(("",                                                       LineStyle.Normal));
         ls.Add((PadRight("Producto", 18) + PadLeft("Cant", 5) + PadLeft("Total", 9), LineStyle.Bold));
         ls.Add((sep,                                                     LineStyle.Normal));

@@ -15,8 +15,8 @@ export interface ProductoDto {
   seguimientoInventario?: boolean;
   esMayorista?: boolean;
 }
-export interface TransaccionListItemDto { transaccionId: number; clienteNombre: string; total: number; fecha: string; metodoPago: string; anulada: boolean; }
-export interface TransaccionDetalleDto { transaccionId: number; clienteNombre: string; total: number; subtotal: number; igv: number; fecha: string; metodoPago: string; anulada: boolean; items: DetalleItemDto[]; }
+export interface TransaccionListItemDto { transaccionId: number; clienteNombre: string; total: number; fecha: string; metodoPago: string; anulada: boolean; operadorNombre?: string; tipoDocumento?: string; numeroDocumento?: string; razonSocial?: string; metodoPagoSecundario?: string; }
+export interface TransaccionDetalleDto { transaccionId: number; clienteNombre: string; total: number; subtotal: number; igv: number; fecha: string; metodoPago: string; anulada: boolean; items: DetalleItemDto[]; operadorNombre?: string; tipoDocumento?: string; numeroDocumento?: string; razonSocial?: string; metodoPagoSecundario?: string; montoMetodoPrimario?: number; }
 export interface DetalleItemDto { nombreProducto: string; cantidad: number; precioUnitario: number; subtotalLinea: number; }
 export interface CategoriaCafeDto {
   categoriaId: number

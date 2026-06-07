@@ -5,9 +5,11 @@ namespace CafeBarrio.Domain.Entities;
 public class Transaccion : IAuditable
 {
     public int TransaccionId { get; set; }
-    public int ClienteId { get; set; }
+    public int? ClienteId { get; set; }
     public int SedeId { get; set; }
     public int MetodoPagoId { get; set; }
+    public int? MetodoPagoSecundarioId { get; set; }
+    public decimal? MontoMetodoPrimario { get; set; }
     public int? OpcionEnvioId { get; set; }
     public int? TurnoId { get; set; }
     public int? OperadorId { get; set; }
@@ -20,10 +22,14 @@ public class Transaccion : IAuditable
     public decimal CostoEnvio { get; set; }
     public decimal Total { get; set; }
     public string? Notas { get; set; }
+    public string? TipoDocumento { get; set; }
+    public string? NumeroDocumento { get; set; }
+    public string? RazonSocial { get; set; }
 
     public Cliente Cliente { get; set; } = null!;
     public Sede Sede { get; set; } = null!;
     public MetodoPago MetodoPago { get; set; } = null!;
+    public MetodoPago? MetodoPagoSecundario { get; set; }
     public OpcionEnvio? OpcionEnvio { get; set; }
     public Turno? Turno { get; set; }
     public Operador? Operador { get; set; }

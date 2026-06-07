@@ -156,6 +156,11 @@ tbody tr.data-row:hover > td { background: #fafafa; }
 .ml-auto { margin-left: auto; }
 .pt-6 { padding-top: 6px; }
 .border-top { border-top: 1px solid var(--border); }
+.payment-methods-wrap { display: flex; gap: 4px; flex-wrap: wrap; }
+.status-badges-wrap { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.badge-boleta { font-size: 0.68rem; }
+.boleta-section-title { margin-top: 8px; }
+.boleta-section-label { color: var(--accent); }
 
 /* ── Login ─────────────────────────────────────── */
 .login-bg {
@@ -229,31 +234,34 @@ tbody tr.data-row:hover > td { background: #fafafa; }
   z-index: 1000;
 }
 .modal-box {
-  background: var(--bg-card);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1.5rem;
   width: 100%; max-width: 520px;
   max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
 }
 .modal-header {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 1.25rem;
+  padding-bottom: 0.875rem;
+  border-bottom: 2px solid var(--accent);
 }
 .modal-header h2 { font-size: 1.1rem; font-weight: 600; }
 .modal-close {
-  background: none; border: none; color: var(--text-muted);
+  background: none; border: none; color: var(--muted);
   font-size: 1.1rem; cursor: pointer; padding: 0.25rem;
 }
 .modal-form { display: flex; flex-direction: column; gap: 0.875rem; }
 .modal-form label {
   display: flex; flex-direction: column; gap: 0.3rem;
-  font-size: 0.8rem; color: var(--text-muted); font-weight: 500;
+  font-size: 0.8rem; color: var(--muted); font-weight: 500;
 }
 .modal-form input, .modal-form select {
-  background: var(--bg-main); border: 1px solid var(--border);
+  background: var(--bg); border: 1px solid var(--border);
   border-radius: 6px; padding: 0.5rem 0.75rem;
-  color: var(--text-main); font-size: 0.875rem; width: 100%;
+  color: var(--text); font-size: 0.875rem; width: 100%;
 }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 .checkbox-label { flex-direction: row !important; align-items: center; gap: 0.5rem !important; }
@@ -267,7 +275,7 @@ tbody tr.data-row:hover > td { background: #fafafa; }
 .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-secondary {
   background: transparent; border: 1px solid var(--border);
-  color: var(--text-main); border-radius: 8px;
+  color: var(--text); border-radius: 8px;
   padding: 0.5rem 1.25rem; font-size: 0.875rem; cursor: pointer;
 }
 .btn-link {
@@ -278,7 +286,7 @@ tbody tr.data-row:hover > td { background: #fafafa; }
 
 /* ── Configuracion Page ─────────────────────────────────── */
 .settings-card {
-  background: var(--bg-card);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1.5rem;
@@ -288,19 +296,19 @@ tbody tr.data-row:hover > td { background: #fafafa; }
   font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;
 }
 .settings-hint {
-  font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem;
+  font-size: 0.8rem; color: var(--muted); margin-bottom: 1.25rem;
 }
 .settings-form {
   display: flex; flex-direction: column; gap: 0.875rem;
 }
 .settings-form label {
   display: flex; flex-direction: column; gap: 0.3rem;
-  font-size: 0.8rem; color: var(--text-muted); font-weight: 500;
+  font-size: 0.8rem; color: var(--muted); font-weight: 500;
 }
 .settings-form input {
-  background: var(--bg-main); border: 1px solid var(--border);
+  background: var(--bg); border: 1px solid var(--border);
   border-radius: 6px; padding: 0.5rem 0.75rem;
-  color: var(--text-main); font-size: 0.875rem;
+  color: var(--text); font-size: 0.875rem;
 }
 .success-banner {
   background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3);

@@ -490,3 +490,7 @@ certs/*.pfx
 src/CafeBarrio.API/appsettings.Production.json
 pos-client/App.config
 
+# SQLite databases
+*.db
+*.db-shm
+*.db-wal

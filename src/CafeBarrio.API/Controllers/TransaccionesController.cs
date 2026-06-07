@@ -24,7 +24,7 @@ public class TransaccionesController : ControllerBase
         var result = await _mediator.Send(command, ct);
 
         return result.IsSuccess
-            ? CreatedAtAction(nameof(Create), new { id = result.Value }, null)
+            ? CreatedAtAction(nameof(Create), new { id = result.Value }, result.Value)
             : BadRequest(result.Errors);
     }
 

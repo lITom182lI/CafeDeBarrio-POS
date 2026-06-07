@@ -39,7 +39,9 @@ public sealed class SyncService : IDisposable
             try
             {
                 var items = JsonSerializer.Deserialize<List<ItemDto>>(tx.ItemsJson) ?? [];
-                var request = new CreateTransaccionRequest(tx.SedeId, null, tx.MetodoPagoId, items);
+                var request = new CreateTransaccionRequest(
+                    tx.SedeId, null, tx.MetodoPagoId, items,
+                    tx.OperadorId, tx.TipoDocumento, tx.NumeroDocumento, tx.RazonSocial);
                 var id = await _api.PostTransaccionAsync(request);
 
                 tx.Sincronizada = true;
