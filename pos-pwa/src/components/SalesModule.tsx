@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, startTransition } from 'react'
 import type {
   ProductoDto, CategoriaDto, MetodoPagoDto,
   CartItem, ComprobanteData, CreateTransaccionRequest, OperadorSession,
@@ -72,7 +72,7 @@ export default function SalesModule({ session, onLogout }: Props) {
     }
   }
 
-  useEffect(() => { loadCatalog() }, [])
+  useEffect(() => { startTransition(() => { void loadCatalog() }) }, [])
 
   // ── Productos filtrados ───────────────────────────────────────────────────
   const productosFiltrados = useMemo(() =>
@@ -116,7 +116,6 @@ export default function SalesModule({ session, onLogout }: Props) {
   const vuelto = montoEfectivoNum - total
 
   const montoM1 = parseFloat(montoMetodo1) || 0
-  const montoM2 = total - montoM1
 
   const cobrarDisabled =
     cart.length === 0 ||
@@ -210,7 +209,7 @@ export default function SalesModule({ session, onLogout }: Props) {
     <div className="h-screen flex flex-col bg-stone-100 overflow-hidden">
       {/* Header */}
       <header
-        className="flex items-center justify-between px-4 py-2 shadow-sm flex-shrink-0 bg-[#c2622a]"
+        className="flex items-center justify-between px-4 py-2 shadow-sm flex-shrink-0 bg-brand"
       >
         <div className="flex items-center gap-2">
           <span className="text-xl">☕</span>
@@ -266,7 +265,7 @@ export default function SalesModule({ session, onLogout }: Props) {
               <button
                 onClick={() => setSelectedCat(null)}
                 className={`flex-shrink-0 px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                  selectedCat === null ? 'text-white bg-[#c2622a]' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                  selectedCat === null ? 'text-white bg-brand' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                 }`}
               >
                 Todos
@@ -276,7 +275,7 @@ export default function SalesModule({ session, onLogout }: Props) {
                   key={cat.categoriaId}
                   onClick={() => setSelectedCat(cat.nombre)}
                   className={`flex-shrink-0 px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                    selectedCat === cat.nombre ? 'text-white bg-[#c2622a]' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                    selectedCat === cat.nombre ? 'text-white bg-brand' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                   }`}
                 >
                   {cat.nombre}
@@ -325,7 +324,7 @@ export default function SalesModule({ session, onLogout }: Props) {
                       }`}
                     >
                       <p className="font-medium text-stone-800 text-sm leading-tight">{p.nombre}</p>
-                      <p className="font-bold text-sm mt-1 text-[#c2622a]">
+                      <p className="font-bold text-sm mt-1 text-brand">
                         {formatSoles(p.precio)}
                       </p>
                       {p.seguimientoInventario && !agotado && p.cantidadDisponible <= 5 && (
@@ -420,7 +419,7 @@ export default function SalesModule({ session, onLogout }: Props) {
                     onClick={() => { setMetodoPagoId(m.metodoPagoId); setMontoEfectivo('') }}
                     className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition-colors ${
                       metodoPagoId === m.metodoPagoId
-                        ? 'text-white border-[#c2622a] bg-[#c2622a]'
+                        ? 'text-white border-brand bg-brand'
                         : 'bg-stone-50 text-stone-600 border-stone-200 hover:border-stone-400'
                     }`}
                   >
@@ -469,7 +468,7 @@ export default function SalesModule({ session, onLogout }: Props) {
                             onClick={() => setMetodoPago2Id(m.metodoPagoId)}
                             className={`px-2 py-1 rounded-lg text-xs font-semibold border transition-colors ${
                               metodoPago2Id === m.metodoPagoId
-                                ? 'text-white border-[#c2622a] bg-[#c2622a]'
+                                ? 'text-white border-brand bg-brand'
                                 : 'bg-white text-stone-600 border-stone-200 hover:border-stone-400'
                             }`}
                           >
@@ -539,7 +538,7 @@ export default function SalesModule({ session, onLogout }: Props) {
             <button
               onClick={handleCobrar}
               disabled={cobrarDisabled}
-              className="w-full py-3.5 rounded-xl font-bold text-white text-base transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-[#c2622a]"
+              className="w-full py-3.5 rounded-xl font-bold text-white text-base transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-brand"
             >
               {processing ? 'Procesando...' : `COBRAR ${formatSoles(total)}`}
             </button>

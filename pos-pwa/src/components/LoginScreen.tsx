@@ -101,7 +101,7 @@ export default function LoginScreen({ onLogin }: Props) {
             <button
               onClick={handleLogin}
               disabled={!operadorId || pin.length < 4 || validating}
-              className="w-full py-3 rounded-lg font-semibold text-white transition-colors disabled:opacity-40 bg-[#c2622a]"
+              className="w-full py-3 rounded-lg font-semibold text-white transition-colors disabled:opacity-40 bg-brand"
             >
               {validating ? 'Verificando...' : 'Ingresar'}
             </button>

@@ -106,7 +106,7 @@ export default function TicketModal({ ticket, onClose }: Props) {
             </button>
             <button
               onClick={onClose}
-              className="flex-1 py-3 rounded-lg font-bold text-white text-sm transition-colors bg-[#c2622a]"
+              className="flex-1 py-3 rounded-lg font-bold text-white text-sm transition-colors bg-brand"
             >
               Nueva venta
             </button>

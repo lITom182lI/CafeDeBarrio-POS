@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, startTransition } from 'react'
 import { startSync, stopSync, syncNow } from './syncService'
 import { getPendingCount } from './pendingStore'
 
@@ -11,7 +11,7 @@ export function useSync() {
   }, [])
 
   useEffect(() => {
-    refreshCount()
+    startTransition(() => { void refreshCount() })
 
     const onOnline  = () => { setIsOnline(true);  syncNow() }
     const onOffline = () => setIsOnline(false)

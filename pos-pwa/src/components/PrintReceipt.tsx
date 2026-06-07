@@ -38,7 +38,7 @@ function buildReceipt(ticket: TicketData): string {
     lines.push(center('-- BOLETA NOMINADA --'))
     lines.push(SEP)
     lines.push(`${ticket.comprobante.tipoDocumento}: ${ticket.comprobante.numeroDocumento}`)
-    const rs = ticket.comprobante.razonSocial
+    const rs = ticket.comprobante.razonSocial ?? ''
     lines.push(rs.length > W ? rs.slice(0, W - 1) + '.' : rs)
     lines.push(SEP)
   }

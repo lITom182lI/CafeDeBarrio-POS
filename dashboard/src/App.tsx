@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
-import { useAuth } from './context/AuthContext'
+import { AuthProvider } from './context/AuthProvider'
+import { useAuth } from './hooks/useAuth'
 import { Sidebar } from './components/Sidebar'
 import { LoginPage } from './pages/LoginPage'
 import { DashboardPage } from './pages/DashboardPage'

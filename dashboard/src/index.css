@@ -181,7 +181,7 @@ tbody tr.data-row:hover > td { background: #fafafa; }
 .login-brand {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #c2622a;
+  color: var(--accent);
   text-align: center;
   margin-bottom: 0.25rem;
 }
@@ -203,7 +203,7 @@ tbody tr.data-row:hover > td { background: #fafafa; }
   outline: none;
   transition: border-color 0.15s;
 }
-.login-input:focus { border-color: #c2622a; }
+.login-input:focus { border-color: var(--accent); }
 .login-error {
   background: #fee2e2;
   color: #991b1b;
@@ -212,7 +212,7 @@ tbody tr.data-row:hover > td { background: #fafafa; }
   font-size: 0.875rem;
 }
 .login-btn {
-  background: #c2622a;
+  background: var(--accent);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -223,7 +223,7 @@ tbody tr.data-row:hover > td { background: #fafafa; }
   margin-top: 0.5rem;
   transition: background 0.15s;
 }
-.login-btn:hover:not(:disabled) { background: #a8501f; }
+.login-btn:hover:not(:disabled) { background: var(--accent-hover); }
 .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* ── Modal ─────────────────────────────────────── */
@@ -314,4 +314,32 @@ tbody tr.data-row:hover > td { background: #fafafa; }
   background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3);
   color: #4ade80; border-radius: 8px; padding: 0.6rem 0.875rem;
   font-size: 0.8rem; margin-bottom: 1rem;
+}
+
+/* ── Error Boundary Fallback ───────────────────── */
+.fallback-bg {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  background: var(--bg);
+}
+.fallback-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+.fallback-title {
+  font-weight: 700;
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+.fallback-text {
+  color: var(--muted);
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+  max-width: 360px;
 }

@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand: #c2622a;
+  --color-brand-hover: #a85220;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {

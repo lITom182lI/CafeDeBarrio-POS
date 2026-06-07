@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, startTransition } from 'react'
 import { PeriodoSelector, type Periodo } from '../components/PeriodoSelector'
 import { KPICard } from '../components/KPICard'
 import { VentasPorDia } from '../components/VentasPorDia'
@@ -40,8 +40,8 @@ export function DashboardPage() {
     } catch { /* silencioso */ }
   }, [])
 
-  useEffect(() => { cargar() }, [cargar])
-  useEffect(() => { cargarExtras() }, [cargarExtras])
+  useEffect(() => { startTransition(() => { void cargar() }) }, [cargar])
+  useEffect(() => { startTransition(() => { void cargarExtras() }) }, [cargarExtras])
 
   const subPeriodo = periodo === 'dia' ? 'hoy' : periodo === 'semana' ? 'últimos 7 días' : 'este mes'
 

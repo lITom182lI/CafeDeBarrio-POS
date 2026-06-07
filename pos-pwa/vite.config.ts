@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -43,6 +43,18 @@ export default defineConfig({
       }
     })
   ],
+  define: {
+    'import.meta.env.VITE_API_URL': JSON.stringify(''),
+    'import.meta.env.VITE_SEDE_ID': JSON.stringify('1'),
+    'import.meta.env.VITE_TASA_IGV': JSON.stringify('0.105'),
+    'import.meta.env.VITE_SENTRY_DSN': JSON.stringify(''),
+    'import.meta.env.MODE': JSON.stringify('test'),
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './src/test/setup.ts',
+  },
   server: {
     port: 5174,
     proxy: {

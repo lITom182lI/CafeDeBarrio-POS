@@ -5,6 +5,8 @@ import type {
   CategoriaCafeDto, ProductoFormData, OperadorDto
 } from '../types';
 
+interface PaginatedResult<T> { items: T[]; totalCount: number }
+
 const SEDE = 1;
 async function get<T>(path: string): Promise<T> {
   const token = localStorage.getItem('token')
@@ -65,7 +67,8 @@ export const api = {
   actualizarProducto: (id: number, data: ProductoFormData) =>
     put(`/api/productos/${id}`, { productoId: id, ...data }),
   stockBajo:           ()          => get<StockBajoDto[]>(`/api/reportes/stock-bajo`),
-  productos:           ()          => get<any>(`/api/productos?pageSize=1000`).then(r => r.items ? (r.items as ProductoDto[]) : (r as ProductoDto[])),
+  productos: () => get<PaginatedResult<ProductoDto> | ProductoDto[]>(`/api/productos?pageSize=1000`)
+    .then(r => Array.isArray(r) ? r : (r as PaginatedResult<ProductoDto>).items ?? []),
   transacciones:       ()          => get<TransaccionListItemDto[]>(`/api/transacciones?sedeId=${SEDE}`),
   cambiarContrasena: (currentPassword: string, newPassword: string) =>
     put('/api/auth/change-password', { currentPassword, newPassword }),
