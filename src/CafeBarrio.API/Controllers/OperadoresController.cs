@@ -1,80 +1,73 @@
 using CafeBarrio.Application.Common.Interfaces;
 using CafeBarrio.Application.Features.Operadores.Commands.CreateOperador;
 using CafeBarrio.Application.Features.Operadores.Commands.UpdateOperador;
-using CafeBarrio.Domain.Entities;
-using CafeBarrio.Infrastructure.Persistence;
+using CafeBarrio.Application.Features.Operadores.Commands.ValidarPin;
+using CafeBarrio.Application.Features.Operadores.Dtos;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace CafeBarrio.API.Controllers;
-
-public record ValidarPinRequest(int OperadorId, string Pin);
-public record OperadorLoginDto(int OperadorId, string Nombre);
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[Produces("application/json")]
 public class OperadoresController : ControllerBase
 {
-    private readonly IMediator _mediator;
-    private readonly CafeBarrioDbContext _db;
-    private readonly IPasswordHasher _hasher;
+    private readonly ISender _sender;
+    private readonly IOperadorRepository _operadores;
 
-    public OperadoresController(IMediator mediator, CafeBarrioDbContext db, IPasswordHasher hasher)
+    public OperadoresController(ISender sender, IOperadorRepository operadores)
     {
-        _mediator = mediator;
-        _db       = db;
-        _hasher   = hasher;
+        _sender     = sender;
+        _operadores = operadores;
     }
 
     [HttpGet]
     [AllowAnonymous]
+    [ProducesResponseType<IReadOnlyList<OperadorResumenDto>>(200)]
     public async Task<IActionResult> GetAll(CancellationToken ct)
     {
-        var lista = await _db.Set<Operador>()
-            .OrderBy(o => o.Nombre)
-            .Select(o => new { o.OperadorId, o.Nombre, o.Activo })
-            .ToListAsync(ct);
-        return Ok(lista);
+        var lista = await _operadores.GetAllActivosAsync(ct);
+        return Ok(lista.Select(o => new OperadorResumenDto(o.OperadorId, o.Nombre)).ToList());
     }
 
     [HttpPost]
+    [ProducesResponseType<int>(201)]
+    [ProducesResponseType(400)]
     public async Task<IActionResult> Create(
         [FromBody] CreateOperadorCommand command, CancellationToken ct)
     {
-        var result = await _mediator.Send(command, ct);
+        var result = await _sender.Send(command, ct);
         return result.IsSuccess
             ? CreatedAtAction(nameof(GetAll), new { }, result.Value)
             : BadRequest(result.Errors);
     }
 
     [HttpPut("{id:int}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> Update(
         int id, [FromBody] UpdateOperadorCommand command, CancellationToken ct)
     {
         if (id != command.OperadorId) return BadRequest("ID no coincide.");
-        var result = await _mediator.Send(command, ct);
+        var result = await _sender.Send(command, ct);
         return result.IsSuccess ? NoContent() : NotFound(result.Errors);
     }
 
     [HttpPost("validar-pin")]
     [AllowAnonymous]
+    [EnableRateLimiting("pin-policy")]
+    [ProducesResponseType<OperadorLoginDto>(200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(401)]
     public async Task<IActionResult> ValidarPin(
-        [FromBody] ValidarPinRequest request, CancellationToken ct)
+        [FromBody] ValidarPinCommand command, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(request.Pin))
-            return BadRequest("PIN requerido.");
-
-        var operador = await _db.Set<Operador>()
-            .FirstOrDefaultAsync(o => o.OperadorId == request.OperadorId && o.Activo, ct);
-
-        if (operador is null)
-            return NotFound("Operador no encontrado.");
-
-        return _hasher.Verify(request.Pin, operador.PinHash)
-            ? Ok(new OperadorLoginDto(operador.OperadorId, operador.Nombre))
-            : Unauthorized("PIN incorrecto.");
+        var result = await _sender.Send(command, ct);
+        return result.IsSuccess ? Ok(result.Value) : Unauthorized(result.Errors);
     }
 }

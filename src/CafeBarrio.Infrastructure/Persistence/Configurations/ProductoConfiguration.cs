@@ -30,5 +30,7 @@ public class ProductoConfiguration : IEntityTypeConfiguration<Producto>
         builder.HasOne(x => x.Categoria)
                .WithMany(c => c.Productos)
                .HasForeignKey(x => x.CategoriaId);
+
+        builder.HasIndex(x => x.Activo).HasDatabaseName("IX_Producto_Activo");
     }
 }

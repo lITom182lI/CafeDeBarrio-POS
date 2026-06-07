@@ -1,30 +1,25 @@
-using CafeBarrio.Domain.Entities;
-using CafeBarrio.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
+using CafeBarrio.Application.Features.Catalogos.Dtos;
+using CafeBarrio.Application.Features.Catalogos.Queries.GetMetodosPago;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CafeBarrio.API.Controllers;
 
 [ApiController]
 [Route("api/metodos-pago")]
 [AllowAnonymous]
+[Produces("application/json")]
 public class MetodosPagoController : ControllerBase
 {
-    private readonly CafeBarrioDbContext _context;
-
-    public MetodosPagoController(CafeBarrioDbContext context)
-    {
-        _context = context;
-    }
+    private readonly ISender _sender;
+    public MetodosPagoController(ISender sender) => _sender = sender;
 
     [HttpGet]
-    public async Task<IActionResult> GetMetodosPago()
+    [ProducesResponseType<IReadOnlyList<MetodoPagoDto>>(200)]
+    public async Task<IActionResult> GetMetodosPago(CancellationToken ct)
     {
-        var lista = await _context.Set<MetodoPago>()
-            .Select(m => new { m.MetodoPagoId, m.Nombre })
-            .ToListAsync();
-        return Ok(lista);
+        var result = await _sender.Send(new GetMetodosPagoQuery(), ct);
+        return Ok(result.Value);
     }
 }

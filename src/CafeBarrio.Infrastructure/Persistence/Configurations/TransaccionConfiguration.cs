@@ -71,5 +71,6 @@ public class TransaccionConfiguration : IEntityTypeConfiguration<Transaccion>
 
         builder.HasIndex(x => x.Fecha);
         builder.HasIndex(x => x.TurnoId);
+        builder.HasIndex(x => new { x.SedeId, x.Fecha }).HasDatabaseName("IX_Transaccion_SedeId_Fecha");
     }
 }

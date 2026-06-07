@@ -490,7 +490,16 @@ certs/*.pfx
 src/CafeBarrio.API/appsettings.Production.json
 pos-client/App.config
 
+# Secretos de entorno — NUNCA versionar
+appsettings.Development.json
+appsettings.Production.json
+docker-compose.override.yml
+
 # SQLite databases
 *.db
 *.db-shm
 *.db-wal
+
+# Style Dictionary output (regenerado por sd.config.json)
+dashboard/src/styles/tokens.css
+dashboard/src/lib/tokens.generated.ts

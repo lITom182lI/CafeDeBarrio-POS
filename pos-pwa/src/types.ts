@@ -29,6 +29,7 @@ export interface OperadorDto {
 export interface OperadorLoginDto {
   operadorId: number
   nombre: string
+  token: string
 }
 
 // ─── Estado local del carrito ─────────────────────────────────────────────
@@ -95,6 +96,7 @@ export interface PendingTransaction {
 export interface OperadorSession {
   operadorId: number
   nombre: string
+  token: string | null
 }
 
 // ─── Totales calculados del carrito ──────────────────────────────────────

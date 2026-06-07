@@ -8,6 +8,7 @@ namespace CafeBarrio.API.Controllers;
 
 [ApiController]
 [Route("api/auth")]
+[Produces("application/json")]
 public class AuthController : ControllerBase
 {
     private readonly IUsuarioRepository _usuarios;
@@ -16,20 +17,17 @@ public class AuthController : ControllerBase
     private readonly IUnitOfWork _uow;
 
     public AuthController(
-        IUsuarioRepository usuarios,
-        IJwtService jwt,
-        IPasswordHasher hasher,
-        IUnitOfWork uow)
+        IUsuarioRepository usuarios, IJwtService jwt,
+        IPasswordHasher hasher, IUnitOfWork uow)
     {
-        _usuarios = usuarios;
-        _jwt      = jwt;
-        _hasher   = hasher;
-        _uow      = uow;
+        _usuarios = usuarios; _jwt = jwt; _hasher = hasher; _uow = uow;
     }
 
     [HttpPost("login")]
     [AllowAnonymous]
     [EnableRateLimiting("login-policy")]
+    [ProducesResponseType<LoginResponse>(200)]
+    [ProducesResponseType(401)]
     public async Task<IActionResult> Login(
         [FromBody] LoginRequest request, CancellationToken ct)
     {
@@ -43,6 +41,8 @@ public class AuthController : ControllerBase
 
     [HttpGet("me")]
     [Authorize]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(401)]
     public IActionResult Me()
     {
         var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
@@ -52,6 +52,9 @@ public class AuthController : ControllerBase
 
     [HttpPut("change-password")]
     [Authorize]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(401)]
     public async Task<IActionResult> ChangePassword(
         [FromBody] ChangePasswordRequest request, CancellationToken ct)
     {
@@ -71,7 +74,6 @@ public class AuthController : ControllerBase
 
         usuario.PasswordHash = _hasher.Hash(request.NewPassword);
         await _uow.SaveChangesAsync(ct);
-
         return NoContent();
     }
 }

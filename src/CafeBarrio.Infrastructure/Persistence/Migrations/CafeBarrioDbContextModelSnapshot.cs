@@ -510,6 +510,9 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
 
                     b.HasKey("ProductoId");
 
+                    b.HasIndex("Activo")
+                        .HasDatabaseName("IX_Producto_Activo");
+
                     b.HasIndex("CategoriaId");
 
                     b.ToTable("Producto", (string)null);
@@ -723,9 +726,10 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("OperadorId");
 
-                    b.HasIndex("SedeId");
-
                     b.HasIndex("TurnoId");
+
+                    b.HasIndex("SedeId", "Fecha")
+                        .HasDatabaseName("IX_Transaccion_SedeId_Fecha");
 
                     b.ToTable("Transaccion", (string)null);
                 });

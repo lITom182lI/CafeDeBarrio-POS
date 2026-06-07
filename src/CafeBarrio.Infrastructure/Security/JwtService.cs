@@ -15,23 +15,38 @@ public class JwtService : IJwtService
 
     public string GenerateToken(Usuario usuario)
     {
-        var key   = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expiry = DateTime.UtcNow.AddHours(
-            int.TryParse(_config["Jwt:ExpiryHours"], out var h) ? h : 8);
-
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, usuario.UsuarioId.ToString()),
             new Claim(ClaimTypes.Email, usuario.Email),
             new Claim(ClaimTypes.Role, usuario.Rol),
         };
+        return BuildToken(claims, hoursOverride: null);
+    }
+
+    public string GenerateOperadorToken(int operadorId, string nombre)
+    {
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, operadorId.ToString()),
+            new Claim(ClaimTypes.Name, nombre),
+            new Claim(ClaimTypes.Role, "Operador"),
+        };
+        return BuildToken(claims, hoursOverride: 16);
+    }
+
+    private string BuildToken(Claim[] claims, int? hoursOverride)
+    {
+        var key   = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        int hours = hoursOverride
+            ?? (int.TryParse(_config["Jwt:ExpiryHours"], out var h) ? h : 8);
 
         var token = new JwtSecurityToken(
-            issuer:            _config["Jwt:Issuer"],
-            audience:          _config["Jwt:Audience"],
-            claims:            claims,
-            expires:           expiry,
+            issuer:             _config["Jwt:Issuer"],
+            audience:           _config["Jwt:Audience"],
+            claims:             claims,
+            expires:            DateTime.UtcNow.AddHours(hours),
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

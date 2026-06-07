@@ -1,0 +1,22 @@
+{
+  "source": ["design-tokens/tokens.json"],
+  "platforms": {
+    "css-dashboard": {
+      "transformGroup": "css",
+      "buildPath": "dashboard/src/styles/",
+      "files": [{
+        "destination": "tokens.css",
+        "format": "css/variables",
+        "options": { "selector": ":root" }
+      }]
+    },
+    "ts-dashboard": {
+      "transformGroup": "js",
+      "buildPath": "dashboard/src/lib/",
+      "files": [{
+        "destination": "tokens.generated.ts",
+        "format": "javascript/es6"
+      }]
+    }
+  }
+}

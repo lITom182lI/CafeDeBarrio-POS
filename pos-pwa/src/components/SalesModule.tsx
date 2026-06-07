@@ -7,6 +7,10 @@ import { getProductos, getCategorias, getMetodosPago, crearTransaccion, OfflineE
 import { calcularTotales, formatSoles, generateLocalId } from '../utils'
 import { config } from '../config'
 import { useSync, savePending } from '../offline'
+import {
+  saveCatalogProductos, saveCatalogCategorias, saveCatalogMetodosPago,
+  getCatalogProductos, getCatalogCategorias, getCatalogMetodosPago,
+} from '../offline'
 import { useInstallPrompt } from '../hooks/useInstallPrompt'
 import ComprobanteModal from './ComprobanteModal'
 import TicketModal, { type TicketData } from './TicketModal'
@@ -65,8 +69,25 @@ export default function SalesModule({ session, onLogout }: Props) {
       setCategorias(cats)
       setMetodosPago(metodos)
       if (metodos.length > 0) setMetodoPagoId(metodos[0].metodoPagoId)
+      void saveCatalogProductos(prods)
+      void saveCatalogCategorias(cats)
+      void saveCatalogMetodosPago(metodos)
     } catch (err) {
-      if (err instanceof OfflineError) setCatalogOffline(true)
+      if (err instanceof OfflineError) {
+        const [prods, cats, metodos] = await Promise.all([
+          getCatalogProductos(),
+          getCatalogCategorias(),
+          getCatalogMetodosPago(),
+        ])
+        if (prods.length > 0) {
+          setProductos(prods.filter(p => p.activo))
+          setCategorias(cats)
+          setMetodosPago(metodos)
+          if (metodos.length > 0) setMetodoPagoId(metodos[0].metodoPagoId)
+        } else {
+          setCatalogOffline(true)
+        }
+      }
     } finally {
       setLoadingCatalog(false)
     }
@@ -154,10 +175,13 @@ export default function SalesModule({ session, onLogout }: Props) {
     let transaccionId: number | undefined
     let localId: string | undefined
 
+    const sinToken = !session?.token
+
     try {
+      if (sinToken) throw new OfflineError()
       transaccionId = await crearTransaccion(request)
     } catch (err) {
-      if (err instanceof OfflineError) {
+      if (err instanceof OfflineError || sinToken) {
         offline = true
         localId = generateLocalId()
         await savePending({

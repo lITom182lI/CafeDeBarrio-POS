@@ -3,4 +3,7 @@ using MUIS_CORE.Interfaces;
 
 namespace CafeBarrio.Application.Common.Interfaces;
 
-public interface IAnulacionRepository : IRepository<Anulacion> { }
+public interface IAnulacionRepository : IRepository<Anulacion>
+{
+    Task<IReadOnlyList<Anulacion>> GetBySedeAsync(int sedeId, CancellationToken ct = default);
+}

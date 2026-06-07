@@ -1,0 +1,48 @@
+# Estado del Ecosistema y Brechas Activas
+
+## ESTADO POR MÓDULO
+
+| Módulo | % | Estado |
+| :--- | :--- | :--- |
+| MUIS_DATA_STORAGE | 87% | ✅ |
+| MUIS_FRONTEND_MOBILE | 78% | ✅ |
+| MUIS_BACKEND | 71% | ✅ |
+| MUIS_DEVOPS | 60% | ⚠️ |
+| MUIS_GATEWAY | 50% | ⚠️ |
+| MUIS_DESIGN_SYSTEM | 50% | ⚠️ |
+| MUIS_AUDIT | 50% | ⚠️ |
+| MUIS_FRONTEND_WEB | 49% | ⚠️ |
+| MUIS_OBSERVABILIDAD | 45% | ❌ |
+
+---
+
+## BRECHAS ACTIVAS — PRIORIZADAS
+
+### CRÍTICA/ALTA:
+
+| ID | Sección | Brecha |
+| :--- | :--- | :--- |
+| **B-01** | MUIS_AUDIT §2 | AuditInterceptor no captura CreatedBy/UpdatedBy — solo timestamps. Sin IHttpContextAccessor. |
+| **B-02** | MUIS_AUDIT §2 | Solo Transaccion y Producto implementan IAuditable. Turno, Operador, MovimientoCaja, Anulacion sin audit trail. |
+| **B-03** | MUIS_BACKEND §3.2 | Sin Serilog/NLog/OpenTelemetry en Program.cs. Logging básico .NET solamente. Viola F-02 Tipo 1. |
+
+### MEDIA:
+
+| ID | Sección | Brecha |
+| :--- | :--- | :--- |
+| **B-04** | MUIS_BACKEND §3 Pilar 1 | AuthController tiene lógica de negocio directa (ChangePassword). Falta ChangePasswordCommand + handler. |
+| **B-06** | MUIS_DESIGN_SYSTEM §1.3| tokens.json solo tiene primitivos. Falta capa semántica (Tier 2) generada por Style Dictionary. |
+| **B-07** | MUIS_DESIGN_SYSTEM | POS PWA usa clases Tailwind literales (bg-amber-900). No consume tokens DTCG. sd.config.json sin plataforma pos-pwa. |
+| **B-08** | MUIS_FRONTEND_WEB Pilar 3| `<label>` sin htmlFor en ProductoModal y OperadorModal. Sin aria-attributes sistemáticos. |
+| **B-09** | MUIS_OBSERVABILIDAD | VITE_SENTRY_DSN hardcodeado como string vacío en vite.config.ts. Sentry nunca activa en producción aunque se configure la env var. |
+
+### BAJA:
+
+| ID | Brecha |
+| :--- | :--- |
+| **B-10** | SDK Kiota no generado — contratos manuales sin type-safety entre API y frontends |
+| **B-11** | CI: integration tests excluidos, pos-pwa tests ausentes, sin Dockerfile API |
+| **B-12** | docker-compose.yml: MSSQL_SA_PASSWORD hardcodeado — debe usar `${MSSQL_SA_PASSWORD}` |
+| **B-13** | Sin Lighthouse CI / Core Web Vitals medidos |
+| **B-14** | Sin Dependabot / SBOM |
+| **B-15** | ADR-002 describe SQLite pero implementación usa IndexedDB — inconsistencia documental |

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { getOperadores, validarPin, OfflineError } from '../api'
+import { getOperadores, validarPin, OfflineError, setOperadorToken } from '../api'
 import type { OperadorDto, OperadorSession } from '../types'
 
 interface Props {
@@ -33,7 +33,8 @@ export default function LoginScreen({ onLogin }: Props) {
     try {
       const result = await validarPin(id, pin)
       if (result) {
-        onLogin({ operadorId: result.operadorId, nombre: result.nombre })
+        setOperadorToken(result.token)
+        onLogin({ operadorId: result.operadorId, nombre: result.nombre, token: result.token })
       } else {
         setError('PIN incorrecto')
         setPin('')

@@ -51,12 +51,23 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit           = 0
             }));
 
+    options.AddPolicy("pin-policy", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "anon",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit          = 10,
+                Window               = TimeSpan.FromMinutes(10),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit           = 0
+            }));
+
     options.OnRejected = async (context, token) =>
     {
         context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-        context.HttpContext.Response.Headers.RetryAfter = "300";
+        context.HttpContext.Response.Headers.RetryAfter = "600";
         await context.HttpContext.Response.WriteAsync(
-            "{\"message\":\"Demasiados intentos. Intente en 5 minutos.\"}", token);
+            "{\"message\":\"Demasiados intentos. Intente en 10 minutos.\"}", token);
     };
 });
 
@@ -64,6 +75,9 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<CafeBarrioDbContext>("database");
 
 var app = builder.Build();
 
@@ -167,4 +181,5 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHealthChecks("/health");
 app.Run();

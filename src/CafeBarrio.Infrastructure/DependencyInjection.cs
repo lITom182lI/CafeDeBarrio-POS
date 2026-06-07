@@ -26,7 +26,10 @@ public static class DependencyInjection
         services.AddScoped<IOperadorRepository, OperadorRepository>();
         services.AddScoped<ITurnoRepository, TurnoRepository>();
         services.AddScoped<IAnulacionRepository, AnulacionRepository>();
+        services.AddScoped<IMovimientoCajaRepository, MovimientoCajaRepository>();
         services.AddScoped<IConfiguracionNegocioRepository, ConfiguracionNegocioRepository>();
+        services.AddScoped<ICategoriaCafeRepository, CategoriaCafeRepository>();
+        services.AddScoped<IMetodoPagoRepository, MetodoPagoRepository>();
         services.AddScoped<IReportesRepository, ReportesRepository>();
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         services.AddSingleton<CafeBarrio.Application.Common.Interfaces.IJwtService, CafeBarrio.Infrastructure.Security.JwtService>();

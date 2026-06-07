@@ -4,20 +4,23 @@ button { cursor: pointer; font-family: inherit; }
 input, select, textarea { font-family: inherit; }
 a { text-decoration: none; }
 
+@import './styles/tokens.css';
+
 :root {
-  --sidebar-bg: #1a1a1a;
-  --sidebar-w: 220px;
-  --accent: #c2622a;
-  --accent-hover: #a85220;
-  --bg: #f5f6fa;
-  --card: #ffffff;
-  --text: #111827;
-  --muted: #6b7280;
-  --border: #e5e7eb;
-  --success: #22c55e;
-  --danger: #ef4444;
-  --warning: #f59e0b;
-  --radius: 10px;
+  /* Aliases MUIS → variables DTCG */
+  --accent:      var(--color-brand);
+  --accent-hover:var(--color-brand-hover);
+  --bg:          var(--color-bg);
+  --card:        var(--color-card);
+  --text:        var(--color-text);
+  --muted:       var(--color-muted);
+  --border:      var(--color-border);
+  --success:     var(--color-success);
+  --danger:      var(--color-danger);
+  --warning:     var(--color-warning);
+  --sidebar-bg:  var(--color-sidebar);
+  --radius:      var(--dimension-radius);
+  --sidebar-w:   var(--dimension-sidebar-w);
 }
 
 /* Layout */

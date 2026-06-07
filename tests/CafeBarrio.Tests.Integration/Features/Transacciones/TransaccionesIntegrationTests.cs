@@ -74,7 +74,13 @@ public class TransaccionesIntegrationTests : IntegrationTestBase
 
         var items = new List<CreateTransaccionItemDto> { new CreateTransaccionItemDto(producto.ProductoId, 2) };
         var command = new CreateTransaccionCommand(
-            cliente.ClienteId, sede.SedeId, mp.MetodoPagoId, null, "POS", items, turno.TurnoId, op.OperadorId
+            SedeId: sede.SedeId,
+            MetodoPagoId: mp.MetodoPagoId,
+            Items: items,
+            ClienteId: cliente.ClienteId,
+            Canal: "POS",
+            TurnoId: turno.TurnoId,
+            OperadorId: op.OperadorId
         );
 
         // Act

@@ -14,4 +14,10 @@ public class TransaccionRepository : BaseRepository<Transaccion>, ITransaccionRe
             .Where(t => t.SedeId == sedeId && t.Fecha >= desde && t.Fecha <= hasta)
             .AsNoTracking()
             .ToListAsync(ct);
+
+    public async Task<Transaccion?> GetWithDetallesAndAnulacionAsync(int id, CancellationToken ct = default)
+        => await Context.Set<Transaccion>()
+            .Include(t => t.Detalles)
+            .Include(t => t.Anulacion)
+            .FirstOrDefaultAsync(t => t.TransaccionId == id, ct);
 }

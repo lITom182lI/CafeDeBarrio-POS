@@ -5,12 +5,15 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk"         Version="17.*" />
-    <PackageReference Include="xunit"                           Version="2.9.*" />
-    <PackageReference Include="xunit.runner.visualstudio"       Version="2.8.*" />
-    <PackageReference Include="FluentAssertions"                Version="6.*" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.8" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
+    <PackageReference Include="xunit" Version="2.9.*" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.*" />
+    <PackageReference Include="FluentAssertions" Version="6.*" />
+    <PackageReference Include="NSubstitute" Version="5.*" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\CafeBarrio.Infrastructure\CafeBarrio.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\CafeBarrio.Application\CafeBarrio.Application.csproj" />
   </ItemGroup>
 </Project>
