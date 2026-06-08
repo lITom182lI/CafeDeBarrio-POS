@@ -91,6 +91,7 @@ public class TransaccionesIntegrationTests : IntegrationTestBase
         result.Value.Should().BeGreaterThan(0);
 
         var prodUpdated = await Db.Productos.FindAsync(producto.ProductoId);
-        prodUpdated.CantidadDisponible.Should().Be(8);
+        prodUpdated.Should().NotBeNull();
+        prodUpdated!.CantidadDisponible.Should().Be(8);
     }
 }

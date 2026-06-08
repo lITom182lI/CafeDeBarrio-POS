@@ -9,16 +9,16 @@ S1 confirmado: el barista necesita registrar ventas cuando el servidor no respon
 El cliente POS no puede depender de conectividad continua.
 
 ## Decisión
-Arquitectura offline-first con SQLite local + sincronización en background:
-1. Toda venta se guarda primero en SQLite local (cafebarrio_local.db)
+Arquitectura offline-first con IndexedDB (via biblioteca idb) local + sincronización en background:
+1. Toda venta se guarda primero en IndexedDB local (DB: 'cafe-barrio-pos', store: pendingTransactions)
 2. Se intenta sincronizar con la API inmediatamente
 3. Si falla, un SyncService reintenta cada 30 segundos
-4. El catálogo de productos se cachea localmente al inicio
+4. El catálogo de productos se cachea localmente al inicio (stores: catalogProductos, catalogCategorias, catalogMetodosPago)
 
 ## Consecuencias
 - Ventas nunca se pierden por falta de conectividad
 - El barista opera normalmente sin internet
-- La API es el sistema de registro oficial — SQLite es cola de entrada
+- La API es el sistema de registro oficial — IndexedDB es cola de entrada
 - Eventual consistency: el Dashboard refleja ventas con delay máx. 30s offline
 
 ## Inmutabilidad

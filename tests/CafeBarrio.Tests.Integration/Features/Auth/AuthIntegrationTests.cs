@@ -57,9 +57,9 @@ public class AuthIntegrationTests : IntegrationTestBase
         // Assert
         var okResult = result as OkObjectResult;
         okResult.Should().NotBeNull();
-        var response = okResult.Value as LoginResponse;
+        var response = okResult!.Value as LoginResponse;
         response.Should().NotBeNull();
-        response.Token.Should().NotBeNullOrEmpty();
+        response!.Token.Should().NotBeNullOrEmpty();
         response.Email.Should().Be("admin@cafebarrio.pe");
     }
 

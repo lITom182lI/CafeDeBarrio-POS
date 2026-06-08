@@ -1,6 +1,8 @@
+using CafeBarrio.Domain.Common;
+
 namespace CafeBarrio.Domain.Entities;
 
-public class Anulacion
+public class Anulacion : IAuditable
 {
     public int AnulacionId { get; set; }
     public int TransaccionId { get; set; }
@@ -17,4 +19,10 @@ public class Anulacion
     public Transaccion Transaccion { get; set; } = null!;
     public Operador OperadorSolicitante { get; set; } = null!;
     public Operador Autorizador { get; set; } = null!;
+
+    // Audit
+    public DateTime CreatedAt  { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public string? CreatedBy   { get; set; }
+    public string? UpdatedBy   { get; set; }
 }

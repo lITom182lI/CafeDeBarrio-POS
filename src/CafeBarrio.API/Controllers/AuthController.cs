@@ -1,5 +1,7 @@
 using CafeBarrio.Application.Common.Interfaces;
 using CafeBarrio.Application.Features.Auth.Dtos;
+using CafeBarrio.Application.Features.Auth.Commands.ChangePassword;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -14,13 +16,13 @@ public class AuthController : ControllerBase
     private readonly IUsuarioRepository _usuarios;
     private readonly IJwtService _jwt;
     private readonly IPasswordHasher _hasher;
-    private readonly IUnitOfWork _uow;
+    private readonly ISender _sender;
 
     public AuthController(
         IUsuarioRepository usuarios, IJwtService jwt,
-        IPasswordHasher hasher, IUnitOfWork uow)
+        IPasswordHasher hasher, ISender sender)
     {
-        _usuarios = usuarios; _jwt = jwt; _hasher = hasher; _uow = uow;
+        _usuarios = usuarios; _jwt = jwt; _hasher = hasher; _sender = sender;
     }
 
     [HttpPost("login")]
@@ -62,18 +64,15 @@ public class AuthController : ControllerBase
         if (email is null)
             return Unauthorized(new { message = "Token invalido." });
 
-        if (request.NewPassword.Length < 8)
-            return BadRequest(new { message = "La nueva contraseña debe tener al menos 8 caracteres." });
+        var command = new ChangePasswordCommand(email, request.CurrentPassword, request.NewPassword);
+        var result = await _sender.Send(command, ct);
 
-        var usuario = await _usuarios.GetByEmailAsync(email, ct);
-        if (usuario is null)
-            return NotFound(new { message = "Usuario no encontrado." });
+        if (result.IsFailure)
+        {
+            var error = result.Errors[0];
+            return BadRequest(new { message = error.Message });
+        }
 
-        if (!_hasher.Verify(request.CurrentPassword, usuario.PasswordHash))
-            return BadRequest(new { message = "La contraseña actual es incorrecta." });
-
-        usuario.PasswordHash = _hasher.Hash(request.NewPassword);
-        await _uow.SaveChangesAsync(ct);
         return NoContent();
     }
 }

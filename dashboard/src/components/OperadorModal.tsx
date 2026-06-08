@@ -49,34 +49,40 @@ export function OperadorModal({ operador, onClose, onSaved }: Props) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" onClick={e => e.stopPropagation()}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="operador-modal-title"
+        className="modal-box"
+        onClick={e => e.stopPropagation()}
+      >
         <div className="modal-header">
-          <h2>{operador ? 'Editar Operador' : 'Nuevo Operador'}</h2>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <h2 id="operador-modal-title">{operador ? 'Editar Operador' : 'Nuevo Operador'}</h2>
+          <button className="modal-close" aria-label="Cerrar" onClick={onClose}>✕</button>
         </div>
         <form onSubmit={handleSubmit} className="modal-form">
-          {err && <div className="error-banner">{err}</div>}
+          {err && <div className="error-banner" role="alert">{err}</div>}
 
-          <label>Nombre *
-            <input value={nombre} onChange={e => setNombre(e.target.value)} required />
-          </label>
+          <label htmlFor="operador-nombre">Nombre *</label>
+          <input id="operador-nombre" value={nombre} onChange={e => setNombre(e.target.value)} required />
 
-          <label>
+          <label htmlFor="operador-pin">
             {operador ? 'Nuevo PIN (dejar vacío para no cambiar)' : 'PIN * (4–8 dígitos)'}
-            <input
-              type="password"
-              inputMode="numeric"
-              maxLength={8}
-              value={pin}
-              onChange={e => setPin(e.target.value.replace(/\D/g, ''))}
-              placeholder={operador ? '••••' : ''}
-              required={!operador}
-            />
           </label>
+          <input
+            id="operador-pin"
+            type="password"
+            inputMode="numeric"
+            maxLength={8}
+            value={pin}
+            onChange={e => setPin(e.target.value.replace(/\D/g, ''))}
+            placeholder={operador ? '••••' : ''}
+            required={!operador}
+          />
 
           {operador && (
-            <label className="checkbox-label">
-              <input type="checkbox" checked={activo}
+            <label htmlFor="operador-activo" className="checkbox-label">
+              <input id="operador-activo" type="checkbox" checked={activo}
                 onChange={e => setActivo(e.target.checked)} />
               Activo
             </label>

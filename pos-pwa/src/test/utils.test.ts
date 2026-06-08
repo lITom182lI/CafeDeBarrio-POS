@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calcularTotales, formatSoles, generateLocalId } from '../utils'
+import { calcularTotales, formatSoles, generateLocalId, formatHora } from '../utils'
 
 describe('calcularTotales', () => {
   it('retorna ceros con carrito vacío', () => {
@@ -39,5 +39,12 @@ describe('generateLocalId', () => {
     const id1 = generateLocalId()
     const id2 = generateLocalId()
     expect(id1).not.toBe(id2)
+  })
+})
+
+describe('formatHora', () => {
+  it('devuelve string en formato HH:MM', () => {
+    const result = formatHora('2026-06-07T14:30:00.000Z')
+    expect(result).toMatch(/^\d{1,2}:\d{2}(?:\s*(?:a\.?\s*m\.?|p\.?\s*m\.?|AM|PM|am|pm))?$/)
   })
 })

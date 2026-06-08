@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="..\CafeBarrio.Application\CafeBarrio.Application.csproj" />
-    <ProjectReference Include="..\..\..\..\ECOSISTEMA- MUIS\MUIS\MUIS_CORE\MUIS_CORE.csproj" />
+    <ProjectReference Include="..\..\..\..\ONEDRIVE-UPN\OneDrive - Universidad Privada del Norte\Escritorio\ECOSISTEMA- MUIS\MUIS\MUIS_CORE\MUIS_CORE.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Konscious.Security.Cryptography.Argon2" Version="1.*" />
@@ -16,4 +16,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
 </Project>

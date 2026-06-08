@@ -1,6 +1,8 @@
+using CafeBarrio.Domain.Common;
+
 namespace CafeBarrio.Domain.Entities;
 
-public class Turno
+public class Turno : IAuditable
 {
     public int TurnoId { get; set; }
     public int SedeId { get; set; }
@@ -17,4 +19,10 @@ public class Turno
     public Operador Operador { get; set; } = null!;
     public ICollection<Transaccion> Transacciones { get; set; } = [];
     public ICollection<MovimientoCaja> Movimientos { get; set; } = [];
+
+    // Audit
+    public DateTime CreatedAt  { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public string? CreatedBy   { get; set; }
+    public string? UpdatedBy   { get; set; }
 }
