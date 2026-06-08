@@ -1,7 +1,7 @@
 export { savePending, getPending, getPendingCount } from './pendingStore'
 export { syncNow, startSync, stopSync }             from './syncService'
-export { useSync }                                  from './useSync'
+export { useSync, getSimulatedOnline, setSimulatedOnline } from './useSync'
 export {
-  saveCatalogProductos, saveCatalogCategorias, saveCatalogMetodosPago,
-  getCatalogProductos, getCatalogCategorias, getCatalogMetodosPago,
+  saveCatalogProductos, saveCatalogCategorias, saveCatalogMetodosPago, saveCatalogOperadores,
+  getCatalogProductos, getCatalogCategorias, getCatalogMetodosPago, getCatalogOperadores
 } from './catalogStore'

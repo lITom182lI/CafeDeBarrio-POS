@@ -54,7 +54,10 @@ public class CerrarTurnoHandlerTests
         var result = await _sut.Handle(new CerrarTurnoCommand(1, 480m, "Sin novedad"), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value.TotalEfectivoSistema.Should().Be(500m);
+        result.Value.MontoEfectivoCierto.Should().Be(480m);
+        result.Value.Diferencia.Should().Be(-20m);
         turno.Estado.Should().Be("Cerrado");
         turno.TotalEfectivoSistema.Should().Be(500m); // 200 apertura + 300 efectivo
         turno.MontoEfectivoCierto.Should().Be(480m);

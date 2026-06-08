@@ -44,7 +44,7 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
 
             if (producto.SeguimientoInventario && producto.CantidadDisponible < item.Cantidad)
                 return Result<int>.Failure(new Error("Producto.StockInsuficiente",
-                    $"Stock insuficiente para producto {item.ProductoId}."));
+                    $"Insufficient stock for product {item.ProductoId}."));
 
             var linea = new DetalleTransaccion
             {

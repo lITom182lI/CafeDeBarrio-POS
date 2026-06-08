@@ -1,7 +1,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import type { VentasPorDiaDto, VentasPorHoraDto } from '../types'
 import type { Periodo } from './PeriodoSelector'
-import { tokens } from '../lib/tokens'
+import { brandPrimary } from '../lib/tokens'
 
 interface Props { periodo: Periodo; porDia: VentasPorDiaDto[]; porHora: VentasPorHoraDto[] }
 
@@ -26,7 +26,7 @@ export function VentasPorDia({ periodo, porDia, porHora }: Props) {
               <XAxis dataKey="label" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} />
               <Tooltip formatter={(v: number | string | readonly (string | number)[] | null | undefined) => [`S/ ${Number(v ?? 0).toFixed(2)}`, 'Ventas']} />
-              <Bar dataKey="value" fill={tokens.brandPrimary} radius={[4,4,0,0]} name="Ventas" />
+              <Bar dataKey="value" fill={brandPrimary} radius={[4,4,0,0]} name="Ventas" />
             </BarChart>
           </ResponsiveContainer>
       }

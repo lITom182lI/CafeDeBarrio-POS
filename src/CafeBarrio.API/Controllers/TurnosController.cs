@@ -43,7 +43,7 @@ public class TurnosController : ControllerBase
     {
         var result = await _mediator.Send(
             new CerrarTurnoCommand(id, request.MontoEfectivoCierto, request.Observaciones));
-        return result.IsSuccess ? Ok() : BadRequest(result.Errors);
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
     }
 }
 
