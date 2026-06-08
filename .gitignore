@@ -491,7 +491,7 @@ src/CafeBarrio.API/appsettings.Production.json
 pos-client/App.config
 
 # Secretos de entorno — NUNCA versionar
-appsettings.Development.json
+**/appsettings.Development.json
 appsettings.Production.json
 docker-compose.override.yml
 

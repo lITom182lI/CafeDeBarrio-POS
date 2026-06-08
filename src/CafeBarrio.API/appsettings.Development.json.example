@@ -6,9 +6,9 @@
     }
   },
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost,1433;Database=CafeDeBarrio;User Id=sa;Password=TU_PASSWORD_LOCAL;TrustServerCertificate=True;"
+    "DefaultConnection": "Server=localhost,1433;Database=CafeDeBarrio;User Id=sa;Password=REEMPLAZAR_CON_TU_PASSWORD_SA_LOCAL;TrustServerCertificate=True;"
   },
-  "Jwt": {
-    "Key": "TU_JWT_SECRET_MINIMO_32_CARACTERES_AQUI"
+  "Seed": {
+    "AdminPassword": "REEMPLAZAR_ANTES_DEL_PRIMER_ARRANQUE"
   }
 }

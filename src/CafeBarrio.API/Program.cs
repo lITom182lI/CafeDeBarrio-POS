@@ -177,7 +177,9 @@ using (var scope = app.Services.CreateScope())
         db.Usuarios.Add(new Usuario
         {
             Email        = "admin@cafedebarrio.com",
-            PasswordHash = hasher.Hash("Admin2026!"),
+            PasswordHash = hasher.Hash(
+                builder.Configuration["Seed:AdminPassword"]
+                ?? throw new InvalidOperationException("Seed:AdminPassword no configurado.")),
             Rol          = "Admin",
             Activo       = true
         });
@@ -187,6 +189,33 @@ using (var scope = app.Services.CreateScope())
 
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
+
+app.UseExceptionHandler(errApp => errApp.Run(async ctx =>
+{
+    var ex = ctx.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
+    if (ex is not null)
+        Log.Error(ex, "Unhandled exception on {Method} {Path}",
+            ctx.Request.Method, ctx.Request.Path);
+
+    ctx.Response.StatusCode  = StatusCodes.Status500InternalServerError;
+    ctx.Response.ContentType = "application/problem+json";
+    await ctx.Response.WriteAsync(
+        "{\"type\":\"https://tools.ietf.org/html/rfc7807\"," +
+        "\"title\":\"Error interno del servidor.\"," +
+        "\"status\":500}");
+}));
+
+if (!app.Environment.IsDevelopment())
+    app.UseHsts();
+
+app.Use(async (ctx, next) =>
+{
+    ctx.Response.Headers.Append("X-Frame-Options",        "DENY");
+    ctx.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    ctx.Response.Headers.Append("Referrer-Policy",        "strict-origin-when-cross-origin");
+    ctx.Response.Headers.Append("Content-Security-Policy","default-src 'self'; frame-ancestors 'none'");
+    await next();
+});
 
 app.UseCors("Dashboard");
 app.UseHttpsRedirection();
