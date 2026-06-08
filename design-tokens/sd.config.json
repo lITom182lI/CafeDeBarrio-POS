@@ -1,6 +1,12 @@
 {
   "source": ["design-tokens/tokens.json"],
   "platforms": {
+    "css-pos-pwa": {
+      "transformGroup": "css",
+      "prefix": "dtcg",
+      "buildPath": "pos-pwa/src/styles/",
+      "files": [{ "destination": "tokens.css", "format": "css/variables", "options": { "selector": ":root" } }]
+    },
     "css-dashboard": {
       "transformGroup": "css",
       "buildPath": "dashboard/src/styles/",

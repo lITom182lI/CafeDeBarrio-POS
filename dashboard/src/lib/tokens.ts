@@ -24,3 +24,13 @@ export const tokens = {
 
 export const brandPrimary  = tokens.color.brand
 export const chartPalette  = tokens.chart.palette
+
+export const semanticTokens = {
+  color: {
+    action:   { primary: tokens.color.brand,   primaryHover: tokens.color.brandHover },
+    surface:  { page: tokens.color.bg,         card: tokens.color.card, sidebar: tokens.color.sidebar },
+    text:     { default: tokens.color.text,    muted: tokens.color.muted },
+    border:   { default: tokens.color.border },
+    feedback: { success: tokens.color.success, danger: tokens.color.danger, warning: tokens.color.warning },
+  },
+} as const

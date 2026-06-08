@@ -1,5 +1,8 @@
 using System.Text;
 using CafeBarrio.Application;
+using Serilog;
+using Serilog.Events;
+using Serilog.Formatting.Compact;
 using CafeBarrio.Domain.Entities;
 using CafeBarrio.Infrastructure;
 using CafeBarrio.Infrastructure.Persistence;
@@ -8,8 +11,18 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console(new CompactJsonFormatter())
+    .WriteTo.File(new CompactJsonFormatter(), "logs/cafebarrio-.log",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30)
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog();
 
 var allowedOrigins = (builder.Configuration["Cors:AllowedOrigin"]
                      ?? "http://localhost:5173,http://localhost:5174")

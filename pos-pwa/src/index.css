@@ -1,15 +1,16 @@
 @import "tailwindcss";
+@import "./styles/tokens.css";
 
 @theme {
-  --color-brand:       #c2622a;
-  --color-brand-hover: #a85220;
-  --color-bg:          #f5f5f5;
-  --color-text:        #111827;
-  --color-muted:       #6b7280;
-  --color-border:      #e5e7eb;
-  --color-success:     #22c55e;
-  --color-danger:      #ef4444;
-  --color-warning:     #f59e0b;
+  --color-brand:       var(--dtcg-color-brand);
+  --color-brand-hover: var(--dtcg-color-brand-hover);
+  --color-bg:          var(--dtcg-color-bg);
+  --color-text:        var(--dtcg-color-text);
+  --color-muted:       var(--dtcg-color-muted);
+  --color-border:      var(--dtcg-color-border);
+  --color-success:     var(--dtcg-color-success);
+  --color-danger:      var(--dtcg-color-danger);
+  --color-warning:     var(--dtcg-color-warning);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

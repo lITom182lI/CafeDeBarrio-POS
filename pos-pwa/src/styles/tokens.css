@@ -1,0 +1,12 @@
+/* Generated from design-tokens/tokens.json — DO NOT EDIT */
+:root {
+  --dtcg-color-brand:       #c2622a;
+  --dtcg-color-brand-hover: #a85220;
+  --dtcg-color-bg:          #f5f6fa;
+  --dtcg-color-text:        #111827;
+  --dtcg-color-muted:       #6b7280;
+  --dtcg-color-border:      #e5e7eb;
+  --dtcg-color-success:     #22c55e;
+  --dtcg-color-danger:      #ef4444;
+  --dtcg-color-warning:     #f59e0b;
+}

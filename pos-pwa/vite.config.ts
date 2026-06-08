@@ -43,17 +43,17 @@ export default defineConfig({
       }
     })
   ],
-  define: {
-    'import.meta.env.VITE_API_URL': JSON.stringify(''),
-    'import.meta.env.VITE_SEDE_ID': JSON.stringify('1'),
-    'import.meta.env.VITE_TASA_IGV': JSON.stringify('0.105'),
-    'import.meta.env.VITE_SENTRY_DSN': JSON.stringify(''),
-    'import.meta.env.MODE': JSON.stringify('test'),
-  },
   test: {
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/test/setup.ts',
+    env: {
+      VITE_API_URL:    '',
+      VITE_SEDE_ID:    '1',
+      VITE_TASA_IGV:   '0.105',
+      VITE_SENTRY_DSN: '',
+      MODE:            'test',
+    },
   },
   server: {
     port: 5174,
