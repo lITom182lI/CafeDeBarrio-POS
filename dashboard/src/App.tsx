@@ -1,43 +1,49 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider } from './context/AuthProvider'
-import { useAuth } from './hooks/useAuth'
-import { Sidebar } from './components/Sidebar'
-import { LoginPage } from './pages/LoginPage'
-import { DashboardPage } from './pages/DashboardPage'
-import { ProductosPage } from './pages/ProductosPage'
-import { TransaccionesPage } from './pages/TransaccionesPage'
-import { ConfiguracionPage } from './pages/ConfiguracionPage'
-import { OperadoresPage } from './pages/OperadoresPage'
-
-function AppShell() {
-  const { token } = useAuth()
-  if (!token) return <Navigate to="/login" replace />
-  return (
-    <div className="app-layout">
-      <Sidebar />
-      <main className="main-content">
-        <Routes>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="productos" element={<ProductosPage />} />
-          <Route path="transacciones" element={<TransaccionesPage />} />
-          <Route path="configuracion" element={<ConfiguracionPage />} />
-          <Route path="operadores" element={<OperadoresPage />} />
-        </Routes>
-      </main>
-    </div>
-  )
-}
+import { useState, useTransition } from "react";
+import { Sidebar } from "./components/Sidebar";
+import { ReportesYGraficos } from "./components/ReportesYGraficos";
+import { MenuEInventario } from "./components/MenuEInventario";
+import { Transacciones } from "./components/Transacciones";
+import { GestionOperadores } from "./components/GestionOperadores";
+import { Configuracion } from "./components/Configuracion";
 
 export default function App() {
+  const [activeTab, setActiveTab] = useState<string>("dashboard");
+  const [operatorName] = useState<string>("Carlos Mendoza");
+  const [, startTransition] = useTransition();
+
+  const handleTabChange = (tab: string) => {
+    startTransition(() => {
+      setActiveTab(tab);
+    });
+  };
+
+  const renderActiveView = () => {
+    switch (activeTab) {
+      case "dashboard":
+        return <ReportesYGraficos />;
+      case "productos":
+        return <MenuEInventario />;
+      case "transacciones":
+        return <Transacciones />;
+      case "operadores":
+        return <GestionOperadores />;
+      case "configuracion":
+        return <Configuracion />;
+      default:
+        return <ReportesYGraficos />;
+    }
+  };
+
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/*" element={<AppShell />} />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
-  )
-}
+    <div className="app-layout">
+      <Sidebar
+        activeTab={activeTab}
+        onChangeTab={handleTabChange}
+        operatorName={operatorName}
+      />
+      <main className="main-content">
+        <div className="page">{renderActiveView()}</div>
+      </main>
+    </div>
+  );
+}

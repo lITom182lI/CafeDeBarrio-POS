@@ -1,111 +1,155 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import type { ComprobanteData } from '../types'
+import { apiQueryDocumento } from '../api'
+import { X, Search, Info } from 'lucide-react'
 
 interface Props {
   onConfirm: (data: ComprobanteData) => void
   onCancel: () => void
 }
 
-const TIPOS = ['DNI', 'RUC', 'CE', 'Pasaporte'] as const
-type TipoDoc = typeof TIPOS[number]
-
-function maxLen(tipo: TipoDoc) {
-  if (tipo === 'DNI') return 8
-  if (tipo === 'RUC') return 11
-  return 20
-}
-
-function validate(tipo: TipoDoc, numero: string, nombre: string): string | null {
-  if (!numero.trim()) return 'Ingrese el número de documento'
-  if (tipo === 'DNI' && numero.length !== 8) return 'DNI debe tener exactamente 8 dígitos'
-  if (tipo === 'RUC' && numero.length !== 11) return 'RUC debe tener exactamente 11 dígitos'
-  if (!nombre.trim()) return 'Ingrese el nombre o razón social'
-  return null
-}
-
 export default function ComprobanteModal({ onConfirm, onCancel }: Props) {
-  const [tipo, setTipo] = useState<TipoDoc>('DNI')
+  const [tipo, setTipo] = useState<'DNI' | 'RUC'>('DNI')
   const [numero, setNumero] = useState('')
   const [nombre, setNombre] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [searching, setSearching] = useState(false)
+  const [feedback, setFeedback] = useState<string | null>(null)
 
-  function handleConfirm() {
-    const err = validate(tipo, numero, nombre)
-    if (err) { setError(err); return }
-    onConfirm({ tipoDocumento: tipo, numeroDocumento: numero.trim().toUpperCase(), razonSocial: nombre.trim().toUpperCase() })
+  const handleQueryDocument = async () => {
+    if (numero.length < 8) return
+    setSearching(true)
+    setFeedback(null)
+    try {
+      const resp = await apiQueryDocumento(tipo, numero)
+      if (resp && resp.razonSocial) {
+        setNombre(resp.razonSocial)
+        setFeedback(`Documento verificado exitosamente.`)
+      } else {
+        setFeedback('No se encontraron registros activos.')
+      }
+    } catch {
+      setFeedback('Error de consulta, favor introduzca los datos de forma manual.')
+    } finally {
+      setSearching(false)
+    }
   }
 
+  const isInvalid = !numero || !nombre
+
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-stone-800 rounded-xl shadow-2xl w-full max-w-sm p-6 space-y-4">
-        <h2 className="text-stone-100 font-semibold text-lg">Datos para boleta</h2>
-
-        <div>
-          <label className="block text-stone-400 text-xs mb-2 uppercase tracking-wide">Tipo documento</label>
-          <div className="flex gap-2 flex-wrap">
-            {TIPOS.map(t => (
-              <button
-                key={t}
-                onClick={() => { setTipo(t); setNumero(''); setError(null) }}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                  tipo === t
-                    ? 'bg-amber-600 text-white'
-                    : 'bg-stone-700 text-stone-300 hover:bg-stone-600'
-                }`}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="numero-doc" className="block text-stone-400 text-xs mb-1 uppercase tracking-wide">
-            Número {tipo === 'DNI' ? '(8 dígitos)' : tipo === 'RUC' ? '(11 dígitos)' : ''}
-          </label>
-          <input
-            id="numero-doc"
-            type="text"
-            inputMode={tipo !== 'Pasaporte' ? 'numeric' : 'text'}
-            maxLength={maxLen(tipo)}
-            value={numero}
-            onChange={e => {
-              const v = tipo !== 'Pasaporte' ? e.target.value.replace(/\D/g, '') : e.target.value
-              setNumero(v); setError(null)
-            }}
-            className="w-full bg-stone-700 text-stone-100 rounded-lg px-3 py-2 border border-stone-600 focus:outline-none focus:border-amber-500"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="nombre-doc" className="block text-stone-400 text-xs mb-1 uppercase tracking-wide">
-            {tipo === 'RUC' ? 'Razón social' : 'Nombre completo'}
-          </label>
-          <input
-            id="nombre-doc"
-            type="text"
-            value={nombre}
-            onChange={e => { setNombre(e.target.value); setError(null) }}
-            className="w-full bg-stone-700 text-stone-100 rounded-lg px-3 py-2 border border-stone-600 focus:outline-none focus:border-amber-500"
-          />
-        </div>
-
-        {error && <p className="text-red-400 text-sm">{error}</p>}
-
-        <div className="flex gap-3 pt-1">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fadeIn">
+      <div className="bg-white rounded-[24px] shadow-lg w-full max-w-md overflow-hidden border border-[#E2E8F0] flex flex-col">
+        
+        {/* Header */}
+        <div className="bg-[#F8FAFC] px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
+          <h2 className="text-[#1E293B] font-extrabold text-base">Comprobante Nominado</h2>
           <button
             onClick={onCancel}
-            className="flex-1 py-2 rounded-lg border border-stone-600 text-stone-300 hover:bg-stone-700 transition-colors"
+            className="p-1 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Form Body */}
+        <div className="p-6 space-y-4">
+          
+          {/* Document Type Selector */}
+          <div>
+            <label className="block text-[#1E293B] text-xs uppercase font-extrabold tracking-wider mb-2">
+              Tipo de Documento
+            </label>
+            <div className="grid grid-cols-4 gap-1">
+              {(['DNI', 'RUC'] as const).map(t => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => { setTipo(t); setNumero(''); setNombre('') }}
+                  className={`py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+                    tipo === t
+                      ? 'bg-[#7C2D12] text-white shadow-2xs'
+                      : 'bg-[#F8FAFC] text-[#334155] border border-[#E2E8F0] hover:bg-white'
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Document Number with Search/Verify */}
+          <div>
+            <label htmlFor="doc-number" className="block text-[#1E293B] text-xs uppercase font-extrabold tracking-wider mb-1.5">
+              Número de Documento
+            </label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <input
+                  id="doc-number"
+                  type="text"
+                  maxLength={tipo === 'RUC' ? 11 : 8}
+                  placeholder={tipo === 'DNI' ? '8 dígitos' : tipo === 'RUC' ? '11 dígitos' : 'Alfanumérico'}
+                  value={numero}
+                  onChange={e => setNumero(e.target.value.replace(/[^\w]/g, ''))}
+                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg px-3 py-2 text-[#1E293B] font-semibold text-xs focus:outline-none focus:border-[#7C2D12] placeholder-slate-450"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleQueryDocument}
+                disabled={numero.length < 8}
+                className="px-4 py-2 bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-white text-[#334155] font-bold rounded-lg text-xs flex items-center gap-1.5 transition disabled:opacity-40 cursor-pointer"
+              >
+                {searching ? (
+                  <span className="w-4 h-4 border-2 border-[#7C2D12]/20 border-t-[#7C2D12] rounded-full animate-spin" />
+                ) : (
+                  <Search size={14} />
+                )}
+                <span>Consultar</span>
+              </button>
+            </div>
+            {feedback && (
+              <p className="text-[10px] text-slate-500 font-medium mt-1 flex items-center gap-1">
+                <Info size={10} />
+                <span>{feedback}</span>
+              </p>
+            )}
+          </div>
+
+          {/* Customer name / Social reason */}
+          <div>
+            <label htmlFor="customer-name" className="block text-[#1E293B] text-xs uppercase font-extrabold tracking-wider mb-1.5">
+              Nombre de Cliente o Razón Social
+            </label>
+            <input
+              id="customer-name"
+              type="text"
+              placeholder="Ej. Público General, Jesús Peralta"
+              value={nombre}
+              onChange={e => setNombre(e.target.value)}
+              className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg px-3 py-2 text-[#1E293B] font-semibold text-xs focus:outline-none focus:border-[#7C2D12] placeholder-slate-450"
+            />
+          </div>
+
+        </div>
+
+        {/* Footer */}
+        <div className="bg-[#F8FAFC] px-6 py-4 border-t border-[#E2E8F0] flex gap-2 justify-end">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 border border-[#E2E8F0] rounded-lg text-xs font-bold text-[#334155]/80 hover:bg-white transition cursor-pointer"
           >
             Cancelar
           </button>
           <button
-            onClick={handleConfirm}
-            className="flex-1 py-2 rounded-lg bg-amber-600 text-white font-semibold hover:bg-amber-500 transition-colors"
+            onClick={() => onConfirm({ tipoDocumento: tipo, numeroDocumento: numero, razonSocial: nombre })}
+            disabled={isInvalid}
+            className="px-5 py-2 bg-[#7C2D12] hover:bg-[#6b250e] disabled:opacity-40 text-white font-extrabold rounded-lg text-xs transition shadow-2xs cursor-pointer"
           >
-            Confirmar
+            Confirmar Datos
           </button>
         </div>
+
       </div>
     </div>
   )

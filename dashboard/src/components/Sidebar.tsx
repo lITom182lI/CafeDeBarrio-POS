@@ -1,42 +1,66 @@
-import { NavLink, useNavigate } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
+import { LayoutDashboard, Package, Users, Receipt, Settings, LogOut } from "lucide-react";
 
-const links = [
-  { to: '/dashboard', icon: '📊', label: 'Dashboard' },
-  { to: '/productos', icon: '📦', label: 'Productos' },
-  { to: '/transacciones', icon: '💳', label: 'Transacciones' },
-  { to: '/operadores', icon: '👤', label: 'Operadores' },
-  { to: '/configuracion', icon: '⚙', label: 'Configuracion' },
-]
+interface Props {
+  activeTab: string;
+  onChangeTab: (tab: string) => void;
+  operatorName: string;
+}
 
-export function Sidebar() {
-  const { logout } = useAuth()
-  const navigate = useNavigate()
+export function Sidebar({ activeTab, onChangeTab, operatorName }: Props) {
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+  };
 
-  const handleLogout = () => {
-    logout()
-    navigate('/login', { replace: true })
-  }
+  const navItems = [
+    { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={18} /> },
+    { id: "productos", label: "Productos", icon: <Package size={18} /> },
+    { id: "transacciones", label: "Transacciones", icon: <Receipt size={18} /> },
+    { id: "operadores", label: "Operadores", icon: <Users size={18} /> },
+    { id: "configuracion", label: "Configuración", icon: <Settings size={18} /> }
+  ];
 
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <span className="sidebar-brand">Café de Barrio</span>
+        <div className="brand-icon-container">☕</div>
+        <div>
+          <div className="sidebar-brand-name">Café de Barrio</div>
+          <span className="sidebar-pos">Punto de Venta POS</span>
+        </div>
       </div>
+
+      <div className="profile-block">
+        <div className="profile-avatar">{getInitials(operatorName)}</div>
+        <div className="profile-info">
+          <span className="profile-name">{operatorName}</span>
+          <span className="profile-role">Cajero POS</span>
+        </div>
+      </div>
+
       <nav className="sidebar-nav">
-        {links.map(l => (
-          <NavLink key={l.to} to={l.to}
-            className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-            <span>{l.icon}</span>
-            <span>{l.label}</span>
-          </NavLink>
+        {navItems.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => onChangeTab(item.id)}
+            className={`nav-link ${activeTab === item.id ? "active" : ""}`}
+          >
+            {item.icon}
+            <span>{item.label}</span>
+          </button>
         ))}
       </nav>
+
       <div className="sidebar-footer">
-        <button className="nav-link btn-logout" onClick={handleLogout}>
-          ↩ Logout
+        <button className="btn-logout" onClick={() => alert("Sesión finalizada")}>
+          <LogOut size={16} />
+          <span>Cerrar Sesión</span>
         </button>
       </div>
     </aside>
-  )
-}
+  );
+}

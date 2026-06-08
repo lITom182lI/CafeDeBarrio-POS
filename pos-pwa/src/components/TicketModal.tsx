@@ -1,10 +1,7 @@
-import PrintReceipt from './PrintReceipt'
+﻿import { config } from '../config'
 import type { TicketData } from '../types'
 import { formatSoles } from '../utils'
-import { config } from '../config'
-
-// Re-exportar para que SalesModule.tsx no requiera cambios de import
-export type { TicketData }
+import { Printer, CheckCircle2, CloudLightning } from 'lucide-react'
 
 interface Props {
   ticket: TicketData
@@ -12,108 +9,125 @@ interface Props {
 }
 
 export default function TicketModal({ ticket, onClose }: Props) {
-  const fecha = new Date(ticket.fechaHora).toLocaleString('es-PE', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  })
+  const printTicket = () => {
+    window.print()
+  }
+
+  const igvRate = (config.tasaIgv * 100).toFixed(0)
 
   return (
-    <>
-      {/* Visible sólo durante window.print() */}
-      <PrintReceipt ticket={ticket} />
-
-      {/* Modal visual — se oculta al imprimir */}
-      <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 print:hidden">
-        <div className="bg-stone-800 rounded-xl shadow-2xl w-full max-w-sm p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-
-          {/* Estado */}
-          <div className="text-center">
-            <div className="text-4xl mb-2">{ticket.offline ? '🔄' : '✅'}</div>
-            <h2
-              className={`font-bold text-lg ${ticket.offline ? 'text-amber-500' : 'text-green-500'}`}
-            >
-              {ticket.offline ? 'Guardada sin conexión' : 'Venta registrada'}
-            </h2>
-            {ticket.offline
-              ? <p className="text-stone-400 text-xs mt-1">Se sincronizará automáticamente al reconectarse</p>
-              : <p className="text-stone-400 text-xs mt-1">Transacción #{ticket.transaccionId}</p>
-            }
-            <p className="text-stone-500 text-xs mt-1">{fecha}</p>
-          </div>
-
-          <div className="border-t border-stone-700" />
-
-          {/* Boleta nominada */}
-          {ticket.comprobante && (
-            <div className="bg-amber-900/30 border border-amber-700 rounded-lg p-3 text-sm">
-              <p className="text-amber-300 font-semibold text-xs uppercase tracking-wide mb-1">Boleta nominada</p>
-              <p className="text-stone-200">{ticket.comprobante.tipoDocumento}: {ticket.comprobante.numeroDocumento}</p>
-              <p className="text-stone-200">{ticket.comprobante.razonSocial}</p>
-            </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto animate-fadeIn">
+      <div className="bg-white rounded-[24px] shadow-lg w-full max-w-sm overflow-hidden my-8 border border-[#E2E8F0] flex flex-col">
+        
+        {/* State Banner */}
+        <div className={`px-4 py-3 flex items-center gap-2 text-white ${
+          ticket.offline ? 'bg-[#7C2D12]' : 'bg-[#10B981]'
+        }`}>
+          {ticket.offline ? (
+            <>
+              <CloudLightning size={16} />
+              <span className="font-extrabold text-[11px] uppercase tracking-wider">Guardado en espera local</span>
+            </>
+          ) : (
+            <>
+              <CheckCircle2 size={16} />
+              <span className="font-extrabold text-[11px] uppercase tracking-wider">Comanda enviada a Cocina</span>
+            </>
           )}
-
-          {/* Items */}
-          <div className="space-y-1">
-            {ticket.items.map(item => (
-              <div key={item.productoId} className="flex justify-between text-sm">
-                <span className="text-stone-300">
-                  {item.nombre} <span className="text-stone-500">×{item.cantidad}</span>
-                </span>
-                <span className="text-stone-200">{formatSoles(item.precio * item.cantidad)}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="border-t border-stone-700" />
-
-          {/* Totales */}
-          <div className="space-y-1 text-sm">
-            <div className="flex justify-between text-stone-400">
-              <span>Subtotal</span><span>{formatSoles(ticket.subtotal)}</span>
-            </div>
-            <div className="flex justify-between text-stone-400">
-              <span>IGV ({(config.tasaIgv * 100).toFixed(1)}%)</span>
-              <span>{formatSoles(ticket.igv)}</span>
-            </div>
-            <div className="flex justify-between font-bold text-stone-100 text-base">
-              <span>TOTAL</span><span>{formatSoles(ticket.total)}</span>
-            </div>
-            {ticket.metodoPagoSecundarioNombre && ticket.montoMetodoPrimario ? (
-          <>
-            <div className="flex justify-between text-stone-500 text-xs">
-              <span>{ticket.metodoPagoNombre}</span>
-              <span>{formatSoles(ticket.montoMetodoPrimario)}</span>
-            </div>
-            <div className="flex justify-between text-stone-500 text-xs">
-              <span>{ticket.metodoPagoSecundarioNombre}</span>
-              <span>{formatSoles(ticket.total - ticket.montoMetodoPrimario)}</span>
-            </div>
-          </>
-        ) : (
-          <div className="flex justify-between text-stone-500 text-xs">
-            <span>Método de pago</span><span>{ticket.metodoPagoNombre}</span>
-          </div>
-        )}
-          </div>
-
-          {/* Acciones */}
-          <div className="flex gap-2 pt-1">
-            <button
-              onClick={() => window.print()}
-              className="flex-1 py-3 rounded-lg font-semibold text-stone-300 bg-stone-700 hover:bg-stone-600 transition-colors text-sm"
-            >
-              🖨️ Imprimir
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 py-3 rounded-lg font-bold text-white text-sm transition-colors bg-brand"
-            >
-              Nueva venta
-            </button>
-          </div>
-
         </div>
+
+        {/* Paper Ticket Visual Mock */}
+        <div className="p-6 bg-[#F8FAFC] border-b border-dashed border-[#E2E8F0]">
+          <div className="bg-white p-4 shadow-xs rounded-lg border border-[#E2E8F0] font-mono text-[11px] text-stone-800 space-y-4">
+            
+            {/* Header */}
+            <div className="text-center space-y-1">
+              <h3 className="font-extrabold text-xs uppercase tracking-wide">CAFÉ DE BARRIO S.A.C.</h3>
+              <p className="text-[10px] text-stone-550 leading-relaxed">
+                Av. Reducto 1234, Barranco<br />
+                Lima, Perú • RUC: 20123456789
+              </p>
+            </div>
+
+            <div className="border-t border-dashed border-stone-300 my-2" />
+
+            {/* Ticket Metadata state */}
+            <div className="space-y-0.5 text-[10px]">
+              <p><span className="font-bold">Comprobante:</span> {ticket.comprobante ? `${ticket.comprobante.tipoDocumento} - ${ticket.comprobante.numeroDocumento}` : 'Ticket de Venta Simple'}</p>
+              <p><span className="font-bold">Adquiriente:</span> {ticket.comprobante ? ticket.comprobante.razonSocial : 'Público General'}</p>
+              <p><span className="font-bold">Fecha / Hora:</span> {new Date(ticket.fechaHora).toLocaleString()}</p>
+              <p><span className="font-bold">Nro Int:</span> {ticket.offline ? `L-${ticket.localId}` : `S-${ticket.transaccionId}`}</p>
+            </div>
+
+            <div className="border-t border-dashed border-stone-300 my-2" />
+
+            {/* Transacted items list details */}
+            <div className="space-y-1.5 py-1">
+              {ticket.items.map(item => (
+                <div key={item.productoId} className="flex justify-between items-start">
+                  <div className="flex-1 pr-2">
+                    <p className="font-bold leading-tight">{item.nombre}</p>
+                    <p className="text-[10px] text-stone-500">{item.cantidad} x {formatSoles(item.precio)}</p>
+                  </div>
+                  <span className="font-bold">{formatSoles(item.precio * item.cantidad)}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="border-t border-dashed border-stone-300 my-2" />
+
+            {/* Math aggregate calculations fields */}
+            <div className="space-y-0.5 text-right font-semibold">
+              <div className="flex justify-between">
+                <span>Subtotal Gravado S/.:</span>
+                <span>{formatSoles(ticket.subtotal)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>IGV ({igvRate}%) S/.:</span>
+                <span>{formatSoles(ticket.igv)}</span>
+              </div>
+              <div className="flex justify-between font-extrabold text-xs pt-1 border-t border-stone-200">
+                <span>TOTAL NETO S/.:</span>
+                <span>{formatSoles(ticket.total)}</span>
+              </div>
+            </div>
+
+            {/* Split double payment detail */}
+            <div className="text-[9px] text-stone-500 pt-3">
+              <p>MÉD. PAGO: {ticket.metodoPagoNombre}</p>
+              {ticket.metodoPagoSecundarioNombre && ticket.montoMetodoPrimario && (
+                <p className="font-bold mt-0.5">
+                  → Multiclase: {ticket.metodoPagoNombre} (S/. {ticket.montoMetodoPrimario.toFixed(2)}) + {ticket.metodoPagoSecundarioNombre} (S/. {(ticket.total - ticket.montoMetodoPrimario).toFixed(2)})
+                </p>
+              )}
+            </div>
+
+            <div className="border-t border-dashed border-stone-300 pt-3 text-center text-[10px]">
+              <p className="font-bold uppercase">¡Disfruta tu Café de Barrio!</p>
+              <p className="text-[9px] text-stone-500 mt-0.5">La comanda se procesó en el Terminal Nro {config.dispositivoId}</p>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Modal Actions */}
+        <div className="bg-[#F8FAFC] px-6 py-4 flex gap-2 justify-between border-t border-[#E2E8F0]">
+          <button
+            onClick={printTicket}
+            className="px-4 py-2 border border-[#E2E8F0] bg-white rounded-lg text-xs font-bold text-[#334155]/80 hover:bg-[#F8FAFC] flex items-center gap-2 transition cursor-pointer"
+          >
+            <Printer size={14} />
+            <span>Imprimir Ticket</span>
+          </button>
+          <button
+            onClick={onClose}
+            className="px-6 py-2 bg-[#7C2D12] hover:bg-[#6b250e] text-white font-extrabold rounded-lg text-xs transition shadow-2xs cursor-pointer"
+          >
+            Nueva Venta
+          </button>
+        </div>
+
       </div>
-    </>
+    </div>
   )
 }

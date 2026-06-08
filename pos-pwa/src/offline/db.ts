@@ -1,5 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
-import type { PendingTransaction, ProductoDto, CategoriaDto, MetodoPagoDto } from '../types'
+import type { PendingTransaction, ProductoDto, CategoriaDto, MetodoPagoDto, OperadorDto } from '../types'
 
 interface CafeDB extends DBSchema {
   pendingTransactions: {
@@ -19,6 +19,10 @@ interface CafeDB extends DBSchema {
     key: number
     value: MetodoPagoDto
   }
+  catalogOperadores: {
+    key: number
+    value: OperadorDto
+  }
 }
 
 let _db: IDBPDatabase<CafeDB> | null = null
@@ -37,6 +41,7 @@ export async function getDb(): Promise<IDBPDatabase<CafeDB>> {
         db.createObjectStore('catalogProductos',   { keyPath: 'productoId' })
         db.createObjectStore('catalogCategorias',  { keyPath: 'categoriaId' })
         db.createObjectStore('catalogMetodosPago', { keyPath: 'metodoPagoId' })
+        db.createObjectStore('catalogOperadores',  { keyPath: 'operadorId' })
       }
     },
   })
