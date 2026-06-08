@@ -343,12 +343,12 @@ export function ReportesYGraficos() {
             </div>
           </div>
 
-          <div style={{ borderTop: "1px solid var(--color-border)", margin: "32px 0", paddingTop: "32px" }}>
-            <div style={{ marginBottom: "24px" }}>
-              <h2 style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--color-text-title)", display: "flex", alignItems: "center", gap: "8px" }}>
-                <ShieldCheck size={22} color="#92400E" /> Control de Arqueo y Cierre de Caja
+          <div className="border-t border-gray-100 my-8 pt-8">
+            <div className="section-header mb-6">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <ShieldCheck size={22} className="text-amber-800" /> Control de Arqueo y Cierre de Caja
               </h2>
-              <p style={{ fontSize: "0.75rem", color: "var(--color-muted)", marginTop: "4px" }}>Supervisión en tiempo real de turnos y balances de los operadores</p>
+              <p className="text-xs text-slate-500 mt-1">Supervisión en tiempo real de turnos y balances de los operadores</p>
             </div>
 
             {successCaja && (
@@ -382,18 +382,18 @@ export function ReportesYGraficos() {
                         <Unlock size={20} />
                         <div>
                           <div className="caja-status-label">TURNO ACTIVO EN SISTEMA</div>
-                          <span style={{ fontWeight: 600, fontSize: "0.875rem", color: "#451A03" }}>Abierto por {turno.nombreOperador}</span>
+                          <span className="font-semibold text-sm text-amber-950">Abierto por {turno.nombreOperador}</span>
                         </div>
                       </div>
 
-                      <div className="form-row border-top" style={{ paddingTop: "24px", marginTop: "16px", borderTop: "1px solid var(--color-border)" }}>
+                      <div className="form-row border-top pt-6 mt-4">
                         <div>
-                          <span style={{ color: "var(--color-muted)", fontSize: "0.75rem", fontWeight: 600, display: "block" }}>Monto de Apertura</span>
-                          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.875rem", fontWeight: 700 }}>S/. {turno.montoApertura.toFixed(2)}</span>
+                          <span className="text-muted text-xs font-semibold block">Monto de Apertura</span>
+                          <span className="font-mono text-sm font-bold">S/. {turno.montoApertura.toFixed(2)}</span>
                         </div>
                         <div>
-                          <span style={{ color: "var(--color-muted)", fontSize: "0.75rem", fontWeight: 600, display: "block" }}>Fecha de Apertura</span>
-                          <span style={{ fontSize: "0.875rem", fontWeight: 500 }}>{new Date(turno.fechaApertura).toLocaleTimeString("es-PE")}</span>
+                          <span className="text-muted text-xs font-semibold block">Fecha de Apertura</span>
+                          <span className="text-sm font-medium">{new Date(turno.fechaApertura).toLocaleTimeString("es-PE")}</span>
                         </div>
                       </div>
                     </div>
@@ -403,7 +403,7 @@ export function ReportesYGraficos() {
                         <Lock size={20} />
                         <div>
                           <div className="caja-status-label">CASH SHIFT CERRADO</div>
-                          <span style={{ fontWeight: 600, fontSize: "0.875rem" }}>Abra un nuevo turno para operar</span>
+                          <span className="font-semibold text-sm">Abra un nuevo turno para operar</span>
                         </div>
                       </div>
 
@@ -442,7 +442,7 @@ export function ReportesYGraficos() {
                             />
                           </label>
 
-                          <button type="submit" className="btn btn-primary" style={{ marginTop: "24px" }} disabled={processing}>
+                          <button type="submit" className="btn btn-primary mt-20" disabled={processing}>
                             {processing ? "Abriendo..." : "Iniciar Turno en POS"}
                           </button>
                         </form>
@@ -470,7 +470,7 @@ export function ReportesYGraficos() {
                           onChange={(e) => setMontoCierto(Number(e.target.value))}
                           required
                         />
-                        <span style={{ color: "var(--color-muted)", fontSize: "0.75rem", marginTop: "16px", display: "block" }}>
+                        <span className="text-muted text-xs mt-4">
                           Ingrese el conteo billete por billete físico retirado del cajón de efectivo.
                         </span>
                       </label>
@@ -487,7 +487,7 @@ export function ReportesYGraficos() {
                         />
                       </label>
 
-                      <button type="submit" className="btn btn-danger" style={{ marginTop: "16px" }} disabled={processing}>
+                      <button type="submit" className="btn btn-danger mt-4" disabled={processing}>
                         {processing ? "Cerrando..." : "Realizar Cierre de Caja"}
                       </button>
                     </form>
@@ -495,21 +495,21 @@ export function ReportesYGraficos() {
                     <div>
                       {cierreResult ? (
                         <div className="result-caja">
-                          <span style={{ color: "var(--color-muted)", fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", display: "block", marginBottom: "32px" }}>
+                          <span className="text-muted text-xs font-bold uppercase block mb-8">
                             Resultado del Último Cierre
                           </span>
                           
-                          <div className="result-row" style={{ marginTop: "16px" }}>
+                          <div className="result-row mt-4">
                             <span>Efectivo registrado en Sistema:</span>
-                            <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700 }}>S/. {cierreResult.totalEfectivoSistema.toFixed(2)}</span>
+                            <span className="font-mono font-bold">S/. {cierreResult.totalEfectivoSistema.toFixed(2)}</span>
                           </div>
 
-                          <div className="result-row" style={{ borderTop: "1px solid var(--color-border)", paddingTop: "24px" }}>
+                          <div className="result-row border-top pt-6">
                             <span>Efectivo arqueado por cajero:</span>
-                            <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700 }}>S/. {cierreResult.montoEfectivoCierto.toFixed(2)}</span>
+                            <span className="font-mono font-bold">S/. {cierreResult.montoEfectivoCierto.toFixed(2)}</span>
                           </div>
 
-                          <div className="result-row" style={{ borderTop: "1px solid var(--color-border)", paddingTop: "24px", fontWeight: 700 }}>
+                          <div className="result-row border-top pt-6 font-bold">
                             <span>Discrepancia / Diferencia de Caja:</span>
                             <span
                               className={cierreResult.diferencia >= 0 ? "dif-pos font-semibold" : "dif-neg font-semibold"}
@@ -518,7 +518,7 @@ export function ReportesYGraficos() {
                             </span>
                           </div>
 
-                          <p style={{ color: "var(--color-muted)", fontSize: "0.75rem", marginTop: "32px", fontStyle: "italic" }}>
+                          <p className="text-muted text-xs mt-20 italic">
                             {cierreResult.diferencia === 0
                               ? "Cuadre perfecto. No se registran inconsistencias."
                               : cierreResult.diferencia > 0

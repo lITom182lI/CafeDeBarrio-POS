@@ -7,7 +7,7 @@ export function Transacciones() {
   const [transacciones, setTransacciones] = useState<TransaccionListItemDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
-
+  
   // Search / Filters State
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filterMetodo, setFilterMetodo] = useState<string>("todos");
@@ -26,7 +26,7 @@ export function Transacciones() {
       const data = await api.transacciones();
       setTransacciones(data);
     } catch {
-      setError("No se pudo obtener el historial de transacciones.");
+      setError("No se pudo obtener el historial de transacciones. Reintentando...");
     } finally {
       setLoading(false);
     }
@@ -60,10 +60,8 @@ export function Transacciones() {
 
   // Filter & Search Logic
   const filteredTx = transacciones.filter((tx) => {
-    const term = searchTerm.toLowerCase();
     const matchesSearch =
-      !searchTerm ||
-      (tx.clienteNombre?.toLowerCase().includes(term)) ||
+      tx.clienteNombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       String(tx.transaccionId).includes(searchTerm) ||
       (tx.numeroDocumento && tx.numeroDocumento.includes(searchTerm));
 
@@ -83,7 +81,9 @@ export function Transacciones() {
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">Historial de Transacciones</h1>
+        <div>
+          <h1 className="page-title">Historial de Transacciones</h1>
+        </div>
       </div>
 
       {error && (
@@ -95,21 +95,21 @@ export function Transacciones() {
       {/* Filter and Search Bar Card */}
       <div className="filter-wrap-card">
         <div className="filter-left-col">
-          {/* Search bar */}
+          {/* Search bar input */}
           <div className="select-group">
             <label className="select-grouplabel">Buscar venta</label>
-            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-              <span style={{ position: "absolute", left: "12px", color: "#64748B", display: "flex", alignItems: "center", pointerEvents: "none" }}>
-                <Search size={16} />
-              </span>
+            <div className="relative">
               <input
                 type="text"
                 placeholder="Cliente, ID u orden..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="caja-input"
-                style={{ paddingLeft: "36px", minWidth: "240px" }}
+                style={{ paddingLeft: "36px", minWidth: "260px" }}
               />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <Search size={16} />
+              </span>
             </div>
           </div>
 
@@ -156,32 +156,30 @@ export function Transacciones() {
         </div>
       ) : filteredTx.length === 0 ? (
         <div className="empty-state">
-          No se encontraron transacciones que coincidan con los filtros actuales.
+          No se encontraron transacciones registradas que coincidan con los filtros actuales.
         </div>
       ) : (
         <div className="table-wrap">
           <table className="pos-table">
             <thead>
               <tr>
-                <th>ID</th>
+                <th>ID Venta</th>
                 <th>Fecha y Hora</th>
                 <th>Operador</th>
                 <th>Cliente / Comprobante</th>
                 <th>Método</th>
                 <th>Estado</th>
-                <th style={{ textAlign: "right" }}>Total</th>
-                <th style={{ width: "70px" }}>Acción</th>
+                <th className="text-right">Total</th>
+                <th style={{ width: "80px" }}>Acción</th>
               </tr>
             </thead>
             <tbody>
               {filteredTx.map((tx) => (
                 <tr key={tx.transaccionId}>
-                  <td>
-                    <span className="mono-price fw-semibold" style={{ color: "#64748B" }}>
-                      #{String(tx.transaccionId).padStart(4, "0")}
-                    </span>
+                  <td className="font-mono text-sm font-semibold text-gray-500">
+                    #{String(tx.transaccionId).padStart(4, "0")}
                   </td>
-                  <td style={{ fontSize: "0.8125rem" }}>
+                  <td className="text-sm">
                     {new Date(tx.fecha).toLocaleString("es-PE", {
                       day: "2-digit",
                       month: "2-digit",
@@ -190,7 +188,7 @@ export function Transacciones() {
                       minute: "2-digit",
                     })}
                   </td>
-                  <td style={{ fontSize: "0.875rem", fontWeight: 500 }}>
+                  <td className="font-medium text-sm">
                     {tx.operadorNombre || "Administrador"}
                   </td>
                   <td>
@@ -204,44 +202,24 @@ export function Transacciones() {
                     </div>
                   </td>
                   <td>
-                    <span style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      fontSize: "0.75rem",
-                      fontWeight: 600,
-                      padding: "3px 10px",
-                      background: "#F1F5F9",
-                      borderRadius: "8px",
-                      color: "#334155"
-                    }}>
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 bg-gray-100 rounded-md">
                       {tx.metodoPago}
                       {tx.metodoPagoSecundario && ` / ${tx.metodoPagoSecundario}`}
                     </span>
                   </td>
                   <td>
                     {tx.anulada ? (
-                      <span style={{
-                        display: "inline-flex", alignItems: "center", gap: "4px",
-                        padding: "3px 10px", background: "#FEF2F2",
-                        color: "#DC2626", fontSize: "0.75rem", fontWeight: 700,
-                        borderRadius: "8px"
-                      }}>
+                      <span className="px-2.5 py-1 bg-red-50 text-red-700 text-xs font-bold rounded-md inline-flex items-center gap-1">
                         <XCircle size={12} /> Anulada
                       </span>
                     ) : (
-                      <span style={{
-                        display: "inline-flex", alignItems: "center", gap: "4px",
-                        padding: "3px 10px", background: "#ECFDF5",
-                        color: "#059669", fontSize: "0.75rem", fontWeight: 700,
-                        borderRadius: "8px"
-                      }}>
+                      <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-md inline-flex items-center gap-1">
                         <CheckCircle size={12} /> Completada
                       </span>
                     )}
                   </td>
-                  <td style={{ textAlign: "right" }}>
-                    <span className="mono-price fw-bold">S/. {tx.total.toFixed(2)}</span>
+                  <td className="font-mono font-bold text-sm text-right">
+                    S/. {tx.total.toFixed(2)}
                   </td>
                   <td>
                     <button
@@ -259,10 +237,10 @@ export function Transacciones() {
         </div>
       )}
 
-      {/* Detail Modal */}
+      {/* Detail Overlay Drawer/Modal */}
       {selectedTxId !== null && (
         <div className="modal-overlay" onClick={handleCloseDetail}>
-          <div className="modal-box" style={{ maxWidth: "520px" }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-box max-w-lg" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Detalle de Orden #{String(selectedTxId).padStart(4, "0")}</h2>
               <button onClick={handleCloseDetail} className="modal-close">×</button>
@@ -279,28 +257,18 @@ export function Transacciones() {
               </div>
             ) : txDetail ? (
               <div>
-                {/* Ticket visual */}
-                <div style={{
-                  background: "linear-gradient(#fefbeb 1px, transparent 1px)",
-                  backgroundSize: "100% 20px",
-                  backgroundColor: "rgba(251, 243, 219, 0.4)",
-                  border: "1px solid rgba(217, 182, 115, 0.5)",
-                  borderRadius: "16px",
-                  padding: "24px",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "0.75rem",
-                  color: "#475569",
-                  marginBottom: "20px"
-                }}>
-                  <div style={{ textAlign: "center", borderBottom: "1px dashed #D97706", paddingBottom: "12px", marginBottom: "12px" }}>
-                    <span style={{ fontWeight: 700, fontSize: "0.875rem", letterSpacing: "0.05em", textTransform: "uppercase", display: "block", color: "#78350F" }}>
-                      Café de Barrio
-                    </span>
-                    <span style={{ fontSize: "0.625rem", color: "#92400E" }}>CUSCO - CHINCHERO - PERÚ</span>
-                    <p style={{ marginTop: "4px" }}>Tlf: +51 984 123 456</p>
+                {/* Visual design simulating ticket */}
+                <div 
+                  className="bg-amber-50/40 border border-amber-200/50 rounded-2xl p-6 font-mono text-xs text-slate-700 mb-6 shadow-inner"
+                  style={{ backgroundImage: "linear-gradient(#fefbeb 1px, transparent 1px)", backgroundSize: "100% 20px" }}
+                >
+                  <div className="text-center border-b border-dashed border-amber-300 pb-4 mb-4">
+                    <span className="font-bold text-sm tracking-wider uppercase block text-amber-900">Café de Barrio</span>
+                    <span className="text-[10px] text-amber-800">CUSCO - CHINCHERO - PERÚ</span>
+                    <p className="mt-1">Tlf: +51 984 123 456</p>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: "4px", color: "#475569" }}>
+                  <div className="space-y-1 text-slate-600">
                     <p><strong>Fecha/Hora:</strong> {new Date(txDetail.fecha).toLocaleString("es-PE")}</p>
                     <p><strong>Cajero:</strong> {txDetail.operadorNombre || "Administrador"}</p>
                     <p><strong>Cliente:</strong> {txDetail.clienteNombre || "Público General"}</p>
@@ -312,51 +280,46 @@ export function Transacciones() {
                     )}
                   </div>
 
-                  <div style={{ borderTop: "1px dashed #D97706", borderBottom: "1px dashed #D97706", padding: "12px 0", margin: "12px 0" }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+                  <div className="border-t border-b border-dashed border-amber-300 py-3 my-3">
+                    <table className="w-full text-left file-table">
                       <thead>
-                        <tr style={{ borderBottom: "1px solid #D97706", color: "#92400E", fontWeight: 700 }}>
-                          <th style={{ paddingBottom: "6px", width: "55%" }}>Prod</th>
-                          <th style={{ paddingBottom: "6px", textAlign: "center", width: "15%" }}>Cant</th>
-                          <th style={{ paddingBottom: "6px", textAlign: "right", width: "30%" }}>Subtotal</th>
+                        <tr className="border-b border-amber-200 text-amber-800 font-bold">
+                          <th className="pb-1" style={{ width: "55%" }}>Prod</th>
+                          <th className="pb-1 text-center" style={{ width: "15%" }}>Cant</th>
+                          <th className="pb-1 text-right" style={{ width: "30%" }}>Subtotal</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody className="divide-y divide-dotted divide-amber-200">
                         {txDetail.items.map((it, idx) => (
-                          <tr key={idx} style={{ color: "#475569", borderBottom: "1px dotted #D97706" }}>
-                            <td style={{ padding: "8px 8px 8px 0" }}>
+                          <tr key={idx} className="text-slate-600">
+                            <td className="py-2 pr-2">
                               <div>{it.nombreProducto}</div>
-                              <span style={{ fontSize: "0.625rem", color: "#94A3B8" }}>S/. {it.precioUnitario.toFixed(2)} c/u</span>
+                              <span className="text-[10px] text-gray-400">S/. {it.precioUnitario.toFixed(2)} c/u</span>
                             </td>
-                            <td style={{ padding: "8px", textAlign: "center", fontWeight: 700, color: "#1E293B" }}>{it.cantidad}</td>
-                            <td style={{ padding: "8px 0 8px 8px", textAlign: "right", fontWeight: 700, color: "#1E293B" }}>S/. {it.subtotalLinea.toFixed(2)}</td>
+                            <td className="py-2 text-center font-bold text-slate-800">{it.cantidad}</td>
+                            <td className="py-2 text-right font-bold text-slate-800">S/. {it.subtotalLinea.toFixed(2)}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: "4px", textAlign: "right" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", color: "#64748B", fontWeight: 400 }}>
+                  <div className="space-y-1 text-right font-bold">
+                    <div className="flex justify-between text-slate-500 font-normal">
                       <span>Subtotal:</span>
                       <span>S/. {txDetail.subtotal.toFixed(2)}</span>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", color: "#64748B", fontWeight: 400 }}>
+                    <div className="flex justify-between text-slate-500 font-normal">
                       <span>IGV (18%):</span>
                       <span>S/. {txDetail.igv.toFixed(2)}</span>
                     </div>
-                    <div style={{
-                      display: "flex", justifyContent: "space-between",
-                      fontSize: "1.125rem", color: "#78350F",
-                      borderTop: "1px solid #D97706", paddingTop: "8px",
-                      fontWeight: 900, textTransform: "uppercase", letterSpacing: "-0.01em", marginTop: "8px"
-                    }}>
+                    <div className="flex justify-between text-lg text-amber-900 border-t border-amber-200 pt-2 font-black mt-2 font-black uppercase tracking-tight">
                       <span>Costo Total:</span>
                       <span>S/. {txDetail.total.toFixed(2)}</span>
                     </div>
                   </div>
 
-                  <div style={{ borderTop: "1px dashed #D97706", paddingTop: "12px", marginTop: "16px", display: "flex", flexDirection: "column", gap: "4px", fontSize: "0.625rem", color: "#64748B" }}>
+                  <div className="border-t border-dashed border-amber-300 pt-3 flex flex-col gap-1 text-[10px] text-slate-500 mt-4">
                     <p><strong>Medio de Pago Principal:</strong> {txDetail.metodoPago}</p>
                     {txDetail.metodoPagoSecundario && (
                       <>
@@ -366,13 +329,13 @@ export function Transacciones() {
                         )}
                       </>
                     )}
-                    <p><strong>Estado:</strong> {txDetail.anulada ? "ANULADA" : "ACTIVA/DESPACHADA"}</p>
+                    <p><strong>Estado del Comprobante:</strong> {txDetail.anulada ? "ANULADA" : "ACTIVA/DESPACHADA"}</p>
                   </div>
                 </div>
 
-                <div style={{ display: "flex", gap: "12px" }}>
-                  <button
-                    onClick={() => alert("Impresión enviada a la ticketera térmica")}
+                <div className="flex justify-between gap-3">
+                  <button 
+                    onClick={() => alert("Impresión enviada a la ticketera térmica Epson TM-T20III")} 
                     className="btn btn-primary"
                     style={{ flex: 1 }}
                   >
@@ -389,4 +352,4 @@ export function Transacciones() {
       )}
     </div>
   );
-}
+}
