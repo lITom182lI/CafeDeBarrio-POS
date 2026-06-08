@@ -34,9 +34,7 @@ public class AuthIntegrationTests : IntegrationTestBase
         
         var jwtService = new JwtService(config);
         var hasher = new Argon2PasswordHasher();
-        var uow = new UnitOfWork(Db);
-
-        _controller = new AuthController(usuariosRepo, jwtService, hasher, uow);
+        _controller = new AuthController(usuariosRepo, jwtService, hasher, null!);
     }
 
     [Fact]

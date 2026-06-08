@@ -14,7 +14,9 @@ public abstract class IntegrationTestBase : IDisposable
     protected IntegrationTestBase()
     {
         var options = new DbContextOptionsBuilder<CafeBarrioDbContext>()
-            .UseSqlServer("Server=localhost,1433;Database=CafeDeBarrioTest;User Id=sa;Password=Muis_CafeBarrio_2026!;TrustServerCertificate=True;")
+            .UseSqlServer(
+                Environment.GetEnvironmentVariable("TEST_DB_CONNECTION")
+                ?? "Server=localhost,1433;Database=CafeDeBarrioTest;User Id=sa;Password=Muis_CafeBarrio_2026!;TrustServerCertificate=True;")
             .Options;
 
         Db = new CafeBarrioDbContext(options);
