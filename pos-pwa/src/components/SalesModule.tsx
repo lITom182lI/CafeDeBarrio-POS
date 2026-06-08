@@ -50,6 +50,7 @@ export default function SalesModule({ session, onLogout }: Props) {
   // ── Checkout ──────────────────────────────────────────────────────────────
   const [processing, setProcessing] = useState(false)
   const [ticket, setTicket] = useState<TicketData | null>(null)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   // ── Sync ──────────────────────────────────────────────────────────────────
   const { pendingCount, isOnline, refreshCount } = useSync()
@@ -156,6 +157,7 @@ export default function SalesModule({ session, onLogout }: Props) {
   async function handleCobrar() {
     if (cobrarDisabled) return
     setProcessing(true)
+    setErrorMsg(null)
 
     const fechaHora = new Date().toISOString()
     const request: CreateTransaccionRequest = {
@@ -203,7 +205,7 @@ export default function SalesModule({ session, onLogout }: Props) {
         })
         await refreshCount()
       } else {
-        alert(`Error: ${err instanceof Error ? err.message : 'Error al registrar la venta'}`)
+        setErrorMsg(`Error: ${err instanceof Error ? err.message : 'Error al registrar la venta'}`)
         setProcessing(false)
         return
       }
@@ -559,6 +561,7 @@ export default function SalesModule({ session, onLogout }: Props) {
             </label>
 
             {/* Botón COBRAR */}
+            {errorMsg && <div className="muis-textfield__error-text" style={{ color: 'red', fontSize: '0.875rem', marginBottom: '0.5rem', textAlign: 'center' }}>{errorMsg}</div>}
             <button
               onClick={handleCobrar}
               disabled={cobrarDisabled}

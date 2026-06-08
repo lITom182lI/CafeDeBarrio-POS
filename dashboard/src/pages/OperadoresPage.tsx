@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import { api } from '../api/client'
 import type { OperadorDto } from '../types'
 import { OperadorModal } from '../components/OperadorModal'
+import { ConfirmModal } from '../components/ConfirmModal'
 
 export function OperadoresPage() {
   const [operadores, setOperadores] = useState<OperadorDto[]>([])
   const [err,        setErr]        = useState('')
   const [modal,      setModal]      = useState<{ open: boolean; operador?: OperadorDto | null }>({ open: false })
+  const [confirmDelete, setConfirmDelete] = useState<OperadorDto | null>(null)
 
   const cargar = () =>
     api.operadores().then(setOperadores).catch(() => setErr('No se pudo cargar la lista.'))
@@ -49,6 +51,10 @@ export function OperadoresPage() {
                       onClick={() => setModal({ open: true, operador: op })}>
                       Editar
                     </button>
+                    <button className="btn-link" style={{ color: 'red', marginLeft: '0.5rem' }}
+                      onClick={() => setConfirmDelete(op)}>
+                      Eliminar
+                    </button>
                   </td>
                 </tr>
               ))
@@ -62,6 +68,23 @@ export function OperadoresPage() {
           operador={modal.operador}
           onClose={() => setModal({ open: false })}
           onSaved={() => { setModal({ open: false }); cargar() }}
+        />
+      )}
+      {confirmDelete && (
+        <ConfirmModal
+          title="Eliminar Operador"
+          message={`¿Estás seguro de eliminar a ${confirmDelete.nombre}?`}
+          onConfirm={async () => {
+            try {
+              await api.eliminarOperador(confirmDelete.operadorId)
+              setConfirmDelete(null)
+              cargar()
+            } catch {
+              setErr('Error al eliminar operador.')
+              setConfirmDelete(null)
+            }
+          }}
+          onCancel={() => setConfirmDelete(null)}
         />
       )}
     </div>

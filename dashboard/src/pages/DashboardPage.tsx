@@ -28,15 +28,15 @@ export function DashboardPage() {
         api.ventasPorDia(periodo),
       ])
       setResumen(r)
-      setMetodos(m)
-      setPorDia(d)
+      setMetodos(m || [])
+      setPorDia(d || [])
     } catch { setErr('No se pudo conectar con la API en localhost:5138') }
   }, [periodo])
 
   const cargarExtras = useCallback(async () => {
     try {
       const [s, t] = await Promise.all([api.stockBajo(), api.turnoActivo()])
-      setStockCount(s.length); setTurno(t)
+      setStockCount((s || []).length); setTurno(t)
     } catch { /* silencioso */ }
   }, [])
 

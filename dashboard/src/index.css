@@ -1,13 +1,20 @@
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: system-ui, -apple-system, sans-serif; background: #f5f6fa; color: #111827; }
-button { cursor: pointer; font-family: inherit; }
-input, select, textarea { font-family: inherit; }
-a { text-decoration: none; }
-
-@import './styles/tokens.css';
-
 :root {
-  /* Aliases MUIS → variables DTCG */
+  /* ── Design Tokens (DTCG) ── */
+  --color-brand:       #c2622a;
+  --color-brand-hover: #a85220;
+  --color-bg:          #f5f6fa;
+  --color-card:        #ffffff;
+  --color-text:        #111827;
+  --color-muted:       #6b7280;
+  --color-border:      #e5e7eb;
+  --color-success:     #22c55e;
+  --color-danger:      #ef4444;
+  --color-warning:     #f59e0b;
+  --color-sidebar:     #1a1a1a;
+  --dimension-radius:    10px;
+  --dimension-sidebar-w: 220px;
+
+  /* ── Aliases MUIS → DTCG ── */
   --accent:      var(--color-brand);
   --accent-hover:var(--color-brand-hover);
   --bg:          var(--color-bg);
