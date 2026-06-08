@@ -2,6 +2,7 @@ using CafeBarrio.Application.Common.Interfaces;
 using CafeBarrio.Application.Features.Operadores.Commands.CreateOperador;
 using CafeBarrio.Application.Features.Operadores.Commands.UpdateOperador;
 using CafeBarrio.Application.Features.Operadores.Commands.ValidarPin;
+using CafeBarrio.Application.Features.Operadores.Commands.DeleteOperador;
 using CafeBarrio.Application.Features.Operadores.Dtos;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -55,6 +56,15 @@ public class OperadoresController : ControllerBase
     {
         if (id != command.OperadorId) return BadRequest("ID no coincide.");
         var result = await _sender.Send(command, ct);
+        return result.IsSuccess ? NoContent() : NotFound(result.Errors);
+    }
+
+    [HttpDelete("{id:int}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> Delete(int id, CancellationToken ct)
+    {
+        var result = await _sender.Send(new DeleteOperadorCommand(id), ct);
         return result.IsSuccess ? NoContent() : NotFound(result.Errors);
     }
 

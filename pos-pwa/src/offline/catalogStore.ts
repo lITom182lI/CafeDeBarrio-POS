@@ -1,5 +1,5 @@
 import { getDb } from './db'
-import type { ProductoDto, CategoriaDto, MetodoPagoDto } from '../types'
+import type { ProductoDto, CategoriaDto, MetodoPagoDto, OperadorDto } from '../types'
 
 export async function saveCatalogProductos(items: ProductoDto[]): Promise<void> {
   const db = await getDb()
@@ -38,4 +38,17 @@ export async function getCatalogCategorias(): Promise<CategoriaDto[]> {
 export async function getCatalogMetodosPago(): Promise<MetodoPagoDto[]> {
   const db = await getDb()
   return db.getAll('catalogMetodosPago')
+}
+
+export async function saveCatalogOperadores(items: OperadorDto[]): Promise<void> {
+  const db = await getDb()
+  const tx = db.transaction('catalogOperadores', 'readwrite')
+  await tx.store.clear()
+  for (const item of items) await tx.store.put(item)
+  await tx.done
+}
+
+export async function getCatalogOperadores(): Promise<OperadorDto[]> {
+  const db = await getDb()
+  return db.getAll('catalogOperadores')
 }

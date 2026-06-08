@@ -100,6 +100,9 @@ using (var scope = app.Services.CreateScope())
     var db     = scope.ServiceProvider.GetRequiredService<CafeBarrioDbContext>();
     var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
 
+    // Crear la base de datos si no existe
+    db.Database.EnsureCreated();
+
     // ── Sede ─────────────────────────────────────────────────────────────
     if (!db.Sedes.Any())
     {

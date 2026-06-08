@@ -1,8 +1,8 @@
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import type { VentasPorMetodoPagoDto } from '../types'
-import { tokens } from '../lib/tokens'
+import { chartPalette } from '../lib/tokens'
 
-const COLORS = tokens.chartPalette
+const COLORS = chartPalette
 
 interface Props { data: VentasPorMetodoPagoDto[] }
 
