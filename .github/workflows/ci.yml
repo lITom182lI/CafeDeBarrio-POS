@@ -96,6 +96,9 @@ jobs:
       - name: Build
         run: dotnet build src/CafeBarrio.sln --configuration Release --no-restore
 
+      - name: Install EF tools
+        run: dotnet tool install --global dotnet-ef
+
       - name: Apply EF migrations to test DB
         run: >
           dotnet ef database update
@@ -134,7 +137,7 @@ jobs:
         run: dotnet tool install --global CycloneDX
 
       - name: Generate SBOM
-        run: dotnet CycloneDX src/CafeBarrio.sln -o . -f json
+        run: dotnet CycloneDX src/CafeBarrio.sln -o . --json
 
       - name: Upload SBOM
         uses: actions/upload-artifact@v4
