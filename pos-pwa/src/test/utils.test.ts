@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { calcularTotales, formatSoles, generateLocalId, formatHora } from '../utils'
+import { config } from '../config'
 
 describe('calcularTotales', () => {
   it('retorna ceros con carrito vacío', () => {
@@ -13,7 +14,7 @@ describe('calcularTotales', () => {
     const cart = [{ productoId: 1, nombre: 'Café', precio: 5, cantidad: 2 }]
     const result = calcularTotales(cart)
     expect(result.subtotal).toBe(10)
-    expect(result.igv).toBe(Math.round(10 * 0.105 * 100) / 100)
+    expect(result.igv).toBe(Math.round(10 * config.tasaIgv * 100) / 100)
     expect(result.total).toBe(result.subtotal + result.igv)
   })
 

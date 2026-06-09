@@ -25,7 +25,7 @@ export class CafeBarrioApiAdapter {
     const r = await fetch(path, { headers: this.authHeaders })
     if (r.status === 401) {
       localStorage.removeItem('token')
-      window.location.href = '/login'
+      window.dispatchEvent(new CustomEvent('auth:unauthorized'))
       throw new Error('Sesión expirada')
     }
     if (!r.ok) throw new Error(`HTTP ${r.status}: ${path}`)
@@ -43,7 +43,7 @@ export class CafeBarrioApiAdapter {
     const r = await fetch(path, { method: 'POST', headers: this.authHeaders, body: JSON.stringify(body) })
     if (r.status === 401) {
       localStorage.removeItem('token')
-      window.location.href = '/login'
+      window.dispatchEvent(new CustomEvent('auth:unauthorized'))
       throw new Error('Sesión expirada')
     }
     if (!r.ok) throw new Error(`HTTP ${r.status}: ${path}`)
@@ -60,7 +60,7 @@ export class CafeBarrioApiAdapter {
     const r = await fetch(path, { method: 'PUT', headers: this.authHeaders, body: JSON.stringify(body) })
     if (r.status === 401) {
       localStorage.removeItem('token')
-      window.location.href = '/login'
+      window.dispatchEvent(new CustomEvent('auth:unauthorized'))
       throw new Error('Sesión expirada')
     }
     if (!r.ok) throw new Error(`HTTP ${r.status}: ${path}`)
@@ -94,7 +94,7 @@ export class CafeBarrioApiAdapter {
     this._put(`/api/operadores/${id}`, { operadorId: id, ...data })
   eliminarOperador    = (id: number) =>
     fetch(`/api/operadores/${id}`, { method: 'DELETE', headers: this.authHeaders }).then(r => {
-      if (r.status === 401) { localStorage.removeItem('token'); window.location.href = '/login'; throw new Error('Sesión expirada') }
+      if (r.status === 401) { localStorage.removeItem('token'); window.dispatchEvent(new CustomEvent('auth:unauthorized')); throw new Error('Sesión expirada') }
       if (!r.ok) throw new Error('No se pudo eliminar')
     })
   transaccionDetalle  = (id: number) =>

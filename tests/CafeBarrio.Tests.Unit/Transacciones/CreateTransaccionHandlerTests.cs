@@ -7,6 +7,7 @@ using FluentAssertions;
 using MUIS_CORE.Wrappers;
 using NSubstitute;
 using Xunit;
+using MediatR;
 
 namespace CafeBarrio.Tests.Unit.Transacciones;
 
@@ -17,11 +18,12 @@ public class CreateTransaccionHandlerTests
     private readonly IConfiguracionNegocioRepository _conf  = Substitute.For<IConfiguracionNegocioRepository>();
     private readonly IUnitOfWork _uow                       = Substitute.For<IUnitOfWork>();
     private readonly ISunatService _sunat                   = Substitute.For<ISunatService>();
+    private readonly IPublisher _publisher                  = Substitute.For<IPublisher>();
     private readonly CreateTransaccionHandler _sut;
 
     public CreateTransaccionHandlerTests()
     {
-        _sut = new CreateTransaccionHandler(_transacciones, _productos, _conf, _uow, _sunat);
+        _sut = new CreateTransaccionHandler(_transacciones, _productos, _conf, _uow, _sunat, _publisher);
     }
 
     private static CreateTransaccionCommand BuildCommand(int productoId = 1, int cantidad = 2)

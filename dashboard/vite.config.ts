@@ -3,14 +3,17 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  define: {
-    'import.meta.env.MODE': JSON.stringify('test'),
-    'import.meta.env.VITE_SENTRY_DSN': JSON.stringify(''),
+  build: {
+    chunkSizeWarningLimit: 700,
   },
   test: {
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/test/setup.ts',
+    // @ts-ignore
+    define: {
+      'import.meta.env.VITE_SENTRY_DSN': JSON.stringify(''),
+    },
   },
   server: {
     port: 5173,
@@ -21,4 +24,4 @@ export default defineConfig({
       }
     }
   }
-})
+} as any)

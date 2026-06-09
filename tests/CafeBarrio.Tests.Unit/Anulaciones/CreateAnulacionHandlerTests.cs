@@ -1,5 +1,6 @@
 using CafeBarrio.Application.Common.Interfaces;
 using CafeBarrio.Application.Features.Anulaciones.Commands.CreateAnulacion;
+using MediatR;
 using CafeBarrio.Domain.Entities;
 using FluentAssertions;
 using NSubstitute;
@@ -17,6 +18,7 @@ public class CreateAnulacionHandlerTests
     private readonly IOperadorRepository _operadores;
     private readonly IProductoRepository _productos;
     private readonly IUnitOfWork _uow;
+    private readonly IPublisher _publisher;
     private readonly CreateAnulacionHandler _sut;
 
     public CreateAnulacionHandlerTests()
@@ -26,13 +28,15 @@ public class CreateAnulacionHandlerTests
         _operadores    = Substitute.For<IOperadorRepository>();
         _productos     = Substitute.For<IProductoRepository>();
         _uow           = Substitute.For<IUnitOfWork>();
+        _publisher     = Substitute.For<IPublisher>();
 
         _sut = new CreateAnulacionHandler(
             _transacciones,
             _anulaciones,
             _operadores,
             _productos,
-            _uow);
+            _uow,
+            _publisher);
     }
 
     [Fact]

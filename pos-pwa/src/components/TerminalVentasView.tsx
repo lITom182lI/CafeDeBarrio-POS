@@ -1,7 +1,7 @@
-﻿import { useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import type { ProductoDto, CategoriaDto, MetodoPagoDto, CartItem, ComprobanteData } from '../types'
 import { formatSoles } from '../utils'
-import { Search, ShoppingCart, Trash2, Smartphone, DollarSign, CreditCard, Banknote, HelpCircle, Laptop } from 'lucide-react'
+import { Search, ShoppingCart, Trash2, Smartphone, CreditCard, Banknote, HelpCircle } from 'lucide-react'
 
 interface Props {
   productos: ProductoDto[]
@@ -73,7 +73,7 @@ export default function TerminalVentasView({
   const productosFiltrados = useMemo(() => {
     return productos.filter(p => {
       const matchSearch = p.nombre.toLowerCase().includes(search.toLowerCase()) ||
-        p.categoriaNombre.toLowerCase().includes(search.toLowerCase())
+        (p.categoriaNombre?.toLowerCase().includes(search.toLowerCase()) ?? false)
       const matchCat = selectedCat ? p.categoriaNombre === selectedCat : true
       return matchSearch && matchCat
     })
@@ -204,7 +204,7 @@ export default function TerminalVentasView({
                         p.nombre !== 'Americano Aromático' &&
                         p.nombre !== 'Croissant con Mantequilla' &&
                         p.nombre !== 'Cheesecake de Arándanos' &&
-                        (p.descripcion || 'Producto de especialidad seleccionado por Café de Barrio.')}
+                        ((p as any).descripcion || 'Producto de especialidad seleccionado por Café de Barrio.')}
                     </p>
                   </div>
 
@@ -345,7 +345,7 @@ export default function TerminalVentasView({
                 disabled={comprobante !== null}
                 value={comprobante ? comprobante.razonSocial : 'Público General'}
                 placeholder="Público General..."
-                onChange={e => {
+                onChange={() => {
                   if (!comprobante) {
                     // allows custom simple client name text
                     // setting the plain simple text

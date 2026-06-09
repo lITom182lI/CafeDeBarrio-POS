@@ -1,6 +1,6 @@
-﻿import { useState, useEffect, useMemo, transition, startTransition } from 'react'
+import { useState, useEffect, useMemo, startTransition } from 'react'
 import type {
-  ProductoDto, CategoriaDto, MetodoPagoDto, OperadorDto,
+  ProductoDto, CategoriaDto, MetodoPagoDto,
   CartItem, ComprobanteData, CreateTransaccionRequest, OperadorSession, TicketData,
 } from '../types'
 import { getProductos, getCategorias, getMetodosPago, getOperadores, crearTransaccion, OfflineError } from '../api'
@@ -36,9 +36,6 @@ export default function SalesModule({ session, onLogout }: Props) {
   const [productos, setProductos] = useState<ProductoDto[]>([])
   const [categorias, setCategorias] = useState<CategoriaDto[]>([])
   const [metodosPago, setMetodosPago] = useState<MetodoPagoDto[]>([])
-  const [operadores, setOperadores] = useState<OperadorDto[]>([])
-  const [loadingCatalog, setLoadingCatalog] = useState(true)
-  const [catalogOffline, setCatalogOffline] = useState(false)
 
   // ── Carrito ───────────────────────────────────────────────────────────────
   const [cart, setCart] = useState<CartItem[]>([])
@@ -65,8 +62,6 @@ export default function SalesModule({ session, onLogout }: Props) {
 
   // ── Catalog loading trigger ───────────────────────────────────────────────
   async function loadCatalog() {
-    setLoadingCatalog(true)
-    setCatalogOffline(false)
     try {
       const [prods, cats, metodos, ops] = await Promise.all([
         getProductos(),
@@ -78,7 +73,6 @@ export default function SalesModule({ session, onLogout }: Props) {
       setProductos(prods.filter(p => p.activo))
       setCategorias(cats)
       setMetodosPago(metodos)
-      setOperadores(ops)
       
       if (metodos.length > 0) setMetodoPagoId(metodos[0].metodoPagoId)
       
@@ -88,7 +82,7 @@ export default function SalesModule({ session, onLogout }: Props) {
       void saveCatalogOperadores(ops)
     } catch (err) {
       if (err instanceof OfflineError) {
-        const [prods, cats, metodos, ops] = await Promise.all([
+        const [prods, cats, metodos] = await Promise.all([
           getCatalogProductos(),
           getCatalogCategorias(),
           getCatalogMetodosPago(),
@@ -98,14 +92,9 @@ export default function SalesModule({ session, onLogout }: Props) {
           setProductos(prods.filter(p => p.activo))
           setCategorias(cats)
           setMetodosPago(metodos)
-          setOperadores(ops)
           if (metodos.length > 0) setMetodoPagoId(metodos[0].metodoPagoId)
-        } else {
-          setCatalogOffline(true)
         }
       }
-    } finally {
-      setLoadingCatalog(false)
     }
   }
 
@@ -216,7 +205,7 @@ export default function SalesModule({ session, onLogout }: Props) {
           fechaLocal: fechaHora,
           tipoDocumento: comprobante?.tipoDocumento ?? null,
           numeroDocumento: comprobante?.numeroDocumento ?? null,
-          razonSocial: comprobante ? comprobante.razonSocial : 'Público General',
+          razonSocial: (comprobante ? comprobante.razonSocial : 'Público General') ?? null,
           sincronizada: 0,
           transaccionIdServidor: null,
           error: null,

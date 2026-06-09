@@ -2,7 +2,7 @@ using CafeBarrio.Domain.Common;
 
 namespace CafeBarrio.Domain.Entities;
 
-public class Transaccion : IAuditable
+public class Transaccion : IAuditable, IAggregateRoot
 {
     public int TransaccionId { get; set; }
     public int? ClienteId { get; set; }
@@ -41,4 +41,7 @@ public class Transaccion : IAuditable
     public DateTime? UpdatedAt { get; set; }
     public string? CreatedBy { get; set; }
     public string? UpdatedBy { get; set; }
+    
+    public string SunatEstado { get; set; } = "Pendiente";
+    public string? SunatError  { get; set; }
 }

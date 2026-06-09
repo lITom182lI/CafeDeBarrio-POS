@@ -1,3 +1,4 @@
+using CafeBarrio.Application.Common;
 using CafeBarrio.Application.Common.Interfaces;
 using CafeBarrio.Domain.Common;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +34,7 @@ public sealed class AuditInterceptor : SaveChangesInterceptor
         if (ctx is null) return;
 
         var now  = DateTime.UtcNow;
-        var user = _currentUser.Email ?? "system";
+        var user = _currentUser.Email ?? AuditConstants.SystemUser;
 
         foreach (var entry in ctx.ChangeTracker.Entries<IAuditable>())
         {

@@ -2,7 +2,7 @@ using CafeBarrio.Domain.Common;
 
 namespace CafeBarrio.Domain.Entities;
 
-public class Anulacion : IAuditable
+public class Anulacion : IAuditable, IAggregateRoot
 {
     public int AnulacionId { get; set; }
     public int TransaccionId { get; set; }

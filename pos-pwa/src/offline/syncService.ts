@@ -1,4 +1,4 @@
-import { getPending, markSynced, markError } from './pendingStore'
+import { getPending, markSynced, markError, getPendingCount } from './pendingStore'
 import { crearTransaccion, OfflineError } from '../api'
 import type { CreateTransaccionRequest } from '../types'
 
@@ -47,7 +47,6 @@ export async function syncNow(): Promise<void> {
   }
 
   if (algoCambio && _onSync) {
-    const { getPendingCount } = await import('./pendingStore')
     _onSync(await getPendingCount())
   }
 }

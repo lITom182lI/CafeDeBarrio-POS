@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { AuthContext } from './AuthContext'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -24,6 +25,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setEmail(null)
     setRol(null)
   }
+
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const onUnauthorized = () => { logout(); navigate('/login', { replace: true }); };
+    window.addEventListener('auth:unauthorized', onUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', onUnauthorized);
+  }, [navigate]);
 
   return (
     <AuthContext.Provider value={{ token, email, rol, login, logout }}>

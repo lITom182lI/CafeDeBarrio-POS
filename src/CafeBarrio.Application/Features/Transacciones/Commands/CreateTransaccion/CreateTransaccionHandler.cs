@@ -1,3 +1,4 @@
+using CafeBarrio.Application.Events;
 using CafeBarrio.Application.Common.Interfaces;
 using CafeBarrio.Domain.Entities;
 using MediatR;
@@ -12,19 +13,22 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
     private readonly IConfiguracionNegocioRepository _configuracion;
     private readonly IUnitOfWork _uow;
     private readonly ISunatService _sunat;
+    private readonly IPublisher _publisher;
 
     public CreateTransaccionHandler(
         ITransaccionRepository transacciones,
         IProductoRepository productos,
         IConfiguracionNegocioRepository configuracion,
         IUnitOfWork uow,
-        ISunatService sunat)
+        ISunatService sunat,
+        IPublisher publisher)
     {
         _transacciones = transacciones;
         _productos     = productos;
         _configuracion = configuracion;
         _uow           = uow;
         _sunat         = sunat;
+        _publisher     = publisher;
     }
 
     public async Task<Result<int>> Handle(CreateTransaccionCommand request, CancellationToken ct)
@@ -90,7 +94,6 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
 
         await _uow.SaveChangesAsync(ct);
 
-        // Emisión SUNAT — no bloquea la venta si falla
         try
         {
             var boletaItems = detalles.Select(d => new BoletaItem(
@@ -103,9 +106,22 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
                 transaccion.TransaccionId, transaccion.Fecha,
                 boletaItems, subtotal, impuesto,
                 transaccion.Total, request.Canal), ct);
-        }
-        catch { /* venta ya persistida — error SUNAT no la revierte */ }
 
+            transaccion.SunatEstado = "Emitida";
+        }
+        catch (Exception ex)
+        {
+            transaccion.SunatEstado = "Fallida";
+            transaccion.SunatError  = ex.Message;
+        }
+        finally
+        {
+            await _uow.SaveChangesAsync(ct);
+        }
+
+        await _publisher.Publish(new TransaccionCreadaEvent(
+            transaccion.TransaccionId, transaccion.SedeId,
+            transaccion.Total, transaccion.Fecha), ct);
         return Result<int>.Success(transaccion.TransaccionId);
     }
 }

@@ -1,14 +1,16 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import type { OperadorSession } from './types'
 import LoginScreen from './components/LoginScreen'
 import SalesModule from './components/SalesModule'
 import { setOperadorToken } from './api'
+import { loadRemoteConfig } from './config'
 
 export default function App() {
   const [session, setSession] = useState<OperadorSession | null>(null)
 
   // Auto resume session logic for high-end local POS systems
   useEffect(() => {
+    void loadRemoteConfig()
     try {
       const storedToken = localStorage.getItem('CDB_TOKEN')
       const storedNombre = localStorage.getItem('CDB_SESSION_NAME')

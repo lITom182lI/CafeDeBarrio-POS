@@ -12,22 +12,40 @@ public sealed class Argon2PasswordHasher : IPasswordHasher
     private const int MemorySizeKb        = 128 * 1024; // 128 MiB (OWASP 2026)
     private const int HashLength          = 32;
     private const int SaltLength          = 16;
+    private const string Version          = "v1";
 
     public string Hash(string plainPassword)
     {
         var salt = new byte[SaltLength];
         RandomNumberGenerator.Fill(salt);
         var hash = Compute(Encoding.UTF8.GetBytes(plainPassword), salt);
-        return $"{Convert.ToBase64String(salt)}:{Convert.ToBase64String(hash)}";
+        return $"{Version}:{Convert.ToBase64String(salt)}:{Convert.ToBase64String(hash)}";
     }
 
     public bool Verify(string plainPassword, string storedHash)
     {
         var parts = storedHash.Split(':');
-        if (parts.Length != 2) return false;
-        var salt     = Convert.FromBase64String(parts[0]);
-        var expected = Convert.FromBase64String(parts[1]);
-        var actual   = Compute(Encoding.UTF8.GetBytes(plainPassword), salt);
+
+        byte[] salt;
+        byte[] expected;
+
+        if (parts.Length == 3 && parts[0] == "v1")
+        {
+            salt     = Convert.FromBase64String(parts[1]);
+            expected = Convert.FromBase64String(parts[2]);
+        }
+        else if (parts.Length == 2)
+        {
+            // Formato legacy — sin versión. Verifica con parámetros actuales.
+            salt     = Convert.FromBase64String(parts[0]);
+            expected = Convert.FromBase64String(parts[1]);
+        }
+        else
+        {
+            return false;
+        }
+
+        var actual = Compute(Encoding.UTF8.GetBytes(plainPassword), salt);
         return CryptographicOperations.FixedTimeEquals(actual, expected);
     }
 

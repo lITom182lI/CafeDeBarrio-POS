@@ -12,7 +12,7 @@ public class ReportesRepository : IReportesRepository
 
     public async Task<VentasResumenDto> GetVentasResumenAsync(int sedeId, DateTime desde, DateTime hasta, CancellationToken ct)
     {
-        var q = _context.Transacciones.Where(t => t.SedeId == sedeId && t.Fecha >= desde && t.Fecha <= hasta);
+        var q = _context.Transacciones.Where(t => t.SedeId == sedeId && t.Fecha >= desde && t.Fecha <= hasta && t.Anulacion == null);
         var total = await q.SumAsync(t => (decimal?)t.Total, ct) ?? 0;
         var count = await q.CountAsync(ct);
         return new VentasResumenDto(total, count, count > 0 ? Math.Round(total / count, 2) : 0, desde, hasta);
@@ -20,7 +20,7 @@ public class ReportesRepository : IReportesRepository
 
     public async Task<IReadOnlyList<VentasPorMetodoPagoDto>> GetVentasPorMetodoPagoAsync(int sedeId, DateTime desde, DateTime hasta, CancellationToken ct)
         => await _context.Transacciones
-            .Where(t => t.SedeId == sedeId && t.Fecha >= desde && t.Fecha <= hasta)
+            .Where(t => t.SedeId == sedeId && t.Fecha >= desde && t.Fecha <= hasta && t.Anulacion == null)
             .GroupBy(t => t.MetodoPago.Nombre)
             .Select(g => new VentasPorMetodoPagoDto(g.Key, g.Sum(t => t.Total), g.Count()))
             .ToListAsync(ct);
@@ -44,7 +44,7 @@ public class ReportesRepository : IReportesRepository
 
     public async Task<IReadOnlyList<AnulacionResumenDto>> GetAnulacionesAsync(int sedeId, DateTime desde, DateTime hasta, CancellationToken ct)
         => await _context.Anulaciones
-            .Where(a => a.FechaHora >= desde && a.FechaHora <= hasta)
+            .Where(a => a.Transaccion.SedeId == sedeId && a.FechaHora >= desde && a.FechaHora <= hasta)
             .OrderByDescending(a => a.FechaHora)
             .Select(a => new AnulacionResumenDto(a.AnulacionId, a.TransaccionId, a.TipoAnulacion, a.Motivo, a.MontoOriginal, a.MontoDevuelto, a.FechaHora))
             .ToListAsync(ct);
@@ -111,16 +111,10 @@ public class ReportesRepository : IReportesRepository
     }
 
     public async Task<IReadOnlyList<VentasPorDiaDto>> GetVentasPorDiaAsync(int sedeId, DateTime desde, DateTime hasta, CancellationToken ct)
-    {
-        var rows = await _context.Transacciones
-            .Where(t => t.SedeId == sedeId && t.Fecha >= desde && t.Fecha <= hasta)
-            .Select(t => new { t.Fecha, t.Total })
-            .ToListAsync(ct);
-
-        return rows
+        => await _context.Transacciones
+            .Where(t => t.SedeId == sedeId && t.Fecha >= desde && t.Fecha <= hasta && t.Anulacion == null)
             .GroupBy(t => t.Fecha.Date)
             .Select(g => new VentasPorDiaDto(g.Key, g.Sum(t => t.Total), g.Count()))
             .OrderBy(x => x.Fecha)
-            .ToList();
-    }
+            .ToListAsync(ct);
 }

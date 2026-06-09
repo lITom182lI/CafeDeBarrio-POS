@@ -1,4 +1,4 @@
-﻿import { config } from '../config'
+import { config } from '../config'
 import type { TicketData } from '../types'
 import { formatSoles } from '../utils'
 import { Printer, CheckCircle2, CloudLightning } from 'lucide-react'
@@ -104,7 +104,7 @@ export default function TicketModal({ ticket, onClose }: Props) {
 
             <div className="border-t border-dashed border-stone-300 pt-3 text-center text-[10px]">
               <p className="font-bold uppercase">¡Disfruta tu Café de Barrio!</p>
-              <p className="text-[9px] text-stone-500 mt-0.5">La comanda se procesó en el Terminal Nro {config.dispositivoId}</p>
+              <p className="text-[9px] text-stone-500 mt-0.5">La comanda se procesó en la Sede Nro {config.sedeId}</p>
             </div>
 
           </div>

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using MediatR;
 
 namespace CafeBarrio.Tests.Integration.Features.Transacciones;
 
@@ -25,6 +26,12 @@ public class TransaccionesIntegrationTests : IntegrationTestBase
         }
     }
 
+    private class DummyPublisher : IPublisher
+    {
+        public Task Publish(object notification, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default) where TNotification : INotification => Task.CompletedTask;
+    }
+
     public TransaccionesIntegrationTests() : base()
     {
         var transaccionesRepo = new TransaccionRepository(Db);
@@ -32,7 +39,7 @@ public class TransaccionesIntegrationTests : IntegrationTestBase
         var configRepo = new ConfiguracionNegocioRepository(Db);
         var uow = new UnitOfWork(Db);
 
-        _handler = new CreateTransaccionHandler(transaccionesRepo, productosRepo, configRepo, uow, new DummySunatService());
+        _handler = new CreateTransaccionHandler(transaccionesRepo, productosRepo, configRepo, uow, new DummySunatService(), new DummyPublisher());
     }
 
     [Fact]

@@ -2,7 +2,7 @@ using CafeBarrio.Domain.Common;
 
 namespace CafeBarrio.Domain.Entities;
 
-public class Turno : IAuditable
+public class Turno : IAuditable, IAggregateRoot
 {
     public int TurnoId { get; set; }
     public int SedeId { get; set; }

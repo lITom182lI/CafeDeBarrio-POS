@@ -14,13 +14,26 @@ export default defineConfig({
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\/api\/productos/,
-            handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'productos-cache' }
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'productos-cache',
+              networkTimeoutSeconds: 5,
+              expiration: {
+                maxAgeSeconds: 60 * 60 * 4,   // 4 horas
+                maxEntries: 500
+              }
+            }
           },
           {
             urlPattern: /^https:\/\/.*\/api\/metodos-pago/,
             handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'metodos-cache' }
+            options: {
+              cacheName: 'metodos-cache',
+              expiration: {
+                maxAgeSeconds: 60 * 60 * 24,  // 24 horas
+                maxEntries: 20
+              }
+            }
           }
         ]
       },
@@ -50,7 +63,6 @@ export default defineConfig({
     env: {
       VITE_API_URL:    '',
       VITE_SEDE_ID:    '1',
-      VITE_TASA_IGV:   '0.105',
       VITE_SENTRY_DSN: '',
       MODE:            'test',
     },

@@ -1,6 +1,8 @@
+using CafeBarrio.Domain.Common;
+
 namespace CafeBarrio.Domain.Entities;
 
-public class DetalleTransaccion
+public class DetalleTransaccion : IAuditable
 {
     public int DetalleId { get; set; }
     public int TransaccionId { get; set; }
@@ -11,4 +13,9 @@ public class DetalleTransaccion
 
     public Transaccion Transaccion { get; set; } = null!;
     public Producto Producto { get; set; } = null!;
+
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public string? CreatedBy { get; set; }
+    public string? UpdatedBy { get; set; }
 }

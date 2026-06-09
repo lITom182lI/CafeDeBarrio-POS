@@ -30,7 +30,7 @@ public class TurnoRepository : BaseRepository<Turno>, ITurnoRepository
                .Join(Context.Set<MetodoPago>(),
                      t => t.MetodoPagoId,
                      m => m.MetodoPagoId,
-                     (t, m) => new { t.Total, m.Nombre })
-               .Where(x => x.Nombre.ToLower().Contains("efectivo"))
+                     (t, m) => new { t.Total, m.EsEfectivo })
+               .Where(x => x.EsEfectivo)
                .SumAsync(x => (decimal?)x.Total, ct) ?? 0;
 }

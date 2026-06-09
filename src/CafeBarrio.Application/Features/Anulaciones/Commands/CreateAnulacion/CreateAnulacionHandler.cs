@@ -1,3 +1,4 @@
+using CafeBarrio.Application.Events;
 using CafeBarrio.Application.Common.Interfaces;
 using CafeBarrio.Domain.Entities;
 using MediatR;
@@ -12,19 +13,22 @@ public class CreateAnulacionHandler : IRequestHandler<CreateAnulacionCommand, Re
     private readonly IOperadorRepository _operadores;
     private readonly IProductoRepository _productos;
     private readonly IUnitOfWork _uow;
+    private readonly IPublisher _publisher;
 
     public CreateAnulacionHandler(
         ITransaccionRepository transacciones,
         IAnulacionRepository anulaciones,
         IOperadorRepository operadores,
         IProductoRepository productos,
-        IUnitOfWork uow)
+        IUnitOfWork uow,
+        IPublisher publisher)
     {
         _transacciones = transacciones;
         _anulaciones   = anulaciones;
         _operadores    = operadores;
         _productos     = productos;
         _uow           = uow;
+        _publisher     = publisher;
     }
 
     public async Task<Result<int>> Handle(CreateAnulacionCommand request, CancellationToken ct)
@@ -79,6 +83,9 @@ public class CreateAnulacionHandler : IRequestHandler<CreateAnulacionCommand, Re
         await _anulaciones.AddAsync(anulacion, ct);
 
         await _uow.SaveChangesAsync(ct);
+        await _publisher.Publish(new AnulacionAprobadaEvent(
+            anulacion.AnulacionId, anulacion.TransaccionId,
+            anulacion.MontoDevuelto, anulacion.TipoAnulacion), ct);
         return Result<int>.Success(anulacion.AnulacionId);
     }
 }

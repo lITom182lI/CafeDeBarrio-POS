@@ -70,12 +70,18 @@ export class CafeBarrioPosAdapter {
   getCategorias  = () => this.apiFetch<CategoriaDto[]>('/api/categorias')
   getMetodosPago = () => this.apiFetch<MetodoPagoDto[]>('/api/metodos-pago')
   getOperadores  = () => this.apiFetch<OperadorDto[]>('/api/operadores')
+  getTasas       = (sedeId: number) =>
+    this.apiFetch<{ tasaIgv: number }>(`/api/configuracion/tasas?sedeId=${sedeId}`)
 
   async validarPin(operadorId: number, pin: string): Promise<OperadorLoginDto | null> {
     try {
       return await this.apiFetch<OperadorLoginDto>(
         '/api/operadores/validar-pin',
-        { method: 'POST', body: JSON.stringify({ operadorId, pin }) },
+        {
+          method: 'POST',
+          body: JSON.stringify({ operadorId, pin }),
+          headers: { 'X-Operator-Id': String(operadorId) }
+        },
         15000
       )
     } catch (err) {

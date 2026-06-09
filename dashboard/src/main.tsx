@@ -6,15 +6,13 @@ import App from './App.tsx'
 import { Login } from './pages/Login.tsx'
 import { AuthProvider } from './context/AuthProvider.tsx'
 import { useAuth } from './hooks/useAuth.ts'
-import { initTelemetry } from './lib/telemetry'
+import { initTelemetry, captureError } from './lib/telemetry'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
 
 initTelemetry()
 
 window.addEventListener('unhandledrejection', (e) => {
-  import('./lib/telemetry').then(({ captureError }) =>
-    captureError(e.reason, { type: 'unhandledrejection' })
-  )
+  captureError(e.reason, { type: 'unhandledrejection' })
 })
 
 function PrivateRoute({ children }: { children: ReactNode }) {

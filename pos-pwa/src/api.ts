@@ -10,6 +10,7 @@ export const getProductos     = ()                              => posAdapter.ge
 export const getCategorias    = ()                              => posAdapter.getCategorias()
 export const getMetodosPago   = ()                              => posAdapter.getMetodosPago()
 export const getOperadores    = ()                              => posAdapter.getOperadores()
+export const getTasas         = (sedeId: number)               => posAdapter.getTasas(sedeId)
 export const validarPin       = (id: number, pin: string)       => posAdapter.validarPin(id, pin)
 export const crearTransaccion = (req: CreateTransaccionRequest) => posAdapter.crearTransaccion(req)
 export const checkOnline      = ()                              => posAdapter.checkOnline()

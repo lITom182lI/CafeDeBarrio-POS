@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
@@ -54,6 +55,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 builder.Services.AddRateLimiter(options =>
 {
     options.AddPolicy("login-policy", httpContext =>
@@ -69,7 +77,9 @@ builder.Services.AddRateLimiter(options =>
 
     options.AddPolicy("pin-policy", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "anon",
+            partitionKey: httpContext.Request.Headers.TryGetValue("X-Operator-Id", out var opId)
+                ? $"{httpContext.Connection.RemoteIpAddress}:{opId}"
+                : httpContext.Connection.RemoteIpAddress?.ToString() ?? "anon",
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit          = 10,
@@ -128,10 +138,10 @@ using (var scope = app.Services.CreateScope())
     if (!db.MetodosPago.Any())
     {
         db.MetodosPago.AddRange(
-            new MetodoPago { Nombre = "Efectivo", Activo = true },
-            new MetodoPago { Nombre = "Tarjeta",  Activo = true },
-            new MetodoPago { Nombre = "Yape",     Activo = true },
-            new MetodoPago { Nombre = "Plin",     Activo = true }
+            new MetodoPago { Nombre = "Efectivo", Activo = true, EsEfectivo = true  },
+            new MetodoPago { Nombre = "Tarjeta",  Activo = true, EsEfectivo = false },
+            new MetodoPago { Nombre = "Yape",     Activo = true, EsEfectivo = false },
+            new MetodoPago { Nombre = "Plin",     Activo = true, EsEfectivo = false }
         );
     }
 
@@ -225,6 +235,7 @@ app.Use(async (ctx, next) =>
 
 app.UseCors("Dashboard");
 app.UseHttpsRedirection();
+app.UseForwardedHeaders();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();

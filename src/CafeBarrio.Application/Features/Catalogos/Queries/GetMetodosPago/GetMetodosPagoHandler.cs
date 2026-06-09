@@ -18,7 +18,7 @@ public class GetMetodosPagoHandler
     {
         var entities = await _metodos.GetAllAsync(ct);
         IReadOnlyList<MetodoPagoDto> dtos = entities
-            .Select(m => new MetodoPagoDto(m.MetodoPagoId, m.Nombre))
+            .Select(m => new MetodoPagoDto(m.MetodoPagoId, m.Nombre, m.EsEfectivo))
             .ToList();
         return Result<IReadOnlyList<MetodoPagoDto>>.Success(dtos);
     }

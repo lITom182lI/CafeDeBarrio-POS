@@ -84,6 +84,13 @@ public class CafeBarrioDbContext : DbContext
         {
             e.HasIndex(o => o.Activo)
                 .HasDatabaseName("IX_Operadores_Activo");
+            e.HasOne(o => o.Usuario)
+                .WithMany()
+                .HasForeignKey(o => o.UsuarioId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+            e.HasIndex(o => o.UsuarioId)
+                .HasDatabaseName("IX_Operador_UsuarioId");
         });
 
         modelBuilder.Entity<Turno>(e =>
