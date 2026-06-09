@@ -16,10 +16,12 @@ public class JwtServiceTests
         new JwtService(new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Jwt:Key"]         = "super-secret-key-minimo-32-caracteres!",
-                ["Jwt:Issuer"]      = "CafeBarrio",
-                ["Jwt:Audience"]    = "CafeBarrioApp",
-                ["Jwt:ExpiryHours"] = "8"
+                ["Jwt:Key"]                 = "super-secret-key-minimo-32-caracteres!",
+                ["Jwt:Issuer"]              = "CafeBarrio",
+                ["Jwt:Audience"]            = "CafeBarrioApp",
+                ["Jwt:ExpiryHours"]         = "8",
+                ["Jwt:AdminExpiryHours"]    = "8",
+                ["Jwt:OperadorExpiryHours"] = "16"
             })
             .Build());
 
