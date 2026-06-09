@@ -13,10 +13,12 @@ public abstract class IntegrationTestBase : IDisposable
 
     protected IntegrationTestBase()
     {
+        var saPassword = Environment.GetEnvironmentVariable("MSSQL_SA_PASSWORD") ?? "Muis_CafeBarrio_2026!";
+        var localFallback = $"Server=localhost,1433;Database=CafeDeBarrioTest;User Id=sa;Password={saPassword};TrustServerCertificate=True;";
+
         var options = new DbContextOptionsBuilder<CafeBarrioDbContext>()
             .UseSqlServer(
-                Environment.GetEnvironmentVariable("TEST_DB_CONNECTION")
-                ?? "Server=localhost,1433;Database=CafeDeBarrioTest;User Id=sa;Password=Muis_CafeBarrio_2026!;TrustServerCertificate=True;")
+                Environment.GetEnvironmentVariable("TEST_DB_CONNECTION") ?? localFallback)
             .Options;
 
         Db = new CafeBarrioDbContext(options);
