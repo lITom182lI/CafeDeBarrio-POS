@@ -2,7 +2,9 @@ import { createContext } from 'react'
 
 export interface AuthCtx {
   token: string | null
-  login: (token: string) => void
+  email: string | null
+  rol: string | null
+  login: (token: string, email: string, rol: string) => void
   logout: () => void
 }
 

@@ -4,12 +4,14 @@ interface Props {
   activeTab: string;
   onChangeTab: (tab: string) => void;
   operatorName: string;
+  onLogout: () => void;
 }
 
-export function Sidebar({ activeTab, onChangeTab, operatorName }: Props) {
+export function Sidebar({ activeTab, onChangeTab, operatorName, onLogout }: Props) {
   const getInitials = (name: string) => {
     return name
-      .split(" ")
+      .split(/[\s@]/)
+      .filter(Boolean)
       .map((n) => n[0])
       .slice(0, 2)
       .join("")
@@ -17,10 +19,10 @@ export function Sidebar({ activeTab, onChangeTab, operatorName }: Props) {
   };
 
   const navItems = [
-    { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={18} /> },
-    { id: "productos", label: "Productos", icon: <Package size={18} /> },
+    { id: "dashboard",     label: "Dashboard",     icon: <LayoutDashboard size={18} /> },
+    { id: "productos",     label: "Productos",     icon: <Package size={18} /> },
     { id: "transacciones", label: "Transacciones", icon: <Receipt size={18} /> },
-    { id: "operadores", label: "Operadores", icon: <Users size={18} /> },
+    { id: "operadores",    label: "Operadores",    icon: <Users size={18} /> },
     { id: "configuracion", label: "Configuración", icon: <Settings size={18} /> }
   ];
 
@@ -38,7 +40,7 @@ export function Sidebar({ activeTab, onChangeTab, operatorName }: Props) {
         <div className="profile-avatar">{getInitials(operatorName)}</div>
         <div className="profile-info">
           <span className="profile-name">{operatorName}</span>
-          <span className="profile-role">Cajero POS</span>
+          <span className="profile-role">Administrador</span>
         </div>
       </div>
 
@@ -56,11 +58,11 @@ export function Sidebar({ activeTab, onChangeTab, operatorName }: Props) {
       </nav>
 
       <div className="sidebar-footer">
-        <button className="btn-logout" onClick={() => alert("Sesión finalizada")}>
+        <button className="btn-logout" onClick={onLogout}>
           <LogOut size={16} />
           <span>Cerrar Sesión</span>
         </button>
       </div>
     </aside>
   );
-}
+}
