@@ -21,7 +21,7 @@ public class GetProductosPagedHandler : IRequestHandler<GetProductosPagedQuery, 
             .Select(p => new ProductoDto(
                 p.ProductoId, p.Nombre, p.Descripcion, p.Precio,
                 p.CantidadDisponible, p.StockMinimo, p.UnidadMedida,
-                p.Categoria?.Nombre ?? string.Empty, p.EsMayorista, p.Activo))
+                p.CategoriaId, p.Categoria?.Nombre ?? string.Empty, p.EsMayorista, p.Activo))
             .ToList();
 
         return Result<PagedResult<ProductoDto>>.Success(

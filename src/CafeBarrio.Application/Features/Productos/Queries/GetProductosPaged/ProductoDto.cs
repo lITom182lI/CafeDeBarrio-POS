@@ -8,6 +8,7 @@ public record ProductoDto(
     decimal CantidadDisponible,
     decimal StockMinimo,
     string UnidadMedida,
+    int CategoriaId,
     string CategoriaNombre,
     bool EsMayorista,
     bool Activo
