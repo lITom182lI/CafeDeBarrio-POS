@@ -21,7 +21,10 @@ Log.Logger = new LoggerConfiguration()
         retainedFileCountLimit: 30)
     .CreateLogger();
 
+DotNetEnv.Env.TraversePath().Load();
+
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddEnvironmentVariables();
 builder.Host.UseSerilog();
 
 var allowedOrigins = (builder.Configuration["Cors:AllowedOrigin"]
@@ -58,8 +61,8 @@ builder.Services.AddRateLimiter(options =>
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "anon",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit          = 5,
-                Window               = TimeSpan.FromMinutes(5),
+                PermitLimit          = 20,
+                Window               = TimeSpan.FromMinutes(15),
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 QueueLimit           = 0
             }));

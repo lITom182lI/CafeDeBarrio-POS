@@ -24,6 +24,7 @@ export interface MetodoPagoDto {
 export interface OperadorDto {
   operadorId: number
   nombre: string
+  activo: boolean
 }
 
 export interface OperadorLoginDto {

@@ -21,7 +21,9 @@ public class JwtService : IJwtService
             new Claim(ClaimTypes.Email, usuario.Email),
             new Claim(ClaimTypes.Role, usuario.Rol),
         };
-        return BuildToken(claims, hoursOverride: null);
+        // Admin JWT: 4 horas (MUIS_SECURITY_AUTH — Access Token de corta duración para Tipo 1)
+        var adminHours = int.TryParse(_config["Jwt:AdminExpiryHours"], out var ah) ? ah : 4;
+        return BuildToken(claims, hoursOverride: adminHours);
     }
 
     public string GenerateOperadorToken(int operadorId, string nombre)
@@ -32,7 +34,9 @@ public class JwtService : IJwtService
             new Claim(ClaimTypes.Name, nombre),
             new Claim(ClaimTypes.Role, "Operador"),
         };
-        return BuildToken(claims, hoursOverride: 16);
+        // Operador JWT: 12 horas (1 turno completo). Configurable via Jwt:OperadorExpiryHours
+        var opHours = int.TryParse(_config["Jwt:OperadorExpiryHours"], out var oh) ? oh : 12;
+        return BuildToken(claims, hoursOverride: opHours);
     }
 
     private string BuildToken(Claim[] claims, int? hoursOverride)

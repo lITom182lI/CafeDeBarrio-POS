@@ -29,9 +29,19 @@ public class OperadoresController : ControllerBase
     [HttpGet]
     [AllowAnonymous]
     [ProducesResponseType<IReadOnlyList<OperadorResumenDto>>(200)]
-    public async Task<IActionResult> GetAll(CancellationToken ct)
+    public async Task<IActionResult> GetAll(
+        [FromQuery] bool soloActivos = false,
+        CancellationToken ct = default)
     {
-        var lista = await _operadores.GetAllAsync(ct);
+        // Si el llamador no está autenticado (POS PWA) solo devolvemos activos.
+        // Si es un admin autenticado puede pedir todos con soloActivos=false.
+        var esAdmin = User.Identity?.IsAuthenticated == true;
+        var filtrar = soloActivos || !esAdmin;
+
+        var lista = filtrar
+            ? await _operadores.GetAllActivosAsync(ct)
+            : await _operadores.GetAllAsync(ct);
+
         return Ok(lista.Select(o => new OperadorResumenDto(o.OperadorId, o.Nombre, o.Activo)).ToList());
     }
 

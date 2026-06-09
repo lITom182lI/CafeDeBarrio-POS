@@ -114,6 +114,8 @@ export function GestionOperadores() {
     }
   };
 
+  const [mostrarInactivos, setMostrarInactivos] = useState<boolean>(false);
+
   return (
     <div>
       <div className="page-header">
@@ -145,6 +147,15 @@ export function GestionOperadores() {
         </div>
       ) : (
         <div className="table-wrap">
+          <div style={{ padding: "0 16px 16px", display: "flex", gap: "8px", alignItems: "center" }}>
+            <input 
+              type="checkbox" 
+              id="show-inactive" 
+              checked={mostrarInactivos} 
+              onChange={(e) => setMostrarInactivos(e.target.checked)} 
+            />
+            <label htmlFor="show-inactive" style={{ fontSize: "14px", color: "#666" }}>Mostrar operadores inactivos (eliminados)</label>
+          </div>
           <table className="pos-table">
             <thead>
               <tr>
@@ -155,7 +166,7 @@ export function GestionOperadores() {
               </tr>
             </thead>
             <tbody>
-              {operadores.map((op) => (
+              {operadores.filter(op => mostrarInactivos || op.activo).map((op) => (
                 <tr key={op.operadorId} className={!op.activo ? "row-inactive" : ""}>
                   <td className="font-semibold font-mono text-xs">{op.operadorId}</td>
                   <td>

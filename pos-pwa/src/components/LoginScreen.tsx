@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { getOperadores, validarPin, OfflineError, setOperadorToken } from '../api'
 import type { OperadorDto, OperadorSession } from '../types'
 import { saveCatalogOperadores, getCatalogOperadores } from '../offline'
@@ -28,12 +28,16 @@ export default function LoginScreen({ onLogin }: Props) {
       .catch(err => {
         if (err instanceof OfflineError) {
           setOffline(true)
-          // Intenta cargar operadores de la base local
+          // Intenta cargar operadores de la base local (catálogo cacheado)
           getCatalogOperadores().then(cachedOps => {
-            if (cachedOps.length > 0) {
-              setOperadores(cachedOps)
+            setOperadores(cachedOps)
+            if (cachedOps.length === 0) {
+              // DT-05: Catálogo offline vacío — nunca se hizo una sesión online previa
+              setError('Sin conexión y sin catálogo local. Conéctate al menos una vez para habilitar el modo offline.')
             }
           })
+        } else {
+          setError('Error al conectar con el servidor de la sucursal.')
         }
         setLoading(false)
       })
@@ -152,6 +156,23 @@ export default function LoginScreen({ onLogin }: Props) {
               <div className="w-10 h-10 border-4 border-[#7C2D12] border-t-white rounded-full animate-spin" />
               <p className="text-slate-500 text-sm animate-pulse">Cargando catálogo de operadores de Barrio...</p>
             </div>
+          ) : offline && operadores.length === 0 ? (
+            <div className="py-16 flex flex-col items-center justify-center space-y-4 text-center px-4">
+              <WifiOff size={40} className="text-[#7C2D12] animate-pulse" />
+              <div>
+                <p className="text-[#1E293B] font-extrabold text-sm">Sin catálogo offline disponible</p>
+                <p className="text-[#334155]/70 text-xs mt-1 leading-relaxed max-w-xs">
+                  Para operar sin conexión, esta terminal necesita haber iniciado sesión al menos una vez estando en línea.
+                  Conecta el dispositivo a la red de la sucursal e intenta de nuevo.
+                </p>
+              </div>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-2 bg-[#7C2D12] text-white text-xs font-extrabold px-5 py-2.5 rounded-xl hover:bg-[#6b1f0a] transition cursor-pointer"
+              >
+                Reintentar conexión
+              </button>
+            </div>
           ) : (
             <div className="grid md:grid-cols-2 gap-6 items-start">
               {/* Select cajero */}
@@ -167,8 +188,10 @@ export default function LoginScreen({ onLogin }: Props) {
                     className="w-full bg-[#F8FAFC] text-[#1E293B] rounded-xl px-4 py-3 border border-[#E2E8F0] focus:outline-none focus:border-[#7C2D12] text-xs font-bold transition cursor-pointer"
                   >
                     <option value="" className="bg-white text-[#334155]/60">— Seleccionar Cajero —</option>
-                    {operadores.map(op => (
-                      <option key={op.operadorId} value={op.operadorId} className="bg-white text-[#1E293B]">{op.nombre}</option>
+                    {operadores.filter(op => op.activo).map(op => (
+                      <option key={op.operadorId} value={op.operadorId} className="bg-white text-[#1E293B]">
+                        [#{op.operadorId.toString().padStart(2, '0')}] {op.nombre}
+                      </option>
                     ))}
                   </select>
                 </div>

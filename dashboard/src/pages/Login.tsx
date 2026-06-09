@@ -20,6 +20,10 @@ export function Login() {
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ email, password }),
       })
+      if (r.status === 429) {
+        setError('Demasiados intentos. Espera unos minutos e inténtalo de nuevo.')
+        return
+      }
       if (!r.ok) {
         setError('Credenciales incorrectas')
         return

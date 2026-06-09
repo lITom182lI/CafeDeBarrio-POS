@@ -11,5 +11,6 @@ public record ProductoDto(
     int CategoriaId,
     string CategoriaNombre,
     bool EsMayorista,
-    bool Activo
+    bool Activo,
+    decimal Costo
 );
