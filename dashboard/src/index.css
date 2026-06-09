@@ -789,6 +789,7 @@ body {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.3); /* beautiful premium overlay dark tone */
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
