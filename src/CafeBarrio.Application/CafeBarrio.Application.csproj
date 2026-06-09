@@ -4,8 +4,8 @@
     <ProjectReference Include="..\..\..\..\ECOSISTEMA- MUIS\MUIS\MUIS_CORE\MUIS_CORE.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="FluentValidation" Version="11.*" />
-    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.*" />
+    <PackageReference Include="FluentValidation" Version="12.*" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.*" />
     <PackageReference Include="MediatR" Version="12.4.0" />
   </ItemGroup>
   <PropertyGroup>
