@@ -36,10 +36,9 @@ public class CreateOperadorHandler : IRequestHandler<CreateOperadorCommand, Resu
             Activo  = true
         };
         
-        var result = await _operadores.AddAsync(operador, ct);
-        if (result.IsFailure) return Result<int>.Failure(result.Errors);
+        await _operadores.AddAsync(operador, ct);
         
         await _uow.SaveChangesAsync(ct);
-        return Result<int>.Success(result.Value);
+        return Result<int>.Success(operador.OperadorId);
     }
 }
