@@ -21,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: dashboard/package-lock.json
 
@@ -34,6 +34,7 @@ jobs:
       - name: Unit Tests
         run: >
           dotnet test tests/CafeBarrio.Tests.Unit
+          --configuration Release
           --filter "Category!=Integration"
           --no-build
           --logger "trx;LogFileName=unit-results.trx"
@@ -105,6 +106,7 @@ jobs:
       - name: Integration Tests
         run: >
           dotnet test tests/CafeBarrio.Tests.Integration
+          --configuration Release
           --filter "Category=Integration"
           --no-build
           --logger "trx;LogFileName=integration-results.trx"
