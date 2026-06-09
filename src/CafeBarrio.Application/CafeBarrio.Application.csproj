@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="..\CafeBarrio.Domain\CafeBarrio.Domain.csproj" />
-    <ProjectReference Include="..\..\..\..\ECOSISTEMA- MUIS\MUIS\MUIS_CORE\MUIS_CORE.csproj" />
+    <ProjectReference Include="..\MUIS_CORE\MUIS_CORE.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="12.*" />
