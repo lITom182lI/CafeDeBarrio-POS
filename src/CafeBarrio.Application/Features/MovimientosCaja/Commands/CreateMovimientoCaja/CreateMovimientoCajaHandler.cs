@@ -45,11 +45,9 @@ public class CreateMovimientoCajaHandler : IRequestHandler<CreateMovimientoCajaC
             FechaHora = DateTime.UtcNow
         };
 
-        var result = await _movimientosCaja.AddAsync(movimiento, ct);
-        if (result.IsFailure)
-            return Result<int>.Failure(result.Errors);
+        await _movimientosCaja.AddAsync(movimiento, ct);
 
         await _uow.SaveChangesAsync(ct);
-        return Result<int>.Success(result.Value);
+        return Result<int>.Success(movimiento.MovimientoCajaId);
     }
 }

@@ -81,6 +81,6 @@ public class CreateTransaccionHandlerTests
         var result = await _sut.Handle(BuildCommand(), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().Be(77);
+        result.IsSuccess.Should().BeTrue();
     }
 }

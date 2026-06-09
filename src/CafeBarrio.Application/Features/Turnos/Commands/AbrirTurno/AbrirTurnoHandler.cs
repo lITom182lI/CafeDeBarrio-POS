@@ -31,10 +31,9 @@ public class AbrirTurnoHandler : IRequestHandler<AbrirTurnoCommand, Result<int>>
             Estado = "Abierto"
         };
 
-        var result = await _turnos.AddAsync(turno, ct);
-        if (result.IsFailure) return Result<int>.Failure(result.Errors);
+        await _turnos.AddAsync(turno, ct);
 
         await _uow.SaveChangesAsync(ct);
-        return Result<int>.Success(result.Value);
+        return Result<int>.Success(turno.TurnoId);
     }
 }

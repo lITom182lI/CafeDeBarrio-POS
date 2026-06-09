@@ -76,10 +76,9 @@ public class CreateAnulacionHandler : IRequestHandler<CreateAnulacionCommand, Re
             ImpactoInventario      = request.ImpactoInventario
         };
 
-        var result = await _anulaciones.AddAsync(anulacion, ct);
-        if (result.IsFailure) return Result<int>.Failure(result.Errors);
+        await _anulaciones.AddAsync(anulacion, ct);
 
         await _uow.SaveChangesAsync(ct);
-        return Result<int>.Success(result.Value);
+        return Result<int>.Success(anulacion.AnulacionId);
     }
 }

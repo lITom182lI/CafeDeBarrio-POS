@@ -32,9 +32,8 @@ public class CreateProductoHandler : IRequestHandler<CreateProductoCommand, Resu
             CategoriaId          = r.CategoriaId,
             Activo               = true
         };
-        var result = await _productos.AddAsync(producto, ct);
-        if (result.IsFailure) return Result<int>.Failure(result.Errors);
+        await _productos.AddAsync(producto, ct);
         await _uow.SaveChangesAsync(ct);
-        return Result<int>.Success(result.Value);
+        return Result<int>.Success(producto.ProductoId);
     }
 }

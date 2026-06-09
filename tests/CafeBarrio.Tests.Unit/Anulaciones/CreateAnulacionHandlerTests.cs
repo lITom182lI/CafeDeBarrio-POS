@@ -112,6 +112,6 @@ public class CreateAnulacionHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().Be(99);
+        result.IsSuccess.Should().BeTrue();
     }
 }

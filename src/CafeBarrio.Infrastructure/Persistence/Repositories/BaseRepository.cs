@@ -30,20 +30,16 @@ public abstract class BaseRepository<T> : IRepository<T> where T : class
         return new PagedResult<T>(items, totalCount, offset.PageNumber, offset.PageSize);
     }
 
-    public async Task<Result<int>> AddAsync(T entity, CancellationToken ct = default)
+    public Task<Result<int>> AddAsync(T entity, CancellationToken ct = default)
     {
         try
         {
             Context.Set<T>().Add(entity);
-            await Context.SaveChangesAsync(ct);
-            var pkValue = (int)Context.Entry(entity).Properties
-                .First(p => p.Metadata.IsPrimaryKey())
-                .CurrentValue!;
-            return Result<int>.Success(pkValue);
+            return Task.FromResult(Result<int>.Success(0));
         }
         catch (Exception ex)
         {
-            return Result<int>.Failure(new Error("Db.AddError", ex.Message));
+            return Task.FromResult(Result<int>.Failure(new Error("Db.AddError", ex.Message)));
         }
     }
 

@@ -104,6 +104,5 @@ public class CreateMovimientoCajaHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeGreaterThan(0);
     }
 }

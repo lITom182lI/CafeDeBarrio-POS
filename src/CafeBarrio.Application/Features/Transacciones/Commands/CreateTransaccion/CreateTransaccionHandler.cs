@@ -86,8 +86,7 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
             RazonSocial    = request.RazonSocial
         };
 
-        var result = await _transacciones.AddAsync(transaccion, ct);
-        if (result.IsFailure) return Result<int>.Failure(result.Errors);
+        await _transacciones.AddAsync(transaccion, ct);
 
         await _uow.SaveChangesAsync(ct);
 
@@ -101,12 +100,12 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
                 d.SubtotalLinea)).ToList();
 
             await _sunat.EmitirBoletaAsync(new EmitirBoletaRequest(
-                result.Value, transaccion.Fecha,
+                transaccion.TransaccionId, transaccion.Fecha,
                 boletaItems, subtotal, impuesto,
                 transaccion.Total, request.Canal), ct);
         }
         catch { /* venta ya persistida — error SUNAT no la revierte */ }
 
-        return Result<int>.Success(result.Value);
+        return Result<int>.Success(transaccion.TransaccionId);
     }
 }
