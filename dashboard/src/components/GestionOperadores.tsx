@@ -1,4 +1,4 @@
-import { useState, useEffect, startTransition, type FormEvent } from "react";
+import { useState, useEffect, startTransition, type FormEvent, useRef } from "react";
 import { Plus, Check, AlertCircle } from "lucide-react";
 import { api } from "../api/client";
 import type { OperadorDto } from "../types";
@@ -19,6 +19,11 @@ export function GestionOperadores() {
   const [formActivo, setFormActivo] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
   const [formError, setFormError] = useState<string>("");
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (modalOpen) dialogRef.current?.focus();
+  }, [modalOpen]);
 
   const loadData = async () => {
     setLoading(true);
@@ -199,11 +204,13 @@ export function GestionOperadores() {
 
       {/* Operator Modal Popup conforming to spec requirements */}
       {modalOpen && (
-        <div className="modal-overlay" onClick={() => setModalOpen(false)}>
+        <div className="modal-overlay" role="presentation" onClick={() => setModalOpen(false)}>
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="operador-modal-title"
+            ref={dialogRef}
+            tabIndex={-1}
             className="modal-box"
             onClick={(e) => e.stopPropagation()}
           >
@@ -211,7 +218,7 @@ export function GestionOperadores() {
               <h2 id="operador-modal-title">
                 {selectedOperador ? "Editar Operador" : "Registrar Nuevo Operador"}
               </h2>
-              <button className="modal-close" onClick={() => setModalOpen(false)} aria-label="Cerrar">
+              <button className="modal-close" onClick={() => setModalOpen(false)} aria-label="Cerrar modal">
                 ✕
               </button>
             </div>

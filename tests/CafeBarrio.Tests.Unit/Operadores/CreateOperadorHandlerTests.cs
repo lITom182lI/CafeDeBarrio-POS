@@ -15,10 +15,11 @@ public class CreateOperadorHandlerTests
     private readonly IOperadorRepository _operadores = Substitute.For<IOperadorRepository>();
     private readonly IUnitOfWork _uow                = Substitute.For<IUnitOfWork>();
     private readonly IPasswordHasher _hasher         = Substitute.For<IPasswordHasher>();
+    private readonly ISedeRepository _sedes          = Substitute.For<ISedeRepository>();
     private readonly CreateOperadorHandler _sut;
 
     public CreateOperadorHandlerTests() =>
-        _sut = new CreateOperadorHandler(_operadores, _uow, _hasher);
+        _sut = new CreateOperadorHandler(_operadores, _sedes, _uow, _hasher);
 
     [Fact]
     public async Task Handle_PinInvalido_ReturnsFailure()

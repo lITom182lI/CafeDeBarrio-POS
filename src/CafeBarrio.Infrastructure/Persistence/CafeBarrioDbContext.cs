@@ -58,5 +58,40 @@ public class CafeBarrioDbContext : DbContext
              .HasColumnName("updated_at")
              .IsRequired(false);
         });
+
+        // Índices — MUIS Backend Ref-07 §4
+        modelBuilder.Entity<Transaccion>(e =>
+        {
+            e.HasIndex(t => t.Fecha)
+                .HasDatabaseName("IX_Transacciones_Fecha");
+            e.HasIndex(t => t.OperadorId)
+                .HasDatabaseName("IX_Transacciones_OperadorId");
+            e.HasIndex(t => t.TurnoId)
+                .HasDatabaseName("IX_Transacciones_TurnoId");
+            e.HasIndex(t => new { t.Fecha, t.OperadorId })
+                .HasDatabaseName("IX_Transacciones_Fecha_OperadorId");
+        });
+
+        modelBuilder.Entity<Producto>(e =>
+        {
+            e.HasIndex(p => p.CategoriaId)
+                .HasDatabaseName("IX_Productos_CategoriaId");
+            e.HasIndex(p => p.Activo)
+                .HasDatabaseName("IX_Productos_Activo");
+        });
+
+        modelBuilder.Entity<Operador>(e =>
+        {
+            e.HasIndex(o => o.Activo)
+                .HasDatabaseName("IX_Operadores_Activo");
+        });
+
+        modelBuilder.Entity<Turno>(e =>
+        {
+            e.HasIndex(t => t.OperadorId)
+                .HasDatabaseName("IX_Turnos_OperadorId");
+            e.HasIndex(t => t.FechaApertura)
+                .HasDatabaseName("IX_Turnos_FechaApertura");
+        });
     }
 }

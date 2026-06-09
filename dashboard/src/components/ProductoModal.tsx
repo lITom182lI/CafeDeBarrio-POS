@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { api } from '../api/client'
 import type { ProductoDto, CategoriaCafeDto, ProductoFormData } from '../types'
 
@@ -32,6 +32,11 @@ export function ProductoModal({ producto, onClose, onSaved }: Props) {
   const [categorias, setCategorias] = useState<CategoriaCafeDto[]>([])
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
+  const dialogRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    dialogRef.current?.focus()
+  }, [])
 
   useEffect(() => {
     api.categorias().then(setCategorias).catch(() => {})
@@ -61,17 +66,19 @@ export function ProductoModal({ producto, onClose, onSaved }: Props) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" role="presentation" onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="producto-modal-title"
+        ref={dialogRef}
+        tabIndex={-1}
         className="modal-box"
         onClick={e => e.stopPropagation()}
       >
         <div className="modal-header">
           <h2 id="producto-modal-title">{producto ? 'Editar Producto' : 'Nuevo Producto'}</h2>
-          <button className="modal-close" aria-label="Cerrar" onClick={onClose}>✕</button>
+          <button className="modal-close" aria-label="Cerrar modal" onClick={onClose}>✕</button>
         </div>
         <form onSubmit={handleSubmit} className="modal-form">
           {err && <div className="error-banner" role="alert">{err}</div>}

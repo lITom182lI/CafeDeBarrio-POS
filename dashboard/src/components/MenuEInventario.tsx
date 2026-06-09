@@ -1,4 +1,4 @@
-import { useState, useEffect, startTransition, type FormEvent } from "react";
+import { useState, useEffect, startTransition, type FormEvent, useRef } from "react";
 import { Plus, Check, AlertTriangle } from "lucide-react";
 import { api } from "../api/client";
 import type { ProductoDto, CategoriaCafeDto, ProductoFormData } from "../types";
@@ -32,6 +32,11 @@ export function MenuEInventario() {
   
   const [saving, setSaving] = useState<boolean>(false);
   const [formError, setFormError] = useState<string>("");
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (modalOpen) dialogRef.current?.focus();
+  }, [modalOpen]);
 
   const loadData = async () => {
     setLoading(true);
@@ -311,11 +316,13 @@ export function MenuEInventario() {
 
       {/* Editor Modal Popup */}
       {modalOpen && (
-        <div className="modal-overlay" onClick={() => setModalOpen(false)}>
+        <div className="modal-overlay" role="presentation" onClick={() => setModalOpen(false)}>
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="product-modal-title"
+            ref={dialogRef}
+            tabIndex={-1}
             className="modal-box"
             onClick={(e) => e.stopPropagation()}
           >

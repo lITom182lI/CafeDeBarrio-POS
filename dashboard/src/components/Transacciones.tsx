@@ -1,4 +1,4 @@
-import { useState, useEffect, startTransition } from "react";
+import { useState, useEffect, startTransition, useRef } from "react";
 import { Search, Eye, CheckCircle, XCircle, FileText } from "lucide-react";
 import { api } from "../api/client";
 import type { TransaccionListItemDto, TransaccionDetalleDto } from "../types";
@@ -18,6 +18,11 @@ export function Transacciones() {
   const [txDetail, setTxDetail] = useState<TransaccionDetalleDto | null>(null);
   const [loadingDetail, setLoadingDetail] = useState<boolean>(false);
   const [errorDetail, setErrorDetail] = useState<string>("");
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (selectedTxId !== null) dialogRef.current?.focus();
+  }, [selectedTxId]);
 
   const loadTransactions = async () => {
     setLoading(true);
@@ -239,11 +244,19 @@ export function Transacciones() {
 
       {/* Detail Overlay Drawer/Modal */}
       {selectedTxId !== null && (
-        <div className="modal-overlay" onClick={handleCloseDetail}>
-          <div className="modal-box max-w-lg" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay" role="presentation" onClick={handleCloseDetail}>
+          <div 
+            className="modal-box max-w-lg" 
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tx-modal-title"
+            ref={dialogRef}
+            tabIndex={-1}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
-              <h2>Detalle de Orden #{String(selectedTxId).padStart(4, "0")}</h2>
-              <button onClick={handleCloseDetail} className="modal-close">×</button>
+              <h2 id="tx-modal-title">Detalle de Orden #{String(selectedTxId).padStart(4, "0")}</h2>
+              <button onClick={handleCloseDetail} className="modal-close" aria-label="Cerrar modal">×</button>
             </div>
 
             {loadingDetail ? (

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 interface Props {
   title: string
@@ -9,6 +9,11 @@ interface Props {
 
 export function ConfirmModal({ title, message, onConfirm, onCancel }: Props) {
   const [loading, setLoading] = useState(false)
+  const dialogRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    dialogRef.current?.focus()
+  }, [])
 
   const handleConfirm = async () => {
     setLoading(true)
@@ -17,16 +22,19 @@ export function ConfirmModal({ title, message, onConfirm, onCancel }: Props) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onCancel}>
+    <div className="modal-overlay" role="presentation" onClick={onCancel}>
       <div
         role="dialog"
         aria-modal="true"
+        aria-labelledby="confirm-modal-title"
+        ref={dialogRef}
+        tabIndex={-1}
         className="modal-box"
         onClick={e => e.stopPropagation()}
       >
         <div className="modal-header">
-          <h2>{title}</h2>
-          <button className="modal-close" aria-label="Cerrar" onClick={onCancel}>✕</button>
+          <h2 id="confirm-modal-title">{title}</h2>
+          <button className="modal-close" aria-label="Cerrar modal" onClick={onCancel}>✕</button>
         </div>
         <div className="modal-body" style={{ padding: '1rem' }}>
           <p>{message}</p>

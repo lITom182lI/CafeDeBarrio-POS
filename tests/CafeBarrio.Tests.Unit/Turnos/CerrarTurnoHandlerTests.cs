@@ -55,9 +55,9 @@ public class CerrarTurnoHandlerTests
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value.TotalEfectivoSistema.Should().Be(500m);
-        result.Value.MontoEfectivoCierto.Should().Be(480m);
-        result.Value.Diferencia.Should().Be(-20m);
+        result.Value!.TotalEfectivoSistema.Should().Be(500m);
+        result.Value!.MontoEfectivoCierto.Should().Be(480m);
+        result.Value!.Diferencia.Should().Be(-20m);
         turno.Estado.Should().Be("Cerrado");
         turno.TotalEfectivoSistema.Should().Be(500m); // 200 apertura + 300 efectivo
         turno.MontoEfectivoCierto.Should().Be(480m);

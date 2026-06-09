@@ -25,6 +25,7 @@ public class OperadoresIntegrationTests : IntegrationTestBase
     {
         var operadoresRepo = new OperadorRepository(Db);
         var uow            = new CafeBarrio.Infrastructure.Persistence.UnitOfWork(Db);
+        var sedesRepo      = new SedeRepository(Db);
         _hasher            = new Argon2PasswordHasher();
 
         // JwtService solo para ValidarPin — config mínima
@@ -38,7 +39,7 @@ public class OperadoresIntegrationTests : IntegrationTestBase
         var jwtService = new JwtService(config);
 
         _validarPin    = new ValidarPinHandler(operadoresRepo, _hasher, jwtService);
-        _createOperador = new CreateOperadorHandler(operadoresRepo, uow, _hasher);
+        _createOperador = new CreateOperadorHandler(operadoresRepo, sedesRepo, uow, _hasher);
     }
 
     private async Task EnsureSede1Exists()
