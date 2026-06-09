@@ -31,8 +31,8 @@ public class OperadoresController : ControllerBase
     [ProducesResponseType<IReadOnlyList<OperadorResumenDto>>(200)]
     public async Task<IActionResult> GetAll(CancellationToken ct)
     {
-        var lista = await _operadores.GetAllActivosAsync(ct);
-        return Ok(lista.Select(o => new OperadorResumenDto(o.OperadorId, o.Nombre)).ToList());
+        var lista = await _operadores.GetAllAsync(ct);
+        return Ok(lista.Select(o => new OperadorResumenDto(o.OperadorId, o.Nombre, o.Activo)).ToList());
     }
 
     [HttpPost]
