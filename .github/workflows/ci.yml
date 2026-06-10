@@ -49,13 +49,13 @@ jobs:
       - name: Build Dashboard
         working-directory: dashboard
         run: |
-          npm ci
+          npm install
           npm run build
 
       - name: Test pos-pwa (Vitest)
         working-directory: pos-pwa
         run: |
-          npm ci
+          npm install
           npx vitest run
 
   integration-tests:
