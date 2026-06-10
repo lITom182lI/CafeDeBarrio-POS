@@ -17,6 +17,7 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 | D-01 | Domain / DB | `Producto` ahora usa `RowVersion` como concurrency token para evitar stock negativo en ventas simultáneas. | PASSED |
 | D-02 | Application | Se eliminó el IGV hardcodeado en `CreateTransaccionHandler`. Ahora retorna falla si no encuentra configuración de la sede. | PASSED |
 | A-03 | Application / Domain | Se encapsuló la lógica de descuento de inventario dentro del método `DescontarStock` en la entidad `Producto`. | PASSED |
+| A-01 | Application | Implementado IdempotencyKey en `Transaccion` para prevenir la duplicación de tickets en PWA por reintentos de red. | PASSED |
 | F-05 | Infrastructure | `ReportesRepository` agrupa en memoria (C#) después de un `ToListAsync()`. Migrado a SQL mediante GroupBy en IQueryable. | PASSED |
 | F-06 | Root / Docs | Falta del archivo obligatorio `CLAUDE.md` con la Clasificación de Tipología (Regla 0). Se creó con Tipo 2 y datos de perfil. | PASSED |
 | F-07 | Domain | `Producto` tenía duplicados los campos `FechaCreacion` y `FechaActualizacion`. Unificados en `IAuditable`. | PASSED |
@@ -32,7 +33,6 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 
 | ID | Capa | Hallazgo | Riesgo | Estado |
 |---|---|---|---|---|
-| A-01 | Application | **Falta de Idempotencia Offline:** `CreateTransaccionCommand` no acepta un Guid/IdempotencyKey desde el cliente (PWA). Si la red falla durante el sync, pueden generarse tickets duplicados. | Alto | PENDING |
 | A-02 | Application | **Llamada a SUNAT síncrona en el hilo principal:** `CreateTransaccionHandler` espera a `_sunat.EmitirBoletaAsync()` antes de retornar. Violar la separación (Outbox Pattern) causa bloqueos en el POS si SUNAT se cae. | Crítico | PENDING |
 ### Concurrencia y Datos
 

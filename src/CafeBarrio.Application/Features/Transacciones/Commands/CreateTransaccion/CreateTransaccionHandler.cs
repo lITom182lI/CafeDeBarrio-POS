@@ -33,6 +33,13 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
 
     public async Task<Result<int>> Handle(CreateTransaccionCommand request, CancellationToken ct)
     {
+        if (request.IdempotencyKey.HasValue)
+        {
+            var existente = await _transacciones.GetByIdempotencyKeyAsync(request.IdempotencyKey.Value, ct);
+            if (existente is not null)
+                return Result<int>.Success(existente.TransaccionId);
+        }
+
         var config  = await _configuracion.GetActivaBySedeAsync(request.SedeId, ct);
         if (config is null)
             return Result<int>.Failure(new Error("Configuracion.NotFound", "No se encontró configuración activa para la sede."));
@@ -89,7 +96,8 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
             Detalles       = detalles,
             TipoDocumento  = request.TipoDocumento,
             NumeroDocumento = request.NumeroDocumento,
-            RazonSocial    = request.RazonSocial
+            RazonSocial    = request.RazonSocial,
+            IdempotencyKey = request.IdempotencyKey
         };
 
         await _transacciones.AddAsync(transaccion, ct);

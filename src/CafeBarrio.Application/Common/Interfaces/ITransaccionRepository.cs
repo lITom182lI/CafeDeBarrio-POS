@@ -7,4 +7,5 @@ public interface ITransaccionRepository : IRepository<Transaccion>
 {
     Task<IReadOnlyList<Transaccion>> GetBySedeFechaAsync(int sedeId, DateTime desde, DateTime hasta, CancellationToken ct = default);
     Task<Transaccion?> GetWithDetallesAndAnulacionAsync(int id, CancellationToken ct = default);
+    Task<Transaccion?> GetByIdempotencyKeyAsync(Guid key, CancellationToken ct = default);
 }

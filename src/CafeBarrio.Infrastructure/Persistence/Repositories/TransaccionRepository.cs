@@ -20,4 +20,8 @@ public class TransaccionRepository : BaseRepository<Transaccion>, ITransaccionRe
             .Include(t => t.Detalles)
             .Include(t => t.Anulacion)
             .FirstOrDefaultAsync(t => t.TransaccionId == id, ct);
+
+    public async Task<Transaccion?> GetByIdempotencyKeyAsync(Guid key, CancellationToken ct = default)
+        => await Context.Set<Transaccion>()
+            .FirstOrDefaultAsync(t => t.IdempotencyKey == key, ct);
 }

@@ -25,6 +25,7 @@ public class Transaccion : IAuditable, IAggregateRoot
     public string? TipoDocumento { get; set; }
     public string? NumeroDocumento { get; set; }
     public string? RazonSocial { get; set; }
+    public Guid? IdempotencyKey { get; set; }
 
     public Cliente Cliente { get; set; } = null!;
     public Sede Sede { get; set; } = null!;
