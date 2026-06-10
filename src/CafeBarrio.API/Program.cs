@@ -234,9 +234,9 @@ app.Use(async (ctx, next) =>
     await next();
 });
 
+app.UseForwardedHeaders();
 app.UseCors("Dashboard");
 app.UseHttpsRedirection();
-app.UseForwardedHeaders();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
