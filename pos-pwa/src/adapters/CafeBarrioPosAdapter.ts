@@ -99,6 +99,15 @@ export class CafeBarrioPosAdapter {
     }
   }
 
+  turnoActivo = () =>
+    this.apiFetch<import('../types').TurnoActivoDto | null>(`/api/turnos/activo?sedeId=${config.sedeId}`)
+
+  cerrarTurno = (turnoId: number, montoEfectivoCierto: number, observaciones: string) =>
+    this.apiFetch<any>(`/api/turnos/${turnoId}/cerrar`, {
+      method: 'PUT',
+      body: JSON.stringify({ montoEfectivoCierto, observaciones }),
+    })
+
   crearTransaccion = (request: CreateTransaccionRequest) =>
     this.apiFetch<number>('/api/transacciones', {
       method: 'POST',

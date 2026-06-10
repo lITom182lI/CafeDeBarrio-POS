@@ -14,6 +14,7 @@ import {
 } from '../offline'
 import ComprobanteModal from './ComprobanteModal'
 import TicketModal from './TicketModal'
+import ArqueoCierreModal from './ArqueoCierreModal'
 
 // List of Sub-Views
 import TerminalVentasView from './TerminalVentasView'
@@ -56,6 +57,7 @@ export default function SalesModule({ session, onLogout }: Props) {
   const [processing, setProcessing] = useState(false)
   const [ticket, setTicket] = useState<TicketData | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [showCierreModal, setShowCierreModal] = useState(false)
 
   // ── Sync & Line monitoring ────────────────────────────────────────────────
   const { pendingCount, isOnline, refreshCount } = useSync()
@@ -227,7 +229,13 @@ export default function SalesModule({ session, onLogout }: Props) {
 
         await refreshCount()
       } else {
-        setErrorMsg(`Error: ${err instanceof Error ? err.message : 'Error al registrar la comanda'}`)
+        const errorText = err instanceof Error ? err.message : 'Error al registrar la comanda';
+        if (errorText.includes('Producto.StockInsuficiente')) {
+          // Extraer el mensaje amigable de stock
+          setErrorMsg('No hay stock suficiente para uno de los productos seleccionados. Reduzca la cantidad en el pedido e intente de nuevo.');
+        } else {
+          setErrorMsg(`Error: ${errorText}`);
+        }
         setProcessing(false)
         return
       }
@@ -356,7 +364,7 @@ export default function SalesModule({ session, onLogout }: Props) {
           )}
 
           <button
-            onClick={onLogout}
+            onClick={() => setShowCierreModal(true)}
             className="w-full py-2.5 text-[#334155]/70 hover:text-red-600 rounded-xl hover:bg-red-50/50 border border-transparent font-bold text-xs tracking-wide flex items-center justify-center gap-2 transition active:scale-95"
           >
             <LogOut size={14} />
@@ -418,6 +426,17 @@ export default function SalesModule({ session, onLogout }: Props) {
 
       {ticket && (
         <TicketModal ticket={ticket} onClose={() => setTicket(null)} />
+      )}
+
+      {showCierreModal && session && (
+        <ArqueoCierreModal
+          session={session}
+          onClose={() => setShowCierreModal(false)}
+          onSuccess={() => {
+            setShowCierreModal(false)
+            onLogout()
+          }}
+        />
       )}
 
     </div>

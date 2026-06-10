@@ -9,6 +9,7 @@ export function ReportesYGraficos() {
   const [resumen, setResumen] = useState<VentasResumenDto | null>(null);
   const [ventasMetodo, setVentasMetodo] = useState<VentasPorMetodoPagoDto[]>([]);
   const [ventasDia, setVentasDia] = useState<VentasPorDiaDto[]>([]);
+  const [anulacionesData, setAnulacionesData] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
 
@@ -33,14 +34,16 @@ export function ReportesYGraficos() {
     setLoading(true);
     setError("");
     try {
-      const [resData, metData, diaData] = await Promise.all([
+      const [resData, metData, diaData, anuData] = await Promise.all([
         api.ventasResumen(periodo),
         api.ventasPorMetodoPago(periodo),
         api.ventasPorDia(periodo),
+        api.anulaciones(periodo)
       ]);
       setResumen(resData);
       setVentasMetodo(metData);
       setVentasDia(diaData);
+      setAnulacionesData(anuData);
     } catch {
       setError("No se pudo conectar con el servidor POS. Verifique su servicio.");
     } finally {
@@ -105,7 +108,9 @@ export function ReportesYGraficos() {
     setErrorCaja("");
     setSuccessCaja("");
     try {
-      const res = await api.cerrarTurno(turno.turnoId, montoCierto, observaciones);
+      const adminPrefix = "[Admin] ";
+      const finalObs = observaciones.trim() ? `${adminPrefix}${observaciones.trim()}` : adminPrefix.trim();
+      const res = await api.cerrarTurno(turno.turnoId, montoCierto, finalObs);
       setCierreResult(res);
       setSuccessCaja("Turno de POS cerrado correctamente. Revise los balances de arqueo.");
       setTurno(null); // Turno is closed in memory
@@ -308,6 +313,50 @@ export function ReportesYGraficos() {
                 )}
               </div>
             </div>
+
+            {/* Cantidad de Ventas por Estado BarChart */}
+            <div className="card">
+              <div className="card-title">Cantidad de Ventas por Estado</div>
+              <div style={{ width: "100%", height: 280 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={[
+                    { name: "Completadas", count: resumen?.numTransacciones || 0 },
+                    { name: "Anuladas", count: anulacionesData.length }
+                  ]} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                    <XAxis dataKey="name" stroke="#64748B" fontSize={11} axisLine={false} tickLine={false} dy={8} />
+                    <YAxis stroke="#64748B" fontSize={11} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ borderRadius: "12px" }} formatter={(val: any) => [val, "Cantidad"]} />
+                    <Bar dataKey="count" radius={[6, 6, 0, 0]} maxBarSize={45}>
+                      <Cell fill="#10B981" />
+                      <Cell fill="#EF4444" />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Impacto Económico por Estado BarChart */}
+            <div className="card">
+              <div className="card-title">Impacto Económico por Estado</div>
+              <div style={{ width: "100%", height: 280 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={[
+                    { name: "Completadas", monto: resumen?.totalVentas || 0 },
+                    { name: "Anuladas", monto: anulacionesData.reduce((acc, curr) => acc + curr.montoDevuelto, 0) }
+                  ]} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                    <XAxis dataKey="name" stroke="#64748B" fontSize={11} axisLine={false} tickLine={false} dy={8} />
+                    <YAxis stroke="#64748B" fontSize={11} axisLine={false} tickLine={false} tickFormatter={(v) => `S/.${v}`} />
+                    <Tooltip contentStyle={{ borderRadius: "12px" }} formatter={(val: any) => [formatSales(val as number), "Monto"]} />
+                    <Bar dataKey="monto" radius={[6, 6, 0, 0]} maxBarSize={45}>
+                      <Cell fill="#10B981" />
+                      <Cell fill="#EF4444" />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </div>
 
           {/* Desglose de Caja horizontal (Image 1 replica style) */}
@@ -423,7 +472,7 @@ export function ReportesYGraficos() {
                             >
                               {operadores.map(op => (
                                 <option key={op.operadorId} value={op.operadorId}>
-                                  {op.nombre}
+                                  {op.nombre} (ID: {op.operadorId})
                                 </option>
                               ))}
                             </select>
@@ -453,7 +502,7 @@ export function ReportesYGraficos() {
 
                 {/* Action / Report Card */}
                 <div className="card">
-                  <div className="card-title">Acción de Arqueo y Cierre</div>
+                  <div className="card-title text-red-700">Cierre Forzado de Caja (Emergencia)</div>
                   
                   {turno ? (
                     <form onSubmit={handleCerrarTurno} className="caja-form">
@@ -480,8 +529,9 @@ export function ReportesYGraficos() {
                         <textarea
                           id="cierre-obs"
                           className="caja-input"
+                          style={{ resize: "none" }}
                           rows={3}
-                          placeholder="Dejar nota técnica si hay sobrantes o faltantes..."
+                          placeholder="[Admin] Dejar nota técnica si hay sobrantes o faltantes..."
                           value={observaciones}
                           onChange={(e) => setObservaciones(e.target.value)}
                         />

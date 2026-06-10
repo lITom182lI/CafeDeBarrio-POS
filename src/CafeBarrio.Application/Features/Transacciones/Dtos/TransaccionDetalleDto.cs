@@ -15,7 +15,8 @@ public record TransaccionDetalleDto(
     string? NumeroDocumento = null,
     string? RazonSocial = null,
     string? MetodoPagoSecundario = null,
-    decimal? MontoMetodoPrimario = null);
+    decimal? MontoMetodoPrimario = null,
+    string? MotivoAnulacion = null);
 
 
 public record DetalleItemDto(

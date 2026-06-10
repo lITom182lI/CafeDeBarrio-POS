@@ -33,6 +33,15 @@ export interface OperadorLoginDto {
   token: string
 }
 
+export interface TurnoActivoDto {
+  turnoId: number
+  sedeId: number
+  operadorId: number
+  fechaApertura: string
+  montoApertura: number
+  estado: string
+}
+
 // ─── Estado local del carrito ─────────────────────────────────────────────
 
 export interface CartItem {

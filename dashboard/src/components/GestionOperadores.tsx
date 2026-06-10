@@ -119,8 +119,7 @@ export function GestionOperadores() {
     }
   };
 
-  const [mostrarInactivos, setMostrarInactivos] = useState<boolean>(false);
-
+  const [filtroEstado, setFiltroEstado] = useState<string>("Habilitado");
   return (
     <div>
       <div className="page-header">
@@ -153,13 +152,18 @@ export function GestionOperadores() {
       ) : (
         <div className="table-wrap">
           <div style={{ padding: "0 16px 16px", display: "flex", gap: "8px", alignItems: "center" }}>
-            <input 
-              type="checkbox" 
-              id="show-inactive" 
-              checked={mostrarInactivos} 
-              onChange={(e) => setMostrarInactivos(e.target.checked)} 
-            />
-            <label htmlFor="show-inactive" style={{ fontSize: "14px", color: "#666" }}>Mostrar operadores inactivos (eliminados)</label>
+            <label htmlFor="filtro-estado" style={{ fontSize: "14px", color: "#666", fontWeight: "bold" }}>Filtrar por estado:</label>
+            <select
+              id="filtro-estado"
+              value={filtroEstado}
+              onChange={(e) => setFiltroEstado(e.target.value)}
+              className="form-select"
+              style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid #d1d5db", backgroundColor: "white", minWidth: "150px" }}
+            >
+              <option value="Habilitado">Habilitado</option>
+              <option value="Inhabilitado">Inhabilitado</option>
+              <option value="Eliminado">Eliminado</option>
+            </select>
           </div>
           <table className="pos-table">
             <thead>
@@ -171,25 +175,35 @@ export function GestionOperadores() {
               </tr>
             </thead>
             <tbody>
-              {operadores.filter(op => mostrarInactivos || op.activo).map((op) => (
-                <tr key={op.operadorId} className={!op.activo ? "row-inactive" : ""}>
+              {operadores.filter(op => {
+                if (filtroEstado === "Habilitado") return op.activo && !op.eliminado;
+                if (filtroEstado === "Inhabilitado") return !op.activo && !op.eliminado;
+                if (filtroEstado === "Eliminado") return op.eliminado;
+                return true;
+              }).map((op) => (
+                <tr key={op.operadorId} className={(!op.activo || op.eliminado) ? "row-inactive" : ""}>
                   <td className="font-semibold font-mono text-xs">{op.operadorId}</td>
                   <td>
                     <span className="product-display-name">{op.nombre}</span>
                   </td>
                   <td>
-                    <span className={op.activo ? "badge-habilitado" : "badge-deshabilitado"}>
-                      {op.activo ? "Habilitado" : "Inactivo"}
+                    <span className={op.eliminado ? "badge-eliminado" : (op.activo ? "badge-habilitado" : "badge-deshabilitado")} style={op.eliminado ? { backgroundColor: "#fee2e2", color: "#991b1b", padding: "4px 8px", borderRadius: "9999px", fontSize: "12px", fontWeight: 500 } : {}}>
+                      {op.eliminado ? "Eliminado" : (op.activo ? "Habilitado" : "Inhabilitado")}
                     </span>
                   </td>
                   <td>
                     <div className="flex gap-2">
-                      <button className="btn-action-edit" onClick={() => handleOpenEditModal(op)}>
+                      <button 
+                        className="btn-action-edit" 
+                        onClick={() => handleOpenEditModal(op)}
+                        style={{ backgroundColor: "#EFF6FF", color: "#2563EB", padding: "6px 12px", borderRadius: "6px", fontWeight: 500, border: "1px solid #BFDBFE" }}
+                      >
                         Editar
                       </button>
                       <button
-                        className="btn-action-edit text-red-600 hover:text-red-700"
+                        className="btn-action-delete"
                         onClick={() => handleDeleteOperador(op.operadorId, op.nombre)}
+                        style={{ backgroundColor: "#FEF2F2", color: "#DC2626", padding: "6px 12px", borderRadius: "6px", fontWeight: 500, border: "1px solid #FECACA" }}
                       >
                         Eliminar
                       </button>

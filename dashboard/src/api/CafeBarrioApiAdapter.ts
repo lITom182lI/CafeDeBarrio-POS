@@ -2,7 +2,7 @@ import type {
   VentasResumenDto, VentasPorMetodoPagoDto, VentasPorDiaDto,
   StockBajoDto, TurnoActivoDto, CerrarTurnoResultDto,
   ProductoDto, TransaccionListItemDto, TransaccionDetalleDto,
-  CategoriaCafeDto, ProductoFormData, OperadorDto
+  CategoriaCafeDto, ProductoFormData, OperadorDto, TurnoCerradoDto
 } from '../types'
 
 interface PaginatedResult<T> { items: T[]; totalCount: number }
@@ -71,8 +71,14 @@ export class CafeBarrioApiAdapter {
   ventasPorMetodoPago = (p: string) =>
     this._get<VentasPorMetodoPagoDto[]>(`/api/reportes/ventas-por-metodo-pago?sedeId=${SEDE}&periodo=${p}`)
       .then(r => Array.isArray(r) ? r : [])
+  anulaciones         = (p: string) =>
+    this._get<any[]>(`/api/reportes/anulaciones?sedeId=${SEDE}&periodo=${p}`)
+      .then(r => Array.isArray(r) ? r : [])
   ventasPorDia        = (p: string) =>
     this._get<VentasPorDiaDto[]>(`/api/reportes/ventas-por-dia?sedeId=${SEDE}&periodo=${p}`)
+      .then(r => Array.isArray(r) ? r : [])
+  turnosCerrados      = (p: string = "mes") =>
+    this._get<TurnoCerradoDto[]>(`/api/reportes/cierres-caja?sedeId=${SEDE}&periodo=${p}`)
       .then(r => Array.isArray(r) ? r : [])
   categorias          = () => this._get<CategoriaCafeDto[]>('/api/categorias').then(r => Array.isArray(r) ? r : [])
   crearProducto       = (data: ProductoFormData) => this._post<number>('/api/productos', data)
@@ -126,5 +132,22 @@ export class CafeBarrioApiAdapter {
     }).then(r => {
       if (!r.ok) throw new Error('No se pudo cerrar el turno')
       return r.json() as Promise<CerrarTurnoResultDto>
+    })
+  anularTransaccion   = (id: number, motivo: string, adminEmail: string, adminPassword: string, operadorSolicitanteId: number = 1) =>
+    fetch(`/api/transacciones/${id}/anular`, {
+      method: 'POST', headers: this.authHeaders,
+      body: JSON.stringify({
+        transaccionId: id,
+        motivo,
+        adminEmail,
+        adminPassword,
+        operadorSolicitanteId
+      })
+    }).then(async r => {
+      if (r.status === 401) { localStorage.removeItem('token'); window.dispatchEvent(new CustomEvent('auth:unauthorized')); throw new Error('Sesión expirada') }
+      if (!r.ok) {
+        const text = await r.text();
+        throw new Error(text || 'No se pudo anular la transacción');
+      }
     })
 }

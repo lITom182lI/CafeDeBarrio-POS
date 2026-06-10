@@ -14,4 +14,5 @@ public interface IReportesRepository
     Task<IReadOnlyList<TransaccionListItemDto>> GetTransaccionesListAsync(int sedeId, CancellationToken ct);
     Task<TransaccionDetalleDto?> GetTransaccionDetalleAsync(int transaccionId, CancellationToken ct);
     Task<IReadOnlyList<VentasPorDiaDto>> GetVentasPorDiaAsync(int sedeId, DateTime desde, DateTime hasta, CancellationToken ct);
+    Task<IReadOnlyList<TurnoCerradoDto>> GetTurnosCerradosAsync(int sedeId, DateTime desde, DateTime hasta, CancellationToken ct);
 }

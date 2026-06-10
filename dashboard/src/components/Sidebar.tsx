@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, Users, Receipt, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, Users, Receipt, Settings, LogOut, FileText } from "lucide-react";
 
 interface Props {
   activeTab: string;
@@ -22,6 +22,7 @@ export function Sidebar({ activeTab, onChangeTab, operatorName, onLogout }: Prop
     { id: "dashboard",     label: "Dashboard",     icon: <LayoutDashboard size={18} /> },
     { id: "productos",     label: "Productos",     icon: <Package size={18} /> },
     { id: "transacciones", label: "Transacciones", icon: <Receipt size={18} /> },
+    { id: "reportes",      label: "Reportes Caja", icon: <FileText size={18} /> },
     { id: "operadores",    label: "Operadores",    icon: <Users size={18} /> },
     { id: "configuracion", label: "Configuración", icon: <Settings size={18} /> }
   ];

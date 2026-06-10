@@ -16,12 +16,12 @@ public class OperadorRepository : BaseRepository<Operador>, IOperadorRepository
 
     public async Task<IReadOnlyList<Operador>> GetAllActivosAsync(CancellationToken ct = default)
         => await Context.Set<Operador>()
-            .Where(o => o.Activo)
+            .Where(o => o.Activo && !o.Eliminado)
             .OrderBy(o => o.Nombre)
             .AsNoTracking()
             .ToListAsync(ct);
 
     public async Task<Operador?> GetActivoByIdAsync(int id, CancellationToken ct = default)
         => await Context.Set<Operador>()
-            .FirstOrDefaultAsync(o => o.OperadorId == id && o.Activo, ct);
+            .FirstOrDefaultAsync(o => o.OperadorId == id && o.Activo && !o.Eliminado, ct);
 }

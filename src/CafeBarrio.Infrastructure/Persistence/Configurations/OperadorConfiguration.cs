@@ -13,6 +13,7 @@ public class OperadorConfiguration : IEntityTypeConfiguration<Operador>
         builder.Property(o => o.Nombre).IsRequired().HasMaxLength(100);
         builder.Property(o => o.PinHash).IsRequired().HasMaxLength(256);
         builder.Property(o => o.Activo).HasDefaultValue(true);
+        builder.Property(o => o.Eliminado).HasDefaultValue(false);
 
         builder.HasOne(o => o.Sede)
                .WithMany()

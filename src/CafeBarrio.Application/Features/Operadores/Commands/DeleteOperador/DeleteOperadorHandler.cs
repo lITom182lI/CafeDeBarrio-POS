@@ -29,6 +29,7 @@ public class DeleteOperadorHandler : IRequestHandler<DeleteOperadorCommand, Resu
 
         // Soft delete para no romper relaciones FK con turnos o transacciones históricas
         operador.Activo = false;
+        operador.Eliminado = true;
 
         await _uow.SaveChangesAsync(ct);
 
