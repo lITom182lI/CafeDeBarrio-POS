@@ -111,9 +111,13 @@ export function Transacciones() {
   // Filter & Search Logic
   const filteredTx = transacciones.filter((tx) => {
     const searchLower = searchTerm.trim().toLowerCase();
-    const matchesSearch = searchLower === "" ||
+    const searchClean = searchLower.replace("#", "");
+    const matchesSearch = searchClean === "" ||
       (tx.clienteNombre?.toLowerCase() ?? "").includes(searchLower) ||
-      String(tx.transaccionId).includes(searchLower) ||
+      (tx.razonSocial?.toLowerCase() ?? "").includes(searchLower) ||
+      (tx.operadorNombre?.toLowerCase() ?? "").includes(searchLower) ||
+      String(tx.transaccionId).includes(searchClean) ||
+      String(tx.transaccionId).padStart(4, "0").includes(searchClean) ||
       (tx.numeroDocumento?.toLowerCase() ?? "").includes(searchLower);
 
     const matchesMetodo =

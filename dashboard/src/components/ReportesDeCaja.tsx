@@ -62,9 +62,19 @@ export function ReportesDeCaja() {
   // Filter & Search Logic
   const filteredTurnos = turnos.filter((t) => {
     const searchLower = searchTerm.trim().toLowerCase();
-    const matchesSearch = searchLower === "" ||
-      (t.operadorNombre?.toLowerCase() ?? "").includes(searchLower) ||
-      String(t.turnoId).includes(searchLower);
+    const searchClean = searchLower.replace("#", "");
+    
+    // Check if the row represents an Admin forced close, and if "admin" matches the search
+    const isRowAdmin = t.observaciones?.startsWith('[Admin]');
+    const matchesAdmin = isRowAdmin && "admin".includes(searchLower);
+
+    const matchesSearch = searchClean === "" ||
+      (!isRowAdmin && (t.operadorNombre?.toLowerCase() ?? "").includes(searchLower)) ||
+      matchesAdmin ||
+      String(t.turnoId).includes(searchClean) ||
+      String(t.turnoId).padStart(4, "0").includes(searchClean) ||
+      String(t.operadorId).includes(searchClean) ||
+      t.estadoCierre.toLowerCase().includes(searchLower);
 
     const matchesEstado =
       filterEstado === "todos" ||
@@ -158,6 +168,7 @@ export function ReportesDeCaja() {
             <thead>
               <tr>
                 <th>ID Turno</th>
+                <th>ID Operador</th>
                 <th>Operador</th>
                 <th>Apertura</th>
                 <th>Cierre</th>
@@ -173,9 +184,11 @@ export function ReportesDeCaja() {
                   <td className="font-mono text-sm font-semibold text-gray-500">
                     #{String(t.turnoId).padStart(4, "0")}
                   </td>
-                  <td className="font-medium text-slate-800 flex items-center gap-1">
+                  <td className="font-mono text-sm text-gray-500 text-center">
+                    {t.observaciones?.startsWith('[Admin]') ? '-' : t.operadorId}
+                  </td>
+                  <td className="font-medium text-slate-800">
                     {t.observaciones?.startsWith('[Admin]') ? 'Admin' : t.operadorNombre} 
-                    {!t.observaciones?.startsWith('[Admin]') && <span className="text-gray-400 text-xs">(ID: {t.operadorId})</span>}
                   </td>
                   <td className="text-sm">
                     {new Date(t.fechaApertura).toLocaleString("es-PE", {
