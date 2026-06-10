@@ -26,6 +26,7 @@ public class ProductoConfiguration : IEntityTypeConfiguration<Producto>
         builder.Property(x => x.Activo).HasColumnName("activo").IsRequired();
         builder.Property(x => x.CreatedAt).HasColumnName("fecha_creacion").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("fecha_actualizacion");
+        builder.Property(x => x.RowVersion).IsRowVersion();
 
         builder.HasOne(x => x.Categoria)
                .WithMany(c => c.Productos)

@@ -18,6 +18,7 @@ public class Producto : IAuditable
     public string? ImagenUrl { get; set; }
     public bool EsMayorista { get; set; }
     public bool Activo { get; set; }
+    public byte[] RowVersion { get; set; } = [];
 
     public CategoriaCafe Categoria { get; set; } = null!;
     public ICollection<DetalleTransaccion> Detalles { get; set; } = [];

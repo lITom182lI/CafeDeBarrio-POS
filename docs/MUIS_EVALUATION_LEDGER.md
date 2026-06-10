@@ -14,6 +14,7 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 | F-02 | API / Boot | `EnsureCreated()` en lugar de `Migrate()` bypaseaba las migraciones de EF Core en Producción. | PASSED |
 | F-03 | API / App | `AuthController` inyectaba repositorios directamente en lugar de delegar a MediatR (`LoginCommand`). | PASSED |
 | F-04 | API / Boot | `UseForwardedHeaders` estaba posicionado erróneamente después de `UseHttpsRedirection`, causando loops de redirección en proxy. | PASSED |
+| D-01 | Domain / DB | `Producto` ahora usa `RowVersion` como concurrency token para evitar stock negativo en ventas simultáneas. | PASSED |
 | F-05 | Infrastructure | `ReportesRepository` agrupa en memoria (C#) después de un `ToListAsync()`. Migrado a SQL mediante GroupBy en IQueryable. | PASSED |
 | F-06 | Root / Docs | Falta del archivo obligatorio `CLAUDE.md` con la Clasificación de Tipología (Regla 0). Se creó con Tipo 2 y datos de perfil. | PASSED |
 | F-07 | Domain | `Producto` tenía duplicados los campos `FechaCreacion` y `FechaActualizacion`. Unificados en `IAuditable`. | PASSED |
@@ -37,7 +38,6 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 
 | ID | Capa | Hallazgo | Riesgo | Estado |
 |---|---|---|---|---|
-| D-01 | Domain / DB | **Condición de Carrera en Inventario:** La entidad `Producto` no posee un token de concurrencia (`RowVersion`). Dos ventas simultáneas del último ítem dejarán el stock en negativo. | Alto | PENDING |
 | D-02 | Application | **Tasa IGV Quemada (Hardcoded):** El `CreateTransaccionHandler` asume 10.5% como fallback si falla la config. | Bajo | PENDING |
 
 ### Frontend Web / Mobile

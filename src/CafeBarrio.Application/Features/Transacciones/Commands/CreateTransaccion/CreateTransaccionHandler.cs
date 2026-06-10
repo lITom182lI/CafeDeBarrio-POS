@@ -95,7 +95,14 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
 
         await _transacciones.AddAsync(transaccion, ct);
 
-        await _uow.SaveChangesAsync(ct);
+        try
+        {
+            await _uow.SaveChangesAsync(ct);
+        }
+        catch (Exception ex) when (ex.GetType().Name == "DbUpdateConcurrencyException")
+        {
+            return Result<int>.Failure(new Error("Stock.ConcurrencyConflict", "Hubo un conflicto de concurrencia al actualizar el inventario."));
+        }
 
         try
         {
