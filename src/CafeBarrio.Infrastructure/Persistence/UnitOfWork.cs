@@ -9,5 +9,14 @@ public class UnitOfWork : IUnitOfWork
     public UnitOfWork(CafeBarrioDbContext context) => _context = context;
 
     public async Task<int> SaveChangesAsync(CancellationToken ct = default)
-        => await _context.SaveChangesAsync(ct);
+    {
+        try
+        {
+            return await _context.SaveChangesAsync(ct);
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
+        {
+            throw new CafeBarrio.Application.Common.Exceptions.ConcurrencyException();
+        }
+    }
 }

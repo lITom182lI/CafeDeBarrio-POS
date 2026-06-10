@@ -34,8 +34,10 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
     public async Task<Result<int>> Handle(CreateTransaccionCommand request, CancellationToken ct)
     {
         var config  = await _configuracion.GetActivaBySedeAsync(request.SedeId, ct);
-        var tasaIgv = config is not null ? config.TasaIGV + config.TasaIPM : 0.105m;
+        if (config is null)
+            return Result<int>.Failure(new Error("Configuracion.NotFound", "No se encontró configuración activa para la sede."));
 
+        var tasaIgv = config.TasaIGV + config.TasaIPM;
         var detalles = new List<DetalleTransaccion>();
         decimal subtotal = 0;
         var nombres = new Dictionary<int, string>();
@@ -99,9 +101,9 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
         {
             await _uow.SaveChangesAsync(ct);
         }
-        catch (Exception ex) when (ex.GetType().Name == "DbUpdateConcurrencyException")
+        catch (CafeBarrio.Application.Common.Exceptions.ConcurrencyException)
         {
-            return Result<int>.Failure(new Error("Stock.ConcurrencyConflict", "Hubo un conflicto de concurrencia al actualizar el inventario."));
+            return Result<int>.Failure(new Error("Stock.ConcurrencyConflict", "Conflicto de inventario. Reintenta la venta."));
         }
 
         try
