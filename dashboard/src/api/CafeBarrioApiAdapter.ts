@@ -2,7 +2,8 @@ import type {
   VentasResumenDto, VentasPorMetodoPagoDto, VentasPorDiaDto,
   StockBajoDto, TurnoActivoDto, CerrarTurnoResultDto,
   ProductoDto, TransaccionListItemDto, TransaccionDetalleDto,
-  CategoriaCafeDto, ProductoFormData, OperadorDto, TurnoCerradoDto
+  CategoriaCafeDto, ProductoFormData, OperadorDto, TurnoCerradoDto,
+  AnulacionResumenDto
 } from '../types'
 
 interface PaginatedResult<T> { items: T[]; totalCount: number }
@@ -72,7 +73,7 @@ export class CafeBarrioApiAdapter {
     this._get<VentasPorMetodoPagoDto[]>(`/api/reportes/ventas-por-metodo-pago?sedeId=${SEDE}&periodo=${p}`)
       .then(r => Array.isArray(r) ? r : [])
   anulaciones         = (p: string) =>
-    this._get<any[]>(`/api/reportes/anulaciones?sedeId=${SEDE}&periodo=${p}`)
+    this._get<AnulacionResumenDto[]>(`/api/reportes/anulaciones?sedeId=${SEDE}&periodo=${p}`)
       .then(r => Array.isArray(r) ? r : [])
   ventasPorDia        = (p: string) =>
     this._get<VentasPorDiaDto[]>(`/api/reportes/ventas-por-dia?sedeId=${SEDE}&periodo=${p}`)

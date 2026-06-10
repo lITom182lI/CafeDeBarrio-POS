@@ -165,8 +165,7 @@ export function Transacciones() {
                 placeholder="Cliente, ID u orden..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="caja-input"
-                style={{ paddingLeft: "36px", minWidth: "260px" }}
+                className="caja-input caja-input-search"
               />
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                 <Search size={16} />
@@ -176,8 +175,9 @@ export function Transacciones() {
 
           {/* Payment Method filter */}
           <div className="select-group">
-            <label className="select-grouplabel">Medio de Pago</label>
+            <label className="select-grouplabel" htmlFor="filter-metodo">Medio de Pago</label>
             <select
+              id="filter-metodo"
               value={filterMetodo}
               onChange={(e) => setFilterMetodo(e.target.value)}
               className="styled-select"
@@ -192,8 +192,9 @@ export function Transacciones() {
 
           {/* Status filter */}
           <div className="select-group">
-            <label className="select-grouplabel">Estado</label>
+            <label className="select-grouplabel" htmlFor="filter-estado">Estado</label>
             <select
+              id="filter-estado"
               value={filterEstado}
               onChange={(e) => setFilterEstado(e.target.value)}
               className="styled-select"
@@ -232,7 +233,7 @@ export function Transacciones() {
                 <th>Método</th>
                 <th>Estado</th>
                 <th className="text-right">Total</th>
-                <th style={{ width: "80px" }}>Acción</th>
+                <th className="th-action">Acción</th>
               </tr>
             </thead>
             <tbody>
@@ -336,7 +337,7 @@ export function Transacciones() {
             </div>
 
             {loadingDetail ? (
-              <div className="loading-spinner-wrap" style={{ padding: "40px" }}>
+              <div className="loading-spinner-wrap loading-spinner-large">
                 <div className="spinner"></div>
                 <span>Obteniendo detalles del ticket...</span>
               </div>
@@ -348,8 +349,7 @@ export function Transacciones() {
               <div>
                 {/* Visual design simulating ticket */}
                 <div 
-                  className="bg-amber-50/40 border border-amber-200/50 rounded-2xl p-6 font-mono text-xs text-slate-700 mb-6 shadow-inner"
-                  style={{ backgroundImage: "linear-gradient(#fefbeb 1px, transparent 1px)", backgroundSize: "100% 20px" }}
+                  className="bg-amber-50/40 border border-amber-200/50 rounded-2xl p-6 font-mono text-xs text-slate-700 mb-6 shadow-inner ticket-bg"
                 >
                   <div className="text-center border-b border-dashed border-amber-300 pb-4 mb-4">
                     <h3 className="font-black text-base tracking-widest uppercase block text-amber-950 mb-1">Café de Barrio</h3>
@@ -373,9 +373,9 @@ export function Transacciones() {
                     <table className="w-full text-left file-table">
                       <thead>
                         <tr className="border-b border-amber-200 text-amber-800 font-bold">
-                          <th className="pb-1" style={{ width: "55%" }}>Prod</th>
-                          <th className="pb-1 text-center" style={{ width: "15%" }}>Cant</th>
-                          <th className="pb-1 text-right" style={{ width: "30%" }}>Subtotal</th>
+                          <th className="pb-1 w-[55%]">Prod</th>
+                          <th className="pb-1 text-center w-[15%]">Cant</th>
+                          <th className="pb-1 text-right w-[30%]">Subtotal</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-dotted divide-amber-200">
@@ -428,12 +428,11 @@ export function Transacciones() {
                 <div className="flex justify-between gap-3">
                   <button 
                     onClick={() => alert("Impresión enviada a la ticketera térmica Epson TM-T20III")} 
-                    className="btn btn-primary"
-                    style={{ flex: 1 }}
+                    className="btn btn-primary flex-1"
                   >
                     <FileText size={16} /> Impresión Térmica
                   </button>
-                  <button onClick={handleCloseDetail} className="btn btn-secondary" style={{ flex: 1 }}>
+                  <button onClick={handleCloseDetail} className="btn btn-secondary flex-1">
                     Cerrar Detalle
                   </button>
                 </div>
@@ -465,18 +464,18 @@ export function Transacciones() {
               <label>
                 Motivo de la anulación
                 <textarea 
-                  style={{ resize: "none", height: "80px" }}
+                  className="resize-none h-20"
                   placeholder="Explique brevemente el motivo..."
                   value={cancelMotivo}
                   onChange={(e) => setCancelMotivo(e.target.value)}
                 />
               </label>
 
-              <div style={{ backgroundColor: "#F8FAFC", padding: "20px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
-                <p style={{ fontSize: "0.75rem", fontWeight: 800, color: "#64748B", marginBottom: "16px", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                <p className="text-xs font-extrabold text-slate-500 mb-4 uppercase tracking-widest">
                   Autorización de Administrador
                 </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div className="flex flex-col gap-3">
                   <input 
                     type="email"
                     className="caja-input"
@@ -494,19 +493,17 @@ export function Transacciones() {
                 </div>
               </div>
 
-              <div className="modal-actions" style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+              <div className="modal-actions flex gap-3 mt-2">
                 <button 
                   onClick={handleCloseCancel}
-                  className="btn btn-secondary"
-                  style={{ flex: 1 }}
+                  className="btn btn-secondary flex-1"
                   disabled={canceling}
                 >
                   Cancelar
                 </button>
                 <button 
                   onClick={submitAnular}
-                  className="btn btn-primary"
-                  style={{ flex: 1, backgroundColor: "#EF4444" }}
+                  className="btn btn-primary flex-1 !bg-red-500 border-none"
                   disabled={canceling || !cancelMotivo || !cancelEmail || !cancelPassword}
                 >
                   {canceling ? 'Autorizando...' : 'Confirmar Anulación'}

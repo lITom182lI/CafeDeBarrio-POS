@@ -174,7 +174,6 @@ export default function ArqueoCierreModal({ session, onClose, onSuccess }: Props
                     </label>
                     <textarea
                       rows={2}
-                      style={{ resize: "none" }}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-800 text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors resize-none"
                       placeholder="Indique justificación si percibe sobrantes o faltantes..."
                       value={observaciones}
@@ -251,6 +250,8 @@ export default function ArqueoCierreModal({ session, onClose, onSuccess }: Props
                   <button
                     type="button"
                     onClick={deleteLastDigit}
+                    aria-label="Borrar último dígito"
+                    title="Borrar último dígito"
                     disabled={pin.length === 0 || processing}
                     className="aspect-square bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-xl flex items-center justify-center border border-slate-200 shadow-sm transition active:scale-95 disabled:opacity-50"
                   >
@@ -269,6 +270,8 @@ export default function ArqueoCierreModal({ session, onClose, onSuccess }: Props
                   <button
                     type="button"
                     onClick={handleCierreFinal}
+                    aria-label="Confirmar Cierre"
+                    title="Confirmar Cierre"
                     disabled={pin.length < 6 || processing}
                     className="aspect-square bg-amber-100 hover:bg-amber-600 hover:text-white text-amber-700 font-bold rounded-xl flex items-center justify-center border border-amber-200 shadow-sm transition active:scale-95 disabled:opacity-50"
                   >

@@ -2,14 +2,14 @@ import { useState, useEffect, startTransition, type FormEvent } from "react";
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from "recharts";
 import { RefreshCw, AlertCircle, Lock, Unlock, Check, ShieldCheck } from "lucide-react";
 import { api } from "../api/client";
-import type { VentasResumenDto, VentasPorMetodoPagoDto, VentasPorDiaDto, TurnoActivoDto, OperadorDto, CerrarTurnoResultDto } from "../types";
+import type { VentasResumenDto, VentasPorMetodoPagoDto, VentasPorDiaDto, TurnoActivoDto, OperadorDto, CerrarTurnoResultDto, AnulacionResumenDto } from "../types";
 
 export function ReportesYGraficos() {
   const [periodo, setPeriodo] = useState<string>("mes"); // 'dia' | 'semana' | 'mes'
   const [resumen, setResumen] = useState<VentasResumenDto | null>(null);
   const [ventasMetodo, setVentasMetodo] = useState<VentasPorMetodoPagoDto[]>([]);
   const [ventasDia, setVentasDia] = useState<VentasPorDiaDto[]>([]);
-  const [anulacionesData, setAnulacionesData] = useState<any[]>([]);
+  const [anulacionesData, setAnulacionesData] = useState<AnulacionResumenDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
 
@@ -169,7 +169,7 @@ export function ReportesYGraficos() {
         <div className="error-banner" role="alert">
           <AlertCircle size={18} />
           <span>{error}</span>
-          <button onClick={() => { startTransition(() => { void loadData(); }); }} className="btn btn-secondary" style={{ padding: "4px 12px", marginLeft: "auto" }}>
+          <button onClick={() => { startTransition(() => { void loadData(); }); }} className="btn btn-secondary error-banner-action">
             <RefreshCw size={12} /> Reintentar
           </button>
         </div>
@@ -193,7 +193,7 @@ export function ReportesYGraficos() {
 
               <div className="kpi-card">
                 <span className="kpi-label">Transacciones</span>
-                <span className="kpi-value" style={{ fontFamily: "var(--font-mono)" }}>
+                <span className="kpi-value kpi-mono">
                   {resumen.numTransacciones}
                 </span>
                 <span className="kpi-sub">Tickets generados con éxito</span>
@@ -212,9 +212,9 @@ export function ReportesYGraficos() {
             {/* Sales Volume Curve */}
             <div className="card">
               <div className="card-title">Volumen y Curva de Ventas (S/.)</div>
-              <div style={{ width: "100%", height: 280 }}>
+              <div className="chart-container-wrapper">
                 {ventasDia.length === 0 ? (
-                  <div className="empty-state text-sm" style={{ height: "100%", contentVisibility: "auto" }}>
+                  <div className="empty-state text-sm empty-state-chart">
                     No hay suficientes datos de ventas para mostrar curvas temporales.
                   </div>
                 ) : (
@@ -264,9 +264,9 @@ export function ReportesYGraficos() {
             {/* Categorías de Pago BarChart */}
             <div className="card">
               <div className="card-title">Participación por Método de Pago</div>
-              <div style={{ width: "100%", height: 280 }}>
+              <div className="chart-container-wrapper">
                 {ventasMetodo.length === 0 ? (
-                  <div className="empty-state text-sm" style={{ height: "100%" }}>
+                  <div className="empty-state text-sm empty-state-chart">
                     Ventas vacías para el período.
                   </div>
                 ) : (
@@ -317,7 +317,7 @@ export function ReportesYGraficos() {
             {/* Cantidad de Ventas por Estado BarChart */}
             <div className="card">
               <div className="card-title">Cantidad de Ventas por Estado</div>
-              <div style={{ width: "100%", height: 280 }}>
+              <div className="chart-container-wrapper">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={[
                     { name: "Completadas", count: resumen?.numTransacciones || 0 },
@@ -339,7 +339,7 @@ export function ReportesYGraficos() {
             {/* Impacto Económico por Estado BarChart */}
             <div className="card">
               <div className="card-title">Impacto Económico por Estado</div>
-              <div style={{ width: "100%", height: 280 }}>
+              <div className="chart-container-wrapper">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={[
                     { name: "Completadas", monto: resumen?.totalVentas || 0 },
@@ -377,8 +377,7 @@ export function ReportesYGraficos() {
 
                     <div className="desglose-progress-bg">
                       <div
-                        className={`desglose-progress-bar ${getMethodColorClass(m.metodoPago)}`}
-                        style={{ width: `${percentage}%` }}
+                        className={`desglose-progress-bar ${getMethodColorClass(m.metodoPago)} w-pct-${percentage}`}
                       ></div>
                     </div>
 
@@ -415,7 +414,7 @@ export function ReportesYGraficos() {
             )}
 
             {loadingCaja ? (
-              <div className="loading-spinner-wrap" style={{ padding: "20px 0" }}>
+              <div className="loading-spinner-wrap loading-spinner-compact">
                 <div className="spinner"></div>
                 <span>Verificando estatus de caja registradora...</span>
               </div>
@@ -529,7 +528,6 @@ export function ReportesYGraficos() {
                         <textarea
                           id="cierre-obs"
                           className="caja-input"
-                          style={{ resize: "none" }}
                           rows={3}
                           placeholder="[Admin] Dejar nota técnica si hay sobrantes o faltantes..."
                           value={observaciones}

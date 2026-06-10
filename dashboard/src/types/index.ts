@@ -64,3 +64,13 @@ export interface TurnoCerradoDto {
   estadoCierre: string;
   observaciones?: string;
 }
+
+export interface AnulacionResumenDto {
+  anulacionId: number;
+  transaccionId: number;
+  tipoAnulacion: string;
+  motivo: string;
+  montoOriginal: number;
+  montoDevuelto: number;
+  fechaHora: string;
+}
