@@ -1,4 +1,5 @@
 using CafeBarrio.Domain.Common;
+using MUIS_CORE.Wrappers;
 
 namespace CafeBarrio.Domain.Entities;
 
@@ -27,4 +28,16 @@ public class Producto : IAuditable
     public DateTime? UpdatedAt { get; set; }
     public string? CreatedBy { get; set; }
     public string? UpdatedBy { get; set; }
+
+    public Result DescontarStock(decimal cantidad)
+    {
+        if (SeguimientoInventario && CantidadDisponible < cantidad)
+            return Result.Failure(new Error("Producto.StockInsuficiente",
+                $"Stock insuficiente. Disponible: {CantidadDisponible}, solicitado: {cantidad}."));
+
+        if (SeguimientoInventario)
+            CantidadDisponible -= cantidad;
+
+        return Result.Success();
+    }
 }

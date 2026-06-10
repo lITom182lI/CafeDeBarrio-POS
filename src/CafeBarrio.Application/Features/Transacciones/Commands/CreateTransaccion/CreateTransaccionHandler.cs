@@ -49,9 +49,9 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
                 return Result<int>.Failure(new Error("Producto.NotFound",
                     $"Producto {item.ProductoId} no encontrado."));
 
-            if (producto.SeguimientoInventario && producto.CantidadDisponible < item.Cantidad)
-                return Result<int>.Failure(new Error("Producto.StockInsuficiente",
-                    $"Insufficient stock for product {item.ProductoId}."));
+            var descuento = producto.DescontarStock(item.Cantidad);
+            if (descuento.IsFailure)
+                return Result<int>.Failure(descuento.Errors[0]);
 
             nombres[item.ProductoId] = producto.Nombre;
 
@@ -64,9 +64,6 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
             };
             detalles.Add(linea);
             subtotal += linea.SubtotalLinea;
-
-            if (producto.SeguimientoInventario)
-                producto.CantidadDisponible -= item.Cantidad;
         }
 
         var impuesto = Math.Round(subtotal * tasaIgv, 2);
