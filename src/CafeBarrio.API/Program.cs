@@ -6,6 +6,7 @@ using Serilog.Formatting.Compact;
 using CafeBarrio.Domain.Entities;
 using CafeBarrio.Infrastructure;
 using CafeBarrio.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using CafeBarrio.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -113,8 +114,8 @@ using (var scope = app.Services.CreateScope())
     var db     = scope.ServiceProvider.GetRequiredService<CafeBarrioDbContext>();
     var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
 
-    // Crear la base de datos si no existe
-    db.Database.EnsureCreated();
+    // Aplicar migraciones pendientes
+    db.Database.Migrate();
 
     // ── Sede ─────────────────────────────────────────────────────────────
     if (!db.Sedes.Any())

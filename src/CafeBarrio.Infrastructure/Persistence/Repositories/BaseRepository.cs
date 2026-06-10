@@ -43,17 +43,16 @@ public abstract class BaseRepository<T> : IRepository<T> where T : class
         }
     }
 
-    public async Task<Result> UpdateAsync(T entity, CancellationToken ct = default)
+    public Task<Result> UpdateAsync(T entity, CancellationToken ct = default)
     {
         try
         {
             Context.Set<T>().Update(entity);
-            await Context.SaveChangesAsync(ct);
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
-            return Result.Failure(new Error("Db.UpdateError", ex.Message));
+            return Task.FromResult(Result.Failure(new Error("Db.UpdateError", ex.Message)));
         }
     }
 
@@ -65,7 +64,6 @@ public abstract class BaseRepository<T> : IRepository<T> where T : class
             if (entity is null)
                 return Result.Failure(new Error("Db.NotFound", $"Entidad con id {id} no encontrada."));
             Context.Set<T>().Remove(entity);
-            await Context.SaveChangesAsync(ct);
             return Result.Success();
         }
         catch (Exception ex)
