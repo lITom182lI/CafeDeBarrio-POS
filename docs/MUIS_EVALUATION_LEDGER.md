@@ -18,6 +18,7 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 | D-02 | Application | Se eliminó el IGV hardcodeado en `CreateTransaccionHandler`. Ahora retorna falla si no encuentra configuración de la sede. | PASSED |
 | A-03 | Application / Domain | Se encapsuló la lógica de descuento de inventario dentro del método `DescontarStock` en la entidad `Producto`. | PASSED |
 | A-01 | Application | Implementado IdempotencyKey en `Transaccion` para prevenir la duplicación de tickets en PWA por reintentos de red. | PASSED |
+| A-02 | Application / Infra | Llamada a SUNAT separada del hilo principal mediante el Patrón Outbox y un `BackgroundService`. La venta se procesa y responde inmediatamente. | PASSED |
 | F-05 | Infrastructure | `ReportesRepository` agrupa en memoria (C#) después de un `ToListAsync()`. Migrado a SQL mediante GroupBy en IQueryable. | PASSED |
 | F-06 | Root / Docs | Falta del archivo obligatorio `CLAUDE.md` con la Clasificación de Tipología (Regla 0). Se creó con Tipo 2 y datos de perfil. | PASSED |
 | F-07 | Domain | `Producto` tenía duplicados los campos `FechaCreacion` y `FechaActualizacion`. Unificados en `IAuditable`. | PASSED |
@@ -33,7 +34,6 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 
 | ID | Capa | Hallazgo | Riesgo | Estado |
 |---|---|---|---|---|
-| A-02 | Application | **Llamada a SUNAT síncrona en el hilo principal:** `CreateTransaccionHandler` espera a `_sunat.EmitirBoletaAsync()` antes de retornar. Violar la separación (Outbox Pattern) causa bloqueos en el POS si SUNAT se cae. | Crítico | PENDING |
 ### Concurrencia y Datos
 
 | ID | Capa | Hallazgo | Riesgo | Estado |

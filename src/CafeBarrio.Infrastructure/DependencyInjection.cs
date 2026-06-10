@@ -58,6 +58,7 @@ public static class DependencyInjection
         {
             services.AddScoped<ISunatService, SunatStubService>();
         }
+        services.AddHostedService<CafeBarrio.Infrastructure.BackgroundServices.SunatEmisionService>();
 
         return services;
     }

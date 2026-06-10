@@ -12,7 +12,6 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
     private readonly IProductoRepository _productos;
     private readonly IConfiguracionNegocioRepository _configuracion;
     private readonly IUnitOfWork _uow;
-    private readonly ISunatService _sunat;
     private readonly IPublisher _publisher;
 
     public CreateTransaccionHandler(
@@ -20,14 +19,12 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
         IProductoRepository productos,
         IConfiguracionNegocioRepository configuracion,
         IUnitOfWork uow,
-        ISunatService sunat,
         IPublisher publisher)
     {
         _transacciones = transacciones;
         _productos     = productos;
         _configuracion = configuracion;
         _uow           = uow;
-        _sunat         = sunat;
         _publisher     = publisher;
     }
 
@@ -109,33 +106,6 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
         catch (CafeBarrio.Application.Common.Exceptions.ConcurrencyException)
         {
             return Result<int>.Failure(new Error("Stock.ConcurrencyConflict", "Conflicto de inventario. Reintenta la venta."));
-        }
-
-        try
-        {
-            var boletaItems = detalles.Select(d => new BoletaItem(
-                nombres.GetValueOrDefault(d.ProductoId, $"P{d.ProductoId}"),
-                d.Cantidad,
-                d.PrecioUnitario,
-                d.SubtotalLinea)).ToList();
-
-            var sunatResult = await _sunat.EmitirBoletaAsync(new EmitirBoletaRequest(
-                transaccion.TransaccionId, transaccion.Fecha,
-                boletaItems, subtotal, impuesto, transaccion.Total, request.Canal,
-                request.TipoDocumento, request.NumeroDocumento, request.RazonSocial), ct);
-
-            transaccion.SunatEstado      = sunatResult.Emitida ? "Emitida" : "NoEmitida";
-            transaccion.SunatNumeroSerie = sunatResult.NumeroSerie;
-            transaccion.SunatError       = sunatResult.Emitida ? null : (sunatResult.Error ?? sunatResult.Mensaje);
-        }
-        catch (Exception ex)
-        {
-            transaccion.SunatEstado = "Fallida";
-            transaccion.SunatError  = ex.Message;
-        }
-        finally
-        {
-            await _uow.SaveChangesAsync(ct);
         }
 
         await _publisher.Publish(new TransaccionCreadaEvent(
