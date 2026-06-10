@@ -61,10 +61,19 @@ export class CafeBarrioPosAdapter {
   }
 
   async getProductos(): Promise<ProductoDto[]> {
-    const r = await this.apiFetch<PaginatedResult<ProductoDto> | ProductoDto[]>(
-      '/api/productos?pageSize=1000'
-    )
-    return Array.isArray(r) ? r : r.items ?? []
+    let allProducts: ProductoDto[] = []
+    let currentPage = 1
+    const pageSize = 100
+    while (true) {
+      const r = await this.apiFetch<PaginatedResult<ProductoDto> | ProductoDto[]>(
+        `/api/productos?pageNumber=${currentPage}&pageSize=${pageSize}`
+      )
+      const items = Array.isArray(r) ? r : (r as PaginatedResult<ProductoDto>)?.items ?? []
+      allProducts = allProducts.concat(items)
+      if (items.length < pageSize || Array.isArray(r)) break
+      currentPage++
+    }
+    return allProducts
   }
 
   getCategorias  = () => this.apiFetch<CategoriaDto[]>('/api/categorias')

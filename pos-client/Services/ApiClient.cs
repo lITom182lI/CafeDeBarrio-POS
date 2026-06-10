@@ -37,13 +37,26 @@ public class ApiClient
 
     public async Task<List<ProductoDto>> GetProductosAsync()
     {
-        var r = await _http.GetAsync($"{_base}/api/productos?pageSize=1000");
-        r.EnsureSuccessStatusCode();
-        var json = await r.Content.ReadAsStringAsync();
-        using var doc = JsonDocument.Parse(json);
-        if (doc.RootElement.TryGetProperty("items", out var itemsElement))
-            return JsonSerializer.Deserialize<List<ProductoDto>>(itemsElement.GetRawText(), _json) ?? [];
-        return JsonSerializer.Deserialize<List<ProductoDto>>(json, _json) ?? [];
+        var allProducts = new List<ProductoDto>();
+        int pageNumber = 1;
+        int pageSize = 100;
+        while (true)
+        {
+            var r = await _http.GetAsync($"{_base}/api/productos?pageNumber={pageNumber}&pageSize={pageSize}");
+            r.EnsureSuccessStatusCode();
+            var json = await r.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(json);
+            List<ProductoDto> items;
+            if (doc.RootElement.TryGetProperty("items", out var itemsElement))
+                items = JsonSerializer.Deserialize<List<ProductoDto>>(itemsElement.GetRawText(), _json) ?? [];
+            else
+                items = JsonSerializer.Deserialize<List<ProductoDto>>(json, _json) ?? [];
+
+            allProducts.AddRange(items);
+            if (items.Count < pageSize) break;
+            pageNumber++;
+        }
+        return allProducts;
     }
 
     public async Task<List<MetodoPagoDto>> GetMetodosPagoAsync()

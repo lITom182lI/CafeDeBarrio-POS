@@ -79,9 +79,19 @@ export class CafeBarrioApiAdapter {
   actualizarProducto  = (id: number, data: ProductoFormData) =>
     this._put(`/api/productos/${id}`, { productoId: id, ...data })
   stockBajo           = () => this._get<StockBajoDto[]>('/api/reportes/stock-bajo').then(r => Array.isArray(r) ? r : [])
-  productos           = () =>
-    this._get<PaginatedResult<ProductoDto> | ProductoDto[]>('/api/productos?pageSize=1000')
-      .then(r => Array.isArray(r) ? r : (r as PaginatedResult<ProductoDto>)?.items ?? [])
+  productos           = async () => {
+    let allProducts: ProductoDto[] = []
+    let currentPage = 1
+    const pageSize = 100
+    while (true) {
+      const r = await this._get<PaginatedResult<ProductoDto> | ProductoDto[]>(`/api/productos?pageNumber=${currentPage}&pageSize=${pageSize}`)
+      const items = Array.isArray(r) ? r : (r as PaginatedResult<ProductoDto>)?.items ?? []
+      allProducts = allProducts.concat(items)
+      if (items.length < pageSize || Array.isArray(r)) break
+      currentPage++
+    }
+    return allProducts
+  }
   transacciones       = () =>
     this._get<TransaccionListItemDto[]>(`/api/transacciones?sedeId=${SEDE}`)
       .then(r => Array.isArray(r) ? r : [])
