@@ -18,13 +18,7 @@ public class TransaccionesIntegrationTests : IntegrationTestBase
 {
     private readonly CreateTransaccionHandler _handler;
 
-    private class DummySunatService : CafeBarrio.Application.Common.Interfaces.ISunatService
-    {
-        public Task<CafeBarrio.Application.Common.Interfaces.EmitirBoletaResult> EmitirBoletaAsync(CafeBarrio.Application.Common.Interfaces.EmitirBoletaRequest request, CancellationToken ct = default)
-        {
-            return Task.FromResult(new CafeBarrio.Application.Common.Interfaces.EmitirBoletaResult(true, "B001-1", "Dummy"));
-        }
-    }
+
 
     private class DummyPublisher : IPublisher
     {
@@ -39,7 +33,7 @@ public class TransaccionesIntegrationTests : IntegrationTestBase
         var configRepo = new ConfiguracionNegocioRepository(Db);
         var uow = new UnitOfWork(Db);
 
-        _handler = new CreateTransaccionHandler(transaccionesRepo, productosRepo, configRepo, uow, new DummySunatService(), new DummyPublisher());
+        _handler = new CreateTransaccionHandler(transaccionesRepo, productosRepo, configRepo, uow, new DummyPublisher());
     }
 
     [Fact]
@@ -70,7 +64,7 @@ public class TransaccionesIntegrationTests : IntegrationTestBase
         var producto = new Producto 
         { 
             Nombre = "Espresso", Costo = 2, Precio = 5, CantidadDisponible = 10, Categoria = cat,
-            SeguimientoInventario = true, UnidadMedida = "tz", Activo = true, FechaCreacion = DateTime.UtcNow, FechaActualizacion = DateTime.UtcNow
+            SeguimientoInventario = true, UnidadMedida = "tz", Activo = true
         };
         Db.Productos.Add(producto);
 
