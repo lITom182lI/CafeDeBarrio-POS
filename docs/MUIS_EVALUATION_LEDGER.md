@@ -14,6 +14,7 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 | F-02 | API / Boot | `EnsureCreated()` en lugar de `Migrate()` bypaseaba las migraciones de EF Core en Producción. | PASSED |
 | F-03 | API / App | `AuthController` inyectaba repositorios directamente en lugar de delegar a MediatR (`LoginCommand`). | PASSED |
 | F-04 | API / Boot | `UseForwardedHeaders` estaba posicionado erróneamente después de `UseHttpsRedirection`, causando loops de redirección en proxy. | PASSED |
+| F-05 | Infrastructure | `ReportesRepository` agrupa en memoria (C#) después de un `ToListAsync()`. Migrado a SQL mediante GroupBy en IQueryable. | PASSED |
 | F-06 | Root / Docs | Falta del archivo obligatorio `CLAUDE.md` con la Clasificación de Tipología (Regla 0). Se creó con Tipo 2 y datos de perfil. | PASSED |
 | POS-01 | API / App | Paginación bloqueaba el POS al solicitar 1000 items, violando el límite de 200 items. Se migró a Paginación Recursiva en Frontend. | PASSED |
 
@@ -44,12 +45,6 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 
 ---
 
-## 🟡 Hallazgos Diferidos (DEFERRED)
 
-| ID | Capa | Descripción | Estado | Fecha Límite / Sprint |
-|---|---|---|---|---|
-| F-05 | Infrastructure | `ReportesRepository` agrupa en memoria (C#) después de un `ToListAsync()`. Aceptable para volumen bajo, pero debe migrarse a SQL. | DEFERRED | Sprint V2 |
-
----
 
 > *Este ledger debe ser actualizado conforme se solucionen los hallazgos. Ningún PR debe ser fusionado sin actualizar el estado a PASSED.*
