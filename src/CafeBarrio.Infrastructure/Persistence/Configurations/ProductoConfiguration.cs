@@ -24,8 +24,8 @@ public class ProductoConfiguration : IEntityTypeConfiguration<Producto>
         builder.Property(x => x.ImagenUrl).HasColumnName("imagen_url").HasMaxLength(500);
         builder.Property(x => x.EsMayorista).HasColumnName("es_mayorista").IsRequired();
         builder.Property(x => x.Activo).HasColumnName("activo").IsRequired();
-        builder.Property(x => x.FechaCreacion).HasColumnName("fecha_creacion").IsRequired();
-        builder.Property(x => x.FechaActualizacion).HasColumnName("fecha_actualizacion").IsRequired();
+        builder.Property(x => x.CreatedAt).HasColumnName("fecha_creacion").IsRequired();
+        builder.Property(x => x.UpdatedAt).HasColumnName("fecha_actualizacion");
 
         builder.HasOne(x => x.Categoria)
                .WithMany(c => c.Productos)
