@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 COPY src/ .
-RUN dotnet restore CafeBarrio.sln
+RUN dotnet restore CafeBarrio.API/CafeBarrio.API.csproj
 RUN dotnet publish CafeBarrio.API/CafeBarrio.API.csproj \
     -c Release -o /app/publish --no-restore
 
