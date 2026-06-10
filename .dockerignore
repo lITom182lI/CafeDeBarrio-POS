@@ -1,0 +1,14 @@
+**/node_modules
+**/bin
+**/obj
+**/.git
+**/*.user
+**/TestResults
+.github
+dashboard
+pos-pwa
+tests
+docs
+*.md
+.env
+.env.*

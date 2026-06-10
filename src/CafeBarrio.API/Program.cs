@@ -27,6 +27,22 @@ DotNetEnv.Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
+
+if (!builder.Environment.IsDevelopment())
+{
+    static void RequireConfig(IConfiguration cfg, string key)
+    {
+        var value = cfg[key];
+        if (string.IsNullOrWhiteSpace(value) || value.StartsWith("OVERRIDE_VIA_ENV_VAR"))
+            throw new InvalidOperationException(
+                $"Configuración requerida no establecida o con valor placeholder: '{key}'. " +
+                $"Configura la variable de entorno antes de iniciar en producción.");
+    }
+
+    RequireConfig(builder.Configuration, "ConnectionStrings:DefaultConnection");
+    RequireConfig(builder.Configuration, "Jwt:Key");
+    RequireConfig(builder.Configuration, "Cors:AllowedOrigin");
+}
 builder.Host.UseSerilog();
 
 var allowedOrigins = (builder.Configuration["Cors:AllowedOrigin"]

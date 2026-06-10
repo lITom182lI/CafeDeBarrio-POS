@@ -28,6 +28,8 @@ public sealed class SunatEmisionService : BackgroundService
         }
     }
 
+    private const int MaxRetries = 3;
+
     private async Task ProcesarPendientesAsync(CancellationToken ct)
     {
         using var scope = _scopeFactory.CreateScope();
@@ -35,7 +37,7 @@ public sealed class SunatEmisionService : BackgroundService
         var sunat = scope.ServiceProvider.GetRequiredService<ISunatService>();
 
         var pendientes = await db.Transacciones
-            .Where(t => t.SunatEstado == "Pendiente")
+            .Where(t => t.SunatEstado == "Pendiente" && t.SunatIntentos < MaxRetries)
             .Include(t => t.Detalles).ThenInclude(d => d.Producto)
             .OrderBy(t => t.Fecha)
             .Take(10)
@@ -43,6 +45,7 @@ public sealed class SunatEmisionService : BackgroundService
 
         foreach (var tx in pendientes)
         {
+            tx.SunatIntentos++;
             try
             {
                 var items = tx.Detalles.Select(d => new BoletaItem(
@@ -57,13 +60,23 @@ public sealed class SunatEmisionService : BackgroundService
                 tx.SunatNumeroSerie = resultado.NumeroSerie;
                 tx.SunatError       = resultado.Emitida ? null : resultado.Error;
 
-                _log.LogInformation("[SUNAT-BG] Tx {Id}: {Estado}", tx.TransaccionId, tx.SunatEstado);
+                _log.LogInformation("[SUNAT-BG] Tx {Id}: {Estado} (intento {N})",
+                    tx.TransaccionId, tx.SunatEstado, tx.SunatIntentos);
             }
             catch (Exception ex)
             {
-                tx.SunatEstado = "Fallida";
-                tx.SunatError  = ex.Message;
-                _log.LogWarning("[SUNAT-BG] Tx {Id} fallida: {Error}", tx.TransaccionId, ex.Message);
+                tx.SunatError = ex.Message;
+                if (tx.SunatIntentos >= MaxRetries)
+                {
+                    tx.SunatEstado = "DeadLetter";
+                    _log.LogError("[SUNAT-BG] Tx {Id} → DeadLetter tras {N} intentos: {Error}",
+                        tx.TransaccionId, tx.SunatIntentos, ex.Message);
+                }
+                else
+                {
+                    _log.LogWarning("[SUNAT-BG] Tx {Id} fallida intento {N}/{Max}: {Error}",
+                        tx.TransaccionId, tx.SunatIntentos, MaxRetries, ex.Message);
+                }
             }
 
             await db.SaveChangesAsync(ct);

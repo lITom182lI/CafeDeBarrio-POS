@@ -145,7 +145,7 @@ public class ReportesRepository : IReportesRepository
                 t.OperadorId,
                 t.Operador.Nombre,
                 t.FechaApertura,
-                t.FechaCierre.Value,
+                t.FechaCierre!.Value,
                 t.MontoApertura,
                 t.MontoEfectivoCierto ?? 0,
                 t.TotalEfectivoSistema ?? 0,

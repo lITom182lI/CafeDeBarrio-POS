@@ -46,4 +46,5 @@ public class Transaccion : IAuditable, IAggregateRoot
     public string SunatEstado { get; set; } = "Pendiente";
     public string? SunatError  { get; set; }
     public string? SunatNumeroSerie { get; set; }
+    public int SunatIntentos { get; set; }
 }
