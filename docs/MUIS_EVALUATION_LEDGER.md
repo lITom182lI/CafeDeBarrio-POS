@@ -42,7 +42,7 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 
 | ID | Capa | Hallazgo | Riesgo | Estado |
 |---|---|---|---|---|
-| UI-01 | Frontend | **Tipado Débil (any):** Uso explícito de `any` en componentes clave como `TerminalVentasView.tsx` y `ReportesYGraficos.tsx`, violando la regla MUIS de tipado estricto. | Medio | PENDING |
+| UI-01 | Frontend | **Tipado Débil (any):** Uso explícito de `any` en componentes clave como `TerminalVentasView.tsx` y `ReportesYGraficos.tsx`, violando la regla MUIS de tipado estricto. | Medio | PASSED |
 
 ---
 
