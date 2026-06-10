@@ -101,8 +101,8 @@ export function Transacciones() {
       setCancelModalOpen(false);
       await loadTransactions();
       setTimeout(() => setSuccessMsg(""), 5000);
-    } catch (e: any) {
-      setCancelError(e.message || "Error al anular la transacción");
+    } catch (e: unknown) {
+      setCancelError(e instanceof Error ? e.message : "Error al anular la transacción");
     } finally {
       setCanceling(false);
     }

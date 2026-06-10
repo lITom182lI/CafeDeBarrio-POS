@@ -245,7 +245,7 @@ export function ReportesYGraficos() {
                           fontSize: "12px",
                           boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
                         }}
-                        formatter={(val: any) => [formatSales(val as number), "Ventas"]}
+                        formatter={(val: number | string | readonly (number | string)[] | undefined) => [formatSales(Number(val ?? 0)), "Ventas"]}
                       />
                       <Line
                         type="monotone"
@@ -296,7 +296,7 @@ export function ReportesYGraficos() {
                           fontFamily: "var(--font-sans)",
                           fontSize: "12px",
                         }}
-                        formatter={(val: any) => [formatSales(val as number), "Monto"]}
+                        formatter={(val: number | string | readonly (number | string)[] | undefined) => [formatSales(Number(val ?? 0)), "Monto"]}
                       />
                       <Bar dataKey="totalVentas" radius={[6, 6, 0, 0]} maxBarSize={45}>
                         {ventasMetodo.map((entry, index) => {
@@ -326,7 +326,7 @@ export function ReportesYGraficos() {
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                     <XAxis dataKey="name" stroke="#64748B" fontSize={11} axisLine={false} tickLine={false} dy={8} />
                     <YAxis stroke="#64748B" fontSize={11} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ borderRadius: "12px" }} formatter={(val: any) => [val, "Cantidad"]} />
+                    <Tooltip contentStyle={{ borderRadius: "12px" }} formatter={(val: number | string | readonly (number | string)[] | undefined) => [val ?? 0, "Cantidad"]} />
                     <Bar dataKey="count" radius={[6, 6, 0, 0]} maxBarSize={45}>
                       <Cell fill="#10B981" />
                       <Cell fill="#EF4444" />
@@ -348,7 +348,7 @@ export function ReportesYGraficos() {
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                     <XAxis dataKey="name" stroke="#64748B" fontSize={11} axisLine={false} tickLine={false} dy={8} />
                     <YAxis stroke="#64748B" fontSize={11} axisLine={false} tickLine={false} tickFormatter={(v) => `S/.${v}`} />
-                    <Tooltip contentStyle={{ borderRadius: "12px" }} formatter={(val: any) => [formatSales(val as number), "Monto"]} />
+                    <Tooltip contentStyle={{ borderRadius: "12px" }} formatter={(val: number | string | readonly (number | string)[] | undefined) => [formatSales(Number(val ?? 0)), "Monto"]} />
                     <Bar dataKey="monto" radius={[6, 6, 0, 0]} maxBarSize={45}>
                       <Cell fill="#10B981" />
                       <Cell fill="#EF4444" />

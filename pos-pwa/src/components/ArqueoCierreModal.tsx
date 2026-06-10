@@ -86,8 +86,8 @@ export default function ArqueoCierreModal({ session, onClose, onSuccess }: Props
       
       // 3. Éxito
       onSuccess()
-    } catch (err: any) {
-      const msg = err.message || "Error al cerrar el turno. Compruebe la conexión."
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error al cerrar el turno. Compruebe la conexión."
       if (msg.includes('OfflineError') || msg.includes('401')) {
         setError("Operación rechazada o sin conexión. Verifique red.")
       } else {

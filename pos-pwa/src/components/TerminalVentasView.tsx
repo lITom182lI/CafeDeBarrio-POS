@@ -206,7 +206,7 @@ export default function TerminalVentasView({
                         p.nombre !== 'Americano Aromático' &&
                         p.nombre !== 'Croissant con Mantequilla' &&
                         p.nombre !== 'Cheesecake de Arándanos' &&
-                        ((p as any).descripcion || 'Producto de especialidad seleccionado por Café de Barrio.')}
+                        (p.descripcion || 'Producto de especialidad seleccionado por Café de Barrio.')}
                     </p>
                   </div>
 

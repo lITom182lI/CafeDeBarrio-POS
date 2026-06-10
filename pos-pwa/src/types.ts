@@ -3,6 +3,7 @@
 export interface ProductoDto {
   productoId: number
   nombre: string
+  descripcion?: string
   precio: number
   cantidadDisponible: number
   categoriaNombre: string | null

@@ -42,9 +42,9 @@ export function Configuracion() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(
-        err.message || "No se pudo actualizar la contraseña. Verifique que la contraseña actual sea correcta."
+        err instanceof Error ? err.message : "No se pudo actualizar la contraseña. Verifique que la contraseña actual sea correcta."
       );
     } finally {
       setLoading(false);
