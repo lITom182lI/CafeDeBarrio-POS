@@ -11,6 +11,6 @@ public class GetProductosPagedQueryValidator : AbstractValidator<GetProductosPag
 
         RuleFor(x => x.PageSize)
             .GreaterThan(0).WithMessage("PageSize debe ser mayor a 0.")
-            .LessThanOrEqualTo(200).WithMessage("PageSize no puede superar 200.");
+            .LessThanOrEqualTo(2000).WithMessage("PageSize no puede superar 2000.");
     }
 }
