@@ -1,4 +1,4 @@
-using CafeBarrio.API.Controllers;
+using CafeBarrio.Application.Features.Auth.Commands.Login;
 using CafeBarrio.Application.Features.Auth.Dtos;
 using CafeBarrio.Domain.Entities;
 using CafeBarrio.Infrastructure.Persistence.Repositories;
@@ -6,7 +6,6 @@ using CafeBarrio.Infrastructure.Persistence;
 using CafeBarrio.Infrastructure.Security;
 using CafeBarrio.Tests.Integration.Base;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Threading;
@@ -18,7 +17,7 @@ namespace CafeBarrio.Tests.Integration.Features.Auth;
 [Trait("Category", "Integration")]
 public class AuthIntegrationTests : IntegrationTestBase
 {
-    private readonly AuthController _controller;
+    private readonly LoginCommandHandler _handler;
 
     public AuthIntegrationTests() : base()
     {
@@ -34,11 +33,11 @@ public class AuthIntegrationTests : IntegrationTestBase
         
         var jwtService = new JwtService(config);
         var hasher = new Argon2PasswordHasher();
-        _controller = new AuthController(usuariosRepo, jwtService, hasher, null!);
+        _handler = new LoginCommandHandler(usuariosRepo, jwtService, hasher);
     }
 
     [Fact]
-    public async Task Login_WithValidCredentials_ReturnsOkWithToken()
+    public async Task Login_WithValidCredentials_ReturnsSuccessWithToken()
     {
         // Arrange
         var hasher = new Argon2PasswordHasher();
@@ -47,31 +46,29 @@ public class AuthIntegrationTests : IntegrationTestBase
         Db.Usuarios.Add(usuario);
         await Db.SaveChangesAsync();
 
-        var request = new LoginRequest("admin@cafebarrio.pe", "password123");
+        var command = new LoginCommand("admin@cafebarrio.pe", "password123");
 
         // Act
-        var result = await _controller.Login(request, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
         // Assert
-        var okResult = result as OkObjectResult;
-        okResult.Should().NotBeNull();
-        var response = okResult!.Value as LoginResponse;
-        response.Should().NotBeNull();
-        response!.Token.Should().NotBeNullOrEmpty();
-        response.Email.Should().Be("admin@cafebarrio.pe");
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value!.Token.Should().NotBeNullOrEmpty();
+        result.Value.Email.Should().Be("admin@cafebarrio.pe");
     }
 
     [Fact]
-    public async Task Login_WithInvalidCredentials_ReturnsUnauthorized()
+    public async Task Login_WithInvalidCredentials_ReturnsFailure()
     {
         // Arrange
-        var request = new LoginRequest("nonexistent@cafebarrio.pe", "wrongpassword");
+        var command = new LoginCommand("nonexistent@cafebarrio.pe", "wrongpassword");
 
         // Act
-        var result = await _controller.Login(request, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
         // Assert
-        var unauthorizedResult = result as UnauthorizedObjectResult;
-        unauthorizedResult.Should().NotBeNull();
+        result.IsFailure.Should().BeTrue();
+        result.Errors[0].Code.Should().Be("Auth.InvalidCredentials");
     }
 }
