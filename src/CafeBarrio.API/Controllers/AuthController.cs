@@ -1,6 +1,6 @@
-using CafeBarrio.Application.Common.Interfaces;
 using CafeBarrio.Application.Features.Auth.Dtos;
 using CafeBarrio.Application.Features.Auth.Commands.ChangePassword;
+using CafeBarrio.Application.Features.Auth.Commands.Login;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,16 +13,11 @@ namespace CafeBarrio.API.Controllers;
 [Produces("application/json")]
 public class AuthController : ControllerBase
 {
-    private readonly IUsuarioRepository _usuarios;
-    private readonly IJwtService _jwt;
-    private readonly IPasswordHasher _hasher;
     private readonly ISender _sender;
 
-    public AuthController(
-        IUsuarioRepository usuarios, IJwtService jwt,
-        IPasswordHasher hasher, ISender sender)
+    public AuthController(ISender sender)
     {
-        _usuarios = usuarios; _jwt = jwt; _hasher = hasher; _sender = sender;
+        _sender = sender;
     }
 
     [HttpPost("login")]
@@ -33,12 +28,14 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Login(
         [FromBody] LoginRequest request, CancellationToken ct)
     {
-        var usuario = await _usuarios.GetByEmailAsync(request.Email, ct);
-        if (usuario is null || !_hasher.Verify(request.Password, usuario.PasswordHash))
-            return Unauthorized(new { message = "Credenciales incorrectas" });
+        var result = await _sender.Send(new LoginCommand(request.Email, request.Password), ct);
 
-        var token = _jwt.GenerateToken(usuario);
-        return Ok(new LoginResponse(token, usuario.Rol, usuario.Email));
+        if (result.IsFailure)
+        {
+            return Unauthorized(new { message = result.Errors[0].Message });
+        }
+
+        return Ok(result.Value);
     }
 
     [HttpGet("me")]
