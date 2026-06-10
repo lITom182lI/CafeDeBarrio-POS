@@ -29,11 +29,18 @@ public class CreateTransaccionHandlerTests
     private static CreateTransaccionCommand BuildCommand(int productoId = 1, int cantidad = 2)
         => new(SedeId: 1, MetodoPagoId: 1, Items: new[] { new CreateTransaccionItemDto(productoId, cantidad) });
 
+    private static ConfiguracionNegocio BuildConfig() => new()
+    {
+        TasaIGV = 0.16m,
+        TasaIPM = 0.02m,
+        Activo   = true
+    };
+
     [Fact]
     public async Task Handle_ProductoNotFound_ReturnsFailure()
     {
         _conf.GetActivaBySedeAsync(Arg.Any<int>(), Arg.Any<CancellationToken>())
-             .Returns((ConfiguracionNegocio?)null);
+             .Returns(BuildConfig());
         _productos.GetByIdAsync(1, Arg.Any<CancellationToken>())
                   .Returns((Producto?)null);
 
@@ -47,7 +54,7 @@ public class CreateTransaccionHandlerTests
     public async Task Handle_StockInsuficiente_ReturnsFailure()
     {
         _conf.GetActivaBySedeAsync(Arg.Any<int>(), Arg.Any<CancellationToken>())
-             .Returns((ConfiguracionNegocio?)null);
+             .Returns(BuildConfig());
         _productos.GetByIdAsync(1, Arg.Any<CancellationToken>())
                   .Returns(new Producto
                   {
@@ -67,7 +74,7 @@ public class CreateTransaccionHandlerTests
     public async Task Handle_ValidRequest_ReturnsSuccess()
     {
         _conf.GetActivaBySedeAsync(Arg.Any<int>(), Arg.Any<CancellationToken>())
-             .Returns((ConfiguracionNegocio?)null);
+             .Returns(BuildConfig());
         _productos.GetByIdAsync(1, Arg.Any<CancellationToken>())
                   .Returns(new Producto
                   {
@@ -84,5 +91,17 @@ public class CreateTransaccionHandlerTests
 
         result.IsSuccess.Should().BeTrue();
         result.IsSuccess.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_ConfiguracionNoEncontrada_ReturnsFailure()
+    {
+        _conf.GetActivaBySedeAsync(Arg.Any<int>(), Arg.Any<CancellationToken>())
+             .Returns((ConfiguracionNegocio?)null);
+
+        var result = await _sut.Handle(BuildCommand(), CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.Code == "Configuracion.NotFound");
     }
 }
