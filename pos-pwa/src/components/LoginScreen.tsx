@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { getOperadores, validarPin, OfflineError, setOperadorToken } from '../api'
+import { getOperadores, validarPin, OfflineError, setOperadorToken, getTurnoActivo } from '../api'
 import type { OperadorDto, OperadorSession } from '../types'
 import { saveCatalogOperadores, getCatalogOperadores } from '../offline'
 import { Coffee, Key, AlertCircle, WifiOff, CornerDownLeft, Delete } from 'lucide-react'
@@ -52,6 +52,21 @@ export default function LoginScreen({ onLogin }: Props) {
       const result = await validarPin(id, pin)
       if (result) {
         setOperadorToken(result.token)
+        
+        // Verificar turno activo si estamos online
+        try {
+          const turno = await getTurnoActivo();
+          if (!turno) {
+            setError('No hay un turno de caja abierto. Solicite al administrador que abra el turno desde el Dashboard antes de ingresar.');
+            setPin('');
+            pinRef.current?.focus();
+            setOperadorToken(null);
+            return;
+          }
+        } catch (turnoErr) {
+          console.warn('No se pudo verificar el turno activo, procediendo por precaución...', turnoErr);
+        }
+
         onLogin({ operadorId: result.operadorId, nombre: result.nombre, token: result.token })
       } else {
         setError('PIN de seguridad incorrecto')

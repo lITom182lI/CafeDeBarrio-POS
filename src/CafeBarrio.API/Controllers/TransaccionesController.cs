@@ -45,4 +45,16 @@ public class TransaccionesController : ControllerBase
         var result = await _mediator.Send(new GetTransaccionDetalleQuery(id));
         return result.IsSuccess ? Ok(result.Value) : NotFound(result.Errors);
     }
+
+    [HttpPost("{id}/anular")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> Anular(int id, [FromBody] CafeBarrio.Application.Features.Transacciones.Commands.AnularTransaccion.AnularTransaccionCommand command, CancellationToken ct = default)
+    {
+        if (id != command.TransaccionId)
+            return BadRequest(new { Error = "El ID de la ruta no coincide con el comando." });
+
+        var result = await _mediator.Send(command, ct);
+        return result.IsSuccess ? Ok() : BadRequest(result.Errors);
+    }
 }

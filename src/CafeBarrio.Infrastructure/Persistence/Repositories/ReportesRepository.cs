@@ -90,7 +90,8 @@ public class ReportesRepository : IReportesRepository
                 t.TipoDocumento,
                 t.NumeroDocumento,
                 t.RazonSocial,
-                t.MetodoPagoSecundario != null ? t.MetodoPagoSecundario.Nombre : null))
+                t.MetodoPagoSecundario != null ? t.MetodoPagoSecundario.Nombre : null,
+                t.Anulacion != null ? t.Anulacion.Motivo : null))
             .ToListAsync(ct);
 
     public async Task<TransaccionDetalleDto?> GetTransaccionDetalleAsync(int transaccionId, CancellationToken ct)
@@ -125,7 +126,8 @@ public class ReportesRepository : IReportesRepository
             t.NumeroDocumento,
             t.RazonSocial,
             t.MetodoPagoSecundario?.Nombre,
-            t.MontoMetodoPrimario);
+            t.MontoMetodoPrimario,
+            t.Anulacion?.Motivo);
     }
 
     public async Task<IReadOnlyList<VentasPorDiaDto>> GetVentasPorDiaAsync(int sedeId, DateTime desde, DateTime hasta, CancellationToken ct)
@@ -140,5 +142,33 @@ public class ReportesRepository : IReportesRepository
             .Select(g => new VentasPorDiaDto(g.Key, g.Sum(t => t.Total), g.Count()))
             .OrderBy(x => x.Fecha)
             .ToList();
+    }
+
+    public async Task<IReadOnlyList<TurnoCerradoDto>> GetTurnosCerradosAsync(int sedeId, DateTime desde, DateTime hasta, CancellationToken ct)
+    {
+        var turnos = await _context.Turnos
+            .Include(t => t.Operador)
+            .Where(t => t.SedeId == sedeId && t.FechaCierre != null && t.FechaApertura >= desde && t.FechaApertura <= hasta)
+            .OrderByDescending(t => t.FechaApertura)
+            .ToListAsync(ct);
+
+        return turnos.Select(t => {
+            var diferencia = (t.MontoEfectivoCierto ?? 0) - (t.TotalEfectivoSistema ?? 0);
+            var estado = diferencia < 0 ? "Faltante" : (diferencia > 0 ? "Sobrante" : "Cuadrado");
+
+            return new TurnoCerradoDto(
+                t.TurnoId,
+                t.OperadorId,
+                t.Operador.Nombre,
+                t.FechaApertura,
+                t.FechaCierre.Value,
+                t.MontoApertura,
+                t.MontoEfectivoCierto ?? 0,
+                t.TotalEfectivoSistema ?? 0,
+                diferencia,
+                estado,
+                t.Observaciones
+            );
+        }).ToList();
     }
 }

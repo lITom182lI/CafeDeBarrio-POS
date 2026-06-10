@@ -1,5 +1,5 @@
 import { useState, useEffect, startTransition, useRef } from "react";
-import { Search, Eye, CheckCircle, XCircle, FileText } from "lucide-react";
+import { Search, Eye, CheckCircle, XCircle, FileText, AlertTriangle, ClipboardList } from "lucide-react";
 import { api } from "../api/client";
 import type { TransaccionListItemDto, TransaccionDetalleDto } from "../types";
 
@@ -18,6 +18,17 @@ export function Transacciones() {
   const [txDetail, setTxDetail] = useState<TransaccionDetalleDto | null>(null);
   const [loadingDetail, setLoadingDetail] = useState<boolean>(false);
   const [errorDetail, setErrorDetail] = useState<string>("");
+  
+  // Anulacion Modal State
+  const [cancelModalOpen, setCancelModalOpen] = useState<boolean>(false);
+  const [cancelTxId, setCancelTxId] = useState<number | null>(null);
+  const [cancelMotivo, setCancelMotivo] = useState<string>("");
+  const [cancelEmail, setCancelEmail] = useState<string>("");
+  const [cancelPassword, setCancelPassword] = useState<string>("");
+  const [canceling, setCanceling] = useState<boolean>(false);
+  const [cancelError, setCancelError] = useState<string>("");
+  const [successMsg, setSuccessMsg] = useState<string>("");
+
   const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -63,12 +74,47 @@ export function Transacciones() {
     setTxDetail(null);
   };
 
+  const handleOpenCancel = (id: number) => {
+    setCancelTxId(id);
+    setCancelMotivo("");
+    setCancelEmail("");
+    setCancelPassword("");
+    setCancelError("");
+    setCancelModalOpen(true);
+  };
+
+  const handleCloseCancel = () => {
+    setCancelModalOpen(false);
+    setCancelTxId(null);
+  };
+
+  const submitAnular = async () => {
+    if (!cancelTxId) return;
+    if (!cancelMotivo.trim()) { setCancelError("El motivo es obligatorio"); return; }
+    if (!cancelEmail.trim() || !cancelPassword) { setCancelError("Credenciales de administrador obligatorias"); return; }
+    
+    setCanceling(true);
+    setCancelError("");
+    try {
+      await api.anularTransaccion(cancelTxId, cancelMotivo, cancelEmail, cancelPassword);
+      setSuccessMsg(`Transacción #${cancelTxId} anulada con éxito`);
+      setCancelModalOpen(false);
+      await loadTransactions();
+      setTimeout(() => setSuccessMsg(""), 5000);
+    } catch (e: any) {
+      setCancelError(e.message || "Error al anular la transacción");
+    } finally {
+      setCanceling(false);
+    }
+  };
+
   // Filter & Search Logic
   const filteredTx = transacciones.filter((tx) => {
-    const matchesSearch =
-      tx.clienteNombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      String(tx.transaccionId).includes(searchTerm) ||
-      (tx.numeroDocumento && tx.numeroDocumento.includes(searchTerm));
+    const searchLower = searchTerm.trim().toLowerCase();
+    const matchesSearch = searchLower === "" ||
+      (tx.clienteNombre?.toLowerCase() ?? "").includes(searchLower) ||
+      String(tx.transaccionId).includes(searchLower) ||
+      (tx.numeroDocumento?.toLowerCase() ?? "").includes(searchLower);
 
     const matchesMetodo =
       filterMetodo === "todos" ||
@@ -94,6 +140,12 @@ export function Transacciones() {
       {error && (
         <div className="error-banner" role="alert">
           <span>{error}</span>
+        </div>
+      )}
+      {successMsg && (
+        <div className="bg-emerald-50 text-emerald-700 p-4 rounded-xl mb-6 font-medium text-sm flex items-center gap-2" role="alert">
+          <CheckCircle size={18} />
+          <span>{successMsg}</span>
         </div>
       )}
 
@@ -171,7 +223,8 @@ export function Transacciones() {
                 <th>ID Venta</th>
                 <th>Fecha y Hora</th>
                 <th>Operador</th>
-                <th>Cliente / Comprobante</th>
+                <th>Cliente</th>
+                <th>Comprobante</th>
                 <th>Método</th>
                 <th>Estado</th>
                 <th className="text-right">Total</th>
@@ -199,12 +252,16 @@ export function Transacciones() {
                   <td>
                     <div className="product-name-block">
                       <span className="product-display-name">{tx.clienteNombre || "Público General"}</span>
-                      {tx.tipoDocumento && tx.numeroDocumento && (
-                        <span className="product-display-description">
-                          {tx.tipoDocumento} - {tx.numeroDocumento}
-                        </span>
-                      )}
                     </div>
+                  </td>
+                  <td>
+                    {tx.tipoDocumento && tx.numeroDocumento ? (
+                      <span className="product-display-description">
+                        {tx.tipoDocumento} - {tx.numeroDocumento}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 text-xs">Sin comprobante</span>
+                    )}
                   </td>
                   <td>
                     <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 bg-gray-100 rounded-md">
@@ -227,13 +284,28 @@ export function Transacciones() {
                     S/. {tx.total.toFixed(2)}
                   </td>
                   <td>
-                    <button
-                      onClick={() => handleOpenDetail(tx.transaccionId)}
-                      className="btn-action-edit"
-                      title="Ver Detalle"
-                    >
-                      <Eye size={16} />
-                    </button>
+                    {tx.anulada ? (
+                      <div className="flex gap-2">
+                        <button onClick={() => handleOpenDetail(tx.transaccionId)} className="btn-action-edit" title="Visualizar comprobante">
+                          <Eye size={16} />
+                        </button>
+                        <button onClick={() => handleOpenDetail(tx.transaccionId)} className="btn-action-edit" title="Ver detalle de orden">
+                          <FileText size={16} />
+                        </button>
+                        <button onClick={() => alert(`Reporte de anulación:\nMotivo: ${tx.motivoAnulacion || 'Sin especificar'}`)} className="btn-action-edit text-amber-600" title="Ver reporte de anulación">
+                          <ClipboardList size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <button onClick={() => handleOpenDetail(tx.transaccionId)} className="btn-action-edit" title="Visualizar comprobante">
+                          <Eye size={16} />
+                        </button>
+                        <button onClick={() => handleOpenCancel(tx.transaccionId)} className="btn-action-edit text-red-600 hover:bg-red-50" title="Anular venta">
+                          <AlertTriangle size={16} />
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -276,9 +348,9 @@ export function Transacciones() {
                   style={{ backgroundImage: "linear-gradient(#fefbeb 1px, transparent 1px)", backgroundSize: "100% 20px" }}
                 >
                   <div className="text-center border-b border-dashed border-amber-300 pb-4 mb-4">
-                    <span className="font-bold text-sm tracking-wider uppercase block text-amber-900">Café de Barrio</span>
-                    <span className="text-[10px] text-amber-800">CUSCO - CHINCHERO - PERÚ</span>
-                    <p className="mt-1">Tlf: +51 984 123 456</p>
+                    <h3 className="font-black text-base tracking-widest uppercase block text-amber-950 mb-1">Café de Barrio</h3>
+                    <span className="text-[10px] text-amber-800 font-medium block mb-1">CUSCO - CHINCHERO - PERÚ</span>
+                    <p className="text-[11px] text-amber-900 mt-1"><b>Tlf:</b> +51 984 123 456</p>
                   </div>
 
                   <div className="space-y-1 text-slate-600">
@@ -343,6 +415,9 @@ export function Transacciones() {
                       </>
                     )}
                     <p><strong>Estado del Comprobante:</strong> {txDetail.anulada ? "ANULADA" : "ACTIVA/DESPACHADA"}</p>
+                    {txDetail.anulada && (
+                      <p className="text-red-600 mt-1"><strong>Motivo de Anulación:</strong> {txDetail.motivoAnulacion || "No especificado"}</p>
+                    )}
                   </div>
                 </div>
 
@@ -360,6 +435,63 @@ export function Transacciones() {
                 </div>
               </div>
             ) : null}
+          </div>
+        </div>
+      )}
+      {/* Cancel Modal */}
+      {cancelModalOpen && (
+        <div className="modal-overlay" role="presentation" onClick={handleCloseCancel}>
+          <div 
+            className="modal-box max-w-sm" 
+            role="dialog"
+            aria-modal="true"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <h2>Autorizar Anulación #{String(cancelTxId).padStart(4, "0")}</h2>
+              <button onClick={handleCloseCancel} className="modal-close">×</button>
+            </div>
+            <div className="p-4 space-y-4">
+              {cancelError && (
+                <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm mb-2 font-medium">
+                  {cancelError}
+                </div>
+              )}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-600 uppercase tracking-wide">Motivo de la anulación</label>
+                <textarea 
+                  className="caja-input w-full p-3 h-24"
+                  style={{ resize: "none" }}
+                  placeholder="Explique brevemente el motivo..."
+                  value={cancelMotivo}
+                  onChange={(e) => setCancelMotivo(e.target.value)}
+                />
+              </div>
+              <div className="bg-gray-50 p-4 rounded-xl space-y-3 border border-gray-100">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Autorización de Administrador</p>
+                <input 
+                  type="email"
+                  className="caja-input w-full p-2.5 text-sm"
+                  placeholder="Email del administrador"
+                  value={cancelEmail}
+                  onChange={(e) => setCancelEmail(e.target.value)}
+                />
+                <input 
+                  type="password"
+                  className="caja-input w-full p-2.5 text-sm"
+                  placeholder="Contraseña"
+                  value={cancelPassword}
+                  onChange={(e) => setCancelPassword(e.target.value)}
+                />
+              </div>
+              <button 
+                className="btn btn-primary w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all shadow-md shadow-red-200"
+                onClick={submitAnular}
+                disabled={canceling}
+              >
+                {canceling ? "Procesando..." : "Confirmar Anulación"}
+              </button>
+            </div>
           </div>
         </div>
       )}

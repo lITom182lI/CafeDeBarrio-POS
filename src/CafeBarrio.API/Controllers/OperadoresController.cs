@@ -42,7 +42,7 @@ public class OperadoresController : ControllerBase
             ? await _operadores.GetAllActivosAsync(ct)
             : await _operadores.GetAllAsync(ct);
 
-        return Ok(lista.Select(o => new OperadorResumenDto(o.OperadorId, o.Nombre, o.Activo)).ToList());
+        return Ok(lista.Select(o => new OperadorResumenDto(o.OperadorId, o.Nombre, o.Activo, o.Eliminado)).ToList());
     }
 
     [HttpPost]

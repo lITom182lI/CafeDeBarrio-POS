@@ -363,6 +363,7 @@ export function MenuEInventario() {
                 <textarea
                   id="prod-desc"
                   rows={2}
+                  style={{ resize: "none" }}
                   placeholder="Descripción corta para el punto de venta..."
                   value={formDescripcion}
                   onChange={(e) => setFormDescripcion(e.target.value)}

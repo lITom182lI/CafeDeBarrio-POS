@@ -82,4 +82,13 @@ public class ReportesController : ControllerBase
         var result = await _mediator.Send(new GetVentasPorDiaQuery(sedeId, periodo));
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
     }
+
+    [HttpGet("cierres-caja")]
+    [ProducesResponseType<IReadOnlyList<TurnoCerradoDto>>(200)]
+    public async Task<IActionResult> GetCierresCaja(
+        [FromQuery] int sedeId, [FromQuery] string periodo = "mes")
+    {
+        var result = await _mediator.Send(new CafeBarrio.Application.Features.Reportes.Queries.GetTurnosCerrados.GetTurnosCerradosQuery(sedeId, periodo));
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
+    }
 }

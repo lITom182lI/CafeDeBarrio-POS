@@ -9,6 +9,7 @@ public class Operador : IAuditable, IAggregateRoot
     public string Nombre { get; set; } = string.Empty;
     public string PinHash { get; set; } = string.Empty;
     public bool Activo { get; set; } = true;
+    public bool Eliminado { get; set; } = false;
     public int? UsuarioId { get; set; }
 
     public Sede Sede { get; set; } = null!;

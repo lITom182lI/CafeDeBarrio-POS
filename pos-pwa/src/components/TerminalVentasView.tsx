@@ -166,11 +166,13 @@ export default function TerminalVentasView({
               return (
                 <button
                   key={p.productoId}
-                  disabled={isAgotado}
+                  disabled={isAgotado || qtyInCart >= p.cantidadDisponible}
                   onClick={() => addToCart(p)}
                   className={`text-left bg-white rounded-2xl p-4 border transition-all text-[#334155] relative flex flex-col justify-between shadow-xs h-40 group cursor-pointer ${
                     isAgotado
                       ? 'opacity-30 bg-slate-100 border-[#E2E8F0] cursor-not-allowed'
+                      : qtyInCart >= p.cantidadDisponible
+                      ? 'opacity-80 bg-[#F8FAFC] border-[#E2E8F0] cursor-not-allowed'
                       : qtyInCart > 0
                       ? 'border-[#7C2D12] bg-[#7C2D12]/5 ring-1 ring-[#7C2D12]/20 shadow-xs'
                       : 'border-[#E2E8F0] hover:border-[#7C2D12]/40 hover:shadow-xs hover:transform active:scale-95'
@@ -211,24 +213,22 @@ export default function TerminalVentasView({
                   {/* Stock footer counter indicator */}
                   <div className="flex justify-between items-center w-full pt-1">
                     <div className="flex items-center gap-1.5">
-                      {qtyInCart > 0 && (
+                      {qtyInCart >= p.cantidadDisponible ? (
+                        <span className="bg-rose-500 text-white font-extrabold text-[10px] px-2 py-0.5 rounded-full shadow-2xs">
+                          Máx Alcanzado
+                        </span>
+                      ) : qtyInCart > 0 ? (
                         <span className="bg-[#7C2D12] text-white font-extrabold text-[10px] px-2 py-0.5 rounded-full shadow-2xs animate-bounce">
                           {qtyInCart} en Pedido
                         </span>
-                      )}
+                      ) : null}
                     </div>
                     
-                    {p.seguimientoInventario ? (
-                      isAgotado ? (
-                        <span className="text-red-500 font-bold text-[10px] uppercase">Agotado</span>
-                      ) : (
-                        <span className={`text-[10px] font-bold ${isLowStock ? 'text-rose-500' : 'text-slate-400'}`}>
-                          Cant: {p.cantidadDisponible} Unidades
-                        </span>
-                      )
+                    {isAgotado ? (
+                      <span className="text-red-500 font-bold text-[10px] uppercase">Sin stock disponible</span>
                     ) : (
-                      <span className="text-[#10B981] bg-emerald-55/60 border border-emerald-100 rounded-full text-[10px] font-extrabold px-2 py-0.5">
-                        Stock ilimitado
+                      <span className={`text-[10px] font-bold ${isLowStock ? 'text-rose-500' : 'text-slate-400'}`}>
+                        Stock: {p.cantidadDisponible}
                       </span>
                     )}
                   </div>
@@ -271,7 +271,10 @@ export default function TerminalVentasView({
             </div>
           ) : (
             <div className="space-y-1">
-              {cart.map(item => (
+              {cart.map(item => {
+                const prod = productos.find(p => p.productoId === item.productoId)
+                const isMax = prod && item.cantidad >= prod.cantidadDisponible
+                return (
                 <div key={item.productoId} className="bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E2E8F0] flex items-center justify-between gap-1">
                   <div className="flex-1 min-w-0">
                      <p className="font-extrabold text-[12px] text-[#1E293B] truncate">{item.nombre}</p>
@@ -286,8 +289,9 @@ export default function TerminalVentasView({
                     </button>
                     <span className="w-4 text-center font-extrabold text-xs text-[#1E293B]">{item.cantidad}</span>
                     <button
+                      disabled={isMax}
                       onClick={() => updateQty(item.productoId, 1)}
-                      className="w-5 h-5 rounded-lg bg-[#E2E8F0] hover:bg-[#cbd5e0] text-[#334155] text-[10px] font-bold flex items-center justify-center transition active:scale-90 cursor-pointer"
+                      className={`w-5 h-5 rounded-lg text-[10px] font-bold flex items-center justify-center transition ${isMax ? 'bg-rose-100 text-rose-300 cursor-not-allowed' : 'bg-[#E2E8F0] hover:bg-[#cbd5e0] text-[#334155] cursor-pointer active:scale-90'}`}
                     >
                       +
                     </button>
@@ -302,7 +306,8 @@ export default function TerminalVentasView({
                     ×
                   </button>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -423,10 +428,10 @@ export default function TerminalVentasView({
                         <button
                           key={m.metodoPagoId}
                           onClick={() => setMetodoPago2Id(m.metodoPagoId)}
-                          className={`px-2 py-1 rounded bg-white font-bold border transition text-xs ${
+                          className={`px-2 py-1 rounded font-bold border transition text-xs ${
                             metodoPago2Id === m.metodoPagoId
                               ? 'bg-[#7C2D12] text-white border-[#7C2D12]'
-                              : 'text-[#334155] border-[#E2E8F0] hover:border-[#7C2D12]/30'
+                              : 'bg-white text-[#334155] border-[#E2E8F0] hover:border-[#7C2D12]/30'
                           }`}
                         >
                           {m.nombre}

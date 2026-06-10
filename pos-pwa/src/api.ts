@@ -14,6 +14,8 @@ export const getTasas         = (sedeId: number)               => posAdapter.get
 export const validarPin       = (id: number, pin: string)       => posAdapter.validarPin(id, pin)
 export const crearTransaccion = (req: CreateTransaccionRequest) => posAdapter.crearTransaccion(req)
 export const checkOnline      = ()                              => posAdapter.checkOnline()
+export const getTurnoActivo   = ()                              => posAdapter.turnoActivo()
+export const cerrarTurno      = (turnoId: number, monto: number, obs: string) => posAdapter.cerrarTurno(turnoId, monto, obs)
 
 export const apiQueryDocumento = async (tipo: string, _numero: string) => {
   // Stub for external API. In production, connect to a real RUC/DNI API.

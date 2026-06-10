@@ -11,5 +11,6 @@ public record TransaccionListItemDto(
     string? TipoDocumento = null,
     string? NumeroDocumento = null,
     string? RazonSocial = null,
-    string? MetodoPagoSecundario = null);
+    string? MetodoPagoSecundario = null,
+    string? MotivoAnulacion = null);
 

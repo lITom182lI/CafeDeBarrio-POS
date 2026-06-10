@@ -4,6 +4,7 @@ import { Sidebar } from "./components/Sidebar";
 import { ReportesYGraficos } from "./components/ReportesYGraficos";
 import { MenuEInventario } from "./components/MenuEInventario";
 import { Transacciones } from "./components/Transacciones";
+import { ReportesDeCaja } from "./components/ReportesDeCaja";
 import { GestionOperadores } from "./components/GestionOperadores";
 import { Configuracion } from "./components/Configuracion";
 import { useAuth } from "./hooks/useAuth";
@@ -30,6 +31,7 @@ export default function App() {
       case "dashboard":     return <ReportesYGraficos />;
       case "productos":     return <MenuEInventario />;
       case "transacciones": return <Transacciones />;
+      case "reportes":      return <ReportesDeCaja />;
       case "operadores":    return <GestionOperadores />;
       case "configuracion": return <Configuracion />;
       default:              return <ReportesYGraficos />;

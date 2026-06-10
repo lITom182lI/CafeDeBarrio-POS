@@ -15,8 +15,8 @@ export interface ProductoDto {
   seguimientoInventario?: boolean;
   esMayorista?: boolean;
 }
-export interface TransaccionListItemDto { transaccionId: number; clienteNombre: string; total: number; fecha: string; metodoPago: string; anulada: boolean; operadorNombre?: string; tipoDocumento?: string; numeroDocumento?: string; razonSocial?: string; metodoPagoSecundario?: string; }
-export interface TransaccionDetalleDto { transaccionId: number; clienteNombre: string; total: number; subtotal: number; igv: number; fecha: string; metodoPago: string; anulada: boolean; items: DetalleItemDto[]; operadorNombre?: string; tipoDocumento?: string; numeroDocumento?: string; razonSocial?: string; metodoPagoSecundario?: string; montoMetodoPrimario?: number; }
+export interface TransaccionListItemDto { transaccionId: number; clienteNombre: string; total: number; fecha: string; metodoPago: string; anulada: boolean; operadorNombre?: string; tipoDocumento?: string; numeroDocumento?: string; razonSocial?: string; metodoPagoSecundario?: string; motivoAnulacion?: string; }
+export interface TransaccionDetalleDto { transaccionId: number; clienteNombre: string; total: number; subtotal: number; igv: number; fecha: string; metodoPago: string; anulada: boolean; items: DetalleItemDto[]; operadorNombre?: string; tipoDocumento?: string; numeroDocumento?: string; razonSocial?: string; metodoPagoSecundario?: string; montoMetodoPrimario?: number; motivoAnulacion?: string; }
 export interface DetalleItemDto { nombreProducto: string; cantidad: number; precioUnitario: number; subtotalLinea: number; }
 export interface CategoriaCafeDto {
   categoriaId: number
@@ -42,10 +42,25 @@ export interface OperadorDto {
   operadorId: number
   nombre: string
   activo: boolean
+  eliminado: boolean
 }
 
 export interface OperadorFormData {
   nombre: string
   activo: boolean
   nuevoPin: string
+}
+
+export interface TurnoCerradoDto {
+  turnoId: number;
+  operadorId: number;
+  operadorNombre: string;
+  fechaApertura: string;
+  fechaCierre: string;
+  montoApertura: number;
+  montoEfectivoCierto: number;
+  totalEfectivoSistema: number;
+  diferencia: number;
+  estadoCierre: string;
+  observaciones?: string;
 }
