@@ -10,11 +10,12 @@ public abstract class IntegrationTestBase : IDisposable
     protected readonly CafeBarrioDbContext Db;
     private readonly IDbConnection _connection;
     private readonly IDbTransaction _transaction;
+    private static readonly object _dbLock = new();
+    private static bool _dbInitialized;
 
     protected IntegrationTestBase()
     {
-        var saPassword = Environment.GetEnvironmentVariable("MSSQL_SA_PASSWORD") ?? "Muis_CafeBarrio_2026!";
-        var localFallback = $"Server=localhost,1433;Database=CafeDeBarrioTest;User Id=sa;Password={saPassword};TrustServerCertificate=True;";
+        var localFallback = "Server=localhost,1434;Database=CafeDeBarrioTest;Integrated Security=True;TrustServerCertificate=True;";
 
         var options = new DbContextOptionsBuilder<CafeBarrioDbContext>()
             .UseSqlServer(
@@ -22,7 +23,17 @@ public abstract class IntegrationTestBase : IDisposable
             .Options;
 
         Db = new CafeBarrioDbContext(options);
-        
+
+        lock (_dbLock)
+        {
+            if (!_dbInitialized)
+            {
+                Db.Database.EnsureDeleted(); // Para limpiar el estado sucio del test fallido anterior
+                Db.Database.EnsureCreated();
+                _dbInitialized = true;
+            }
+        }
+
         Db.Database.OpenConnection();
         _connection = Db.Database.GetDbConnection();
         _transaction = _connection.BeginTransaction();

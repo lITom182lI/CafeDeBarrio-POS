@@ -22,9 +22,9 @@ public class CreateOperadorHandler : IRequestHandler<CreateOperadorCommand, Resu
 
     public async Task<Result<int>> Handle(CreateOperadorCommand r, CancellationToken ct)
     {
-        if (r.Pin.Length < 4 || r.Pin.Length > 8 || !r.Pin.All(char.IsDigit))
+        if (r.Pin.Length < 6 || r.Pin.Length > 8 || !r.Pin.All(char.IsDigit))
             return Result<int>.Failure(new Error("Operador.PinInvalido",
-                "El PIN debe tener entre 4 y 8 dígitos numéricos."));
+                "El PIN debe tener entre 6 y 8 dígitos numéricos."));
 
         var defaultSedeId = await _sedes.GetDefaultSedeIdAsync(ct);
 

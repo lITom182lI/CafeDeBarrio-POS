@@ -7,6 +7,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using CafeBarrio.Infrastructure.Security;
 using CafeBarrio.Infrastructure.External;
+using CafeBarrio.Infrastructure.External.Sunat;
+using Microsoft.Extensions.Options;
+using System.Net.Http.Headers;
 
 namespace CafeBarrio.Infrastructure;
 
@@ -38,7 +41,23 @@ public static class DependencyInjection
         services.AddScoped<CafeBarrio.Application.Common.Interfaces.IJwtService, CafeBarrio.Infrastructure.Security.JwtService>();
         services.AddScoped<IPasswordHasher, Argon2PasswordHasher>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<ISunatService, SunatStubService>();
+        services.Configure<SunatOptions>(configuration.GetSection(SunatOptions.Section));
+        var sunatEnabled = configuration.GetValue<bool>($"{SunatOptions.Section}:Enabled");
+        if (sunatEnabled)
+        {
+            services.AddHttpClient<ISunatOseApiClient, NubefactOseApiClient>((sp, client) =>
+            {
+                var opts = sp.GetRequiredService<IOptions<SunatOptions>>().Value;
+                client.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Token", opts.OseToken);
+                client.Timeout = TimeSpan.FromSeconds(30);
+            });
+            services.AddScoped<ISunatService, SunatOseClient>();
+        }
+        else
+        {
+            services.AddScoped<ISunatService, SunatStubService>();
+        }
 
         return services;
     }

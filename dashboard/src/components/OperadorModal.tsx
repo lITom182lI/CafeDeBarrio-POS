@@ -22,7 +22,7 @@ export function OperadorModal({ operador, onClose, onSaved }: Props) {
 
   const validatePin = (p: string) => {
     if (!p) return true
-    return /^\d{4,8}$/.test(p)
+    return /^\d{6,8}$/.test(p)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,7 +31,7 @@ export function OperadorModal({ operador, onClose, onSaved }: Props) {
     if (!nombre.trim()) { setErr('El nombre es obligatorio.'); return }
     if (!operador && !pin) { setErr('El PIN es obligatorio para nuevos operadores.'); return }
     if (pin && !validatePin(pin)) {
-      setErr('El PIN debe tener entre 4 y 8 dígitos numéricos.'); return
+      setErr('El PIN debe tener entre 6 y 8 dígitos numéricos.'); return
     }
     setSaving(true)
     try {
@@ -74,7 +74,7 @@ export function OperadorModal({ operador, onClose, onSaved }: Props) {
           <input id="operador-nombre" value={nombre} onChange={e => setNombre(e.target.value)} required />
 
           <label htmlFor="operador-pin">
-            {operador ? 'Nuevo PIN (dejar vacío para no cambiar)' : 'PIN * (4–8 dígitos)'}
+            {operador ? 'Nuevo PIN (dejar vacío para no cambiar)' : 'PIN * (6–8 dígitos)'}
           </label>
           <input
             id="operador-pin"

@@ -66,12 +66,12 @@ public class OperadoresIntegrationTests : IntegrationTestBase
 
         // Crear operador en BD de test
         var created = await _createOperador.Handle(
-            new CreateOperadorCommand("Barista Test", "4321"), CancellationToken.None);
+            new CreateOperadorCommand("Barista Test", "432100"), CancellationToken.None);
         created.IsSuccess.Should().BeTrue();
 
         // Validar pin
         var result = await _validarPin.Handle(
-            new ValidarPinCommand(created.Value, "4321"), CancellationToken.None);
+            new ValidarPinCommand(created.Value, "432100"), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         result.Value!.Token.Should().NotBeNullOrEmpty();

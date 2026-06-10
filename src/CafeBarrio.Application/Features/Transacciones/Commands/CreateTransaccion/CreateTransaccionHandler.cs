@@ -38,6 +38,7 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
 
         var detalles = new List<DetalleTransaccion>();
         decimal subtotal = 0;
+        var nombres = new Dictionary<int, string>();
 
         foreach (var item in request.Items)
         {
@@ -49,6 +50,8 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
             if (producto.SeguimientoInventario && producto.CantidadDisponible < item.Cantidad)
                 return Result<int>.Failure(new Error("Producto.StockInsuficiente",
                     $"Insufficient stock for product {item.ProductoId}."));
+
+            nombres[item.ProductoId] = producto.Nombre;
 
             var linea = new DetalleTransaccion
             {
@@ -97,17 +100,19 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
         try
         {
             var boletaItems = detalles.Select(d => new BoletaItem(
-                d.ProductoId.ToString(),
+                nombres.GetValueOrDefault(d.ProductoId, $"P{d.ProductoId}"),
                 d.Cantidad,
                 d.PrecioUnitario,
                 d.SubtotalLinea)).ToList();
 
-            await _sunat.EmitirBoletaAsync(new EmitirBoletaRequest(
+            var sunatResult = await _sunat.EmitirBoletaAsync(new EmitirBoletaRequest(
                 transaccion.TransaccionId, transaccion.Fecha,
-                boletaItems, subtotal, impuesto,
-                transaccion.Total, request.Canal), ct);
+                boletaItems, subtotal, impuesto, transaccion.Total, request.Canal,
+                request.TipoDocumento, request.NumeroDocumento, request.RazonSocial), ct);
 
-            transaccion.SunatEstado = "Emitida";
+            transaccion.SunatEstado      = sunatResult.Emitida ? "Emitida" : "NoEmitida";
+            transaccion.SunatNumeroSerie = sunatResult.NumeroSerie;
+            transaccion.SunatError       = sunatResult.Emitida ? null : (sunatResult.Error ?? sunatResult.Mensaje);
         }
         catch (Exception ex)
         {

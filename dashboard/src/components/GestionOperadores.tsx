@@ -91,8 +91,8 @@ export function GestionOperadores() {
       return;
     }
 
-    if (formPin && !/^\d{4,8}$/.test(formPin)) {
-      setFormError("El PIN debe tener entre 4 y 8 dígitos de valor numérico.");
+    if (formPin && !/^\d{6,8}$/.test(formPin)) {
+      setFormError("El PIN debe tener entre 6 y 8 dígitos numéricos.");
       return;
     }
 
@@ -245,7 +245,7 @@ export function GestionOperadores() {
               <label htmlFor="operador-pin">
                 {selectedOperador
                   ? "Nuevo PIN (dejar vacío para no cambiar)"
-                  : "PIN Autorizado * (4–8 dígitos)"}
+                  : "PIN Autorizado * (6–8 dígitos)"}
                 <input
                   id="operador-pin"
                   type="password"

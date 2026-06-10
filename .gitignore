@@ -494,6 +494,7 @@ pos-client/App.config
 **/appsettings.Development.json
 appsettings.Production.json
 docker-compose.override.yml
+pos-pwa/.env.production
 
 # SQLite databases
 *.db

@@ -45,7 +45,7 @@ export default function LoginScreen({ onLogin }: Props) {
 
   async function handleLogin() {
     const id = parseInt(operadorId)
-    if (!id || pin.length < 4) return
+    if (!id || pin.length < 6) return
     setValidating(true)
     setError(null)
     try {
@@ -233,7 +233,7 @@ export default function LoginScreen({ onLogin }: Props) {
 
                 <button
                   onClick={handleLogin}
-                  disabled={!operadorId || pin.length < 4 || validating}
+                  disabled={!operadorId || pin.length < 6 || validating}
                   className="w-full py-3.5 bg-[#7C2D12] hover:bg-[#63220e] disabled:opacity-30 disabled:hover:bg-[#7C2D12] text-white font-extrabold rounded-xl text-xs transition shadow-sm active:scale-95 cursor-pointer flex items-center justify-center gap-2"
                 >
                   {validating ? (
@@ -277,6 +277,7 @@ export default function LoginScreen({ onLogin }: Props) {
                   {/* Back/Clear button */}
                   <button
                     type="button"
+                    aria-label="Borrar último dígito"
                     disabled={!operadorId || pin.length === 0}
                     onClick={deleteLastDigit}
                     className="aspect-square bg-white hover:bg-[#F8FAFC] text-slate-400 hover:text-[#1E293B] active:scale-95 disabled:opacity-20 rounded-xl flex items-center justify-center transition border border-[#E2E8F0] cursor-pointer"
@@ -296,7 +297,8 @@ export default function LoginScreen({ onLogin }: Props) {
                   {/* Validate button directly */}
                   <button
                     type="button"
-                    disabled={!operadorId || pin.length < 4}
+                    aria-label="Ingresar"
+                    disabled={!operadorId || pin.length < 6}
                     onClick={handleLogin}
                     className="aspect-square bg-[#7C2D12]/10 hover:bg-[#7C2D12] active:scale-95 disabled:opacity-25 text-[#7C2D12] hover:text-white font-bold rounded-xl flex items-center justify-center transition border border-[#7C2D12]/20 cursor-pointer"
                   >

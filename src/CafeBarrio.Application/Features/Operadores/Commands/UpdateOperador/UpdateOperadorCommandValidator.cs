@@ -8,8 +8,8 @@ public class UpdateOperadorCommandValidator : AbstractValidator<UpdateOperadorCo
     {
         RuleFor(x => x.OperadorId).GreaterThan(0);
         RuleFor(x => x.Nombre).NotEmpty().MaximumLength(200);
-        RuleFor(x => x.NuevoPin).Length(4, 8).Matches(@"^\d+$")
-            .WithMessage("El PIN debe ser numérico de 4 a 8 dígitos.")
+        RuleFor(x => x.NuevoPin).Length(6, 8).Matches(@"^\d+$")
+            .WithMessage("El PIN debe ser numérico de 6 a 8 dígitos.")
             .When(x => x.NuevoPin is not null);
     }
 }

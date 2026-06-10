@@ -19,7 +19,10 @@ public record EmitirBoletaRequest(
     decimal Subtotal,
     decimal Impuesto,
     decimal Total,
-    string Canal
+    string Canal,
+    string? TipoDocumento  = null,
+    string? NumeroDocumento = null,
+    string? RazonSocial    = null
 );
 
 public record EmitirBoletaResult(

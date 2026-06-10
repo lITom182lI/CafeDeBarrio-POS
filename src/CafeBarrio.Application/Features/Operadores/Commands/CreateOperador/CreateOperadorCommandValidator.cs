@@ -7,7 +7,7 @@ public class CreateOperadorCommandValidator : AbstractValidator<CreateOperadorCo
     public CreateOperadorCommandValidator()
     {
         RuleFor(x => x.Nombre).NotEmpty().MaximumLength(200);
-        RuleFor(x => x.Pin).NotEmpty().Length(4, 8).Matches(@"^\d+$")
-            .WithMessage("El PIN debe ser numérico de 4 a 8 dígitos.");
+        RuleFor(x => x.Pin).NotEmpty().Length(6, 8).Matches(@"^\d+$")
+            .WithMessage("El PIN debe ser numérico de 6 a 8 dígitos.");
     }
 }

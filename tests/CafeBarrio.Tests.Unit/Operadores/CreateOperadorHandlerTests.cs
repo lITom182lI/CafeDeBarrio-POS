@@ -33,12 +33,12 @@ public class CreateOperadorHandlerTests
     [Fact]
     public async Task Handle_PinValido_ReturnsOperadorId()
     {
-        _hasher.Hash("1234").Returns("hashed");
+        _hasher.Hash("123456").Returns("hashed");
         _operadores.AddAsync(Arg.Any<Operador>(), Arg.Any<CancellationToken>())
                    .Returns(Result<int>.Success(3));
         _uow.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
 
-        var result = await _sut.Handle(new CreateOperadorCommand("Juan", "1234"), CancellationToken.None);
+        var result = await _sut.Handle(new CreateOperadorCommand("Juan", "123456"), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         result.IsSuccess.Should().BeTrue();
