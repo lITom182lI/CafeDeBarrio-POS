@@ -455,50 +455,67 @@ export function Transacciones() {
               <h2>Autorizar Anulación #{String(cancelTxId).padStart(4, "0")}</h2>
               <button onClick={handleCloseCancel} className="modal-close">×</button>
             </div>
-            <div className="p-4 space-y-4">
+            <div className="modal-form">
               {cancelError && (
-                <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm mb-2 font-medium">
-                  {cancelError}
+                <div className="error-banner" role="alert">
+                  <span>{cancelError}</span>
                 </div>
               )}
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-600 uppercase tracking-wide">Motivo de la anulación</label>
+              
+              <label>
+                Motivo de la anulación
                 <textarea 
-                  className="caja-input w-full p-3 h-24"
-                  style={{ resize: "none" }}
+                  style={{ resize: "none", height: "80px" }}
                   placeholder="Explique brevemente el motivo..."
                   value={cancelMotivo}
                   onChange={(e) => setCancelMotivo(e.target.value)}
                 />
+              </label>
+
+              <div style={{ backgroundColor: "#F8FAFC", padding: "20px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
+                <p style={{ fontSize: "0.75rem", fontWeight: 800, color: "#64748B", marginBottom: "16px", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  Autorización de Administrador
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <input 
+                    type="email"
+                    className="caja-input"
+                    placeholder="Email del administrador"
+                    value={cancelEmail}
+                    onChange={(e) => setCancelEmail(e.target.value)}
+                  />
+                  <input 
+                    type="password"
+                    className="caja-input"
+                    placeholder="Contraseña"
+                    value={cancelPassword}
+                    onChange={(e) => setCancelPassword(e.target.value)}
+                  />
+                </div>
               </div>
-              <div className="bg-gray-50 p-4 rounded-xl space-y-3 border border-gray-100">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Autorización de Administrador</p>
-                <input 
-                  type="email"
-                  className="caja-input w-full p-2.5 text-sm"
-                  placeholder="Email del administrador"
-                  value={cancelEmail}
-                  onChange={(e) => setCancelEmail(e.target.value)}
-                />
-                <input 
-                  type="password"
-                  className="caja-input w-full p-2.5 text-sm"
-                  placeholder="Contraseña"
-                  value={cancelPassword}
-                  onChange={(e) => setCancelPassword(e.target.value)}
-                />
+
+              <div className="modal-actions" style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+                <button 
+                  onClick={handleCloseCancel}
+                  className="btn btn-secondary"
+                  style={{ flex: 1 }}
+                  disabled={canceling}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={submitAnular}
+                  className="btn btn-primary"
+                  style={{ flex: 1, backgroundColor: "#EF4444" }}
+                  disabled={canceling || !cancelMotivo || !cancelEmail || !cancelPassword}
+                >
+                  {canceling ? 'Autorizando...' : 'Confirmar Anulación'}
+                </button>
               </div>
-              <button 
-                className="btn btn-primary w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all shadow-md shadow-red-200"
-                onClick={submitAnular}
-                disabled={canceling}
-              >
-                {canceling ? "Procesando..." : "Confirmar Anulación"}
-              </button>
             </div>
           </div>
         </div>
       )}
     </div>
   );
-}
+}
