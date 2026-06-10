@@ -43,4 +43,12 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 
 ---
 
+## 🟡 Hallazgos Diferidos (DEFERRED)
+
+| ID | Capa | Descripción | Estado | Fecha Límite / Sprint |
+|---|---|---|---|---|
+| F-05 | Infrastructure | `ReportesRepository` agrupa en memoria (C#) después de un `ToListAsync()`. Aceptable para volumen bajo, pero debe migrarse a SQL. | DEFERRED | Sprint V2 |
+
+---
+
 > *Este ledger debe ser actualizado conforme se solucionen los hallazgos. Ningún PR debe ser fusionado sin actualizar el estado a PASSED.*
