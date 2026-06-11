@@ -1,22 +1,27 @@
+using CafeBarrio.Application.Common.Interfaces;
 using CafeBarrio.Domain.Entities;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using MUIS_CORE.Wrappers;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CafeBarrio.Application.Features.Productos.Commands.DeleteProducto;
 
 public class DeleteProductoHandler : IRequestHandler<DeleteProductoCommand, Result>
 {
-    private readonly DbContext _context;
+    private readonly IProductoRepository _productos;
+    private readonly IUnitOfWork _uow;
 
-    public DeleteProductoHandler(DbContext context)
+    public DeleteProductoHandler(IProductoRepository productos, IUnitOfWork uow)
     {
-        _context = context;
+        _productos = productos;
+        _uow = uow;
     }
 
     public async Task<Result> Handle(DeleteProductoCommand request, CancellationToken cancellationToken)
     {
-        var producto = await _context.Set<Producto>().FirstOrDefaultAsync(p => p.ProductoId == request.ProductoId, cancellationToken);
+        var producto = await _productos.GetByIdAsync(request.ProductoId, cancellationToken);
         if (producto == null)
         {
             return Result.Failure(new Error("Producto.NoEncontrado", "El producto no existe."));
@@ -24,16 +29,16 @@ public class DeleteProductoHandler : IRequestHandler<DeleteProductoCommand, Resu
 
         try
         {
-            _context.Set<Producto>().Remove(producto);
-            await _context.SaveChangesAsync(cancellationToken);
+            await _productos.DeleteAsync(producto.ProductoId, cancellationToken);
+            await _uow.SaveChangesAsync(cancellationToken);
             return Result.Success();
         }
         catch (Exception)
         {
             // If it fails (e.g. FK constraint), we do a soft delete fallback
             producto.Activo = false;
-            _context.Set<Producto>().Update(producto);
-            await _context.SaveChangesAsync(cancellationToken);
+            await _productos.UpdateAsync(producto, cancellationToken);
+            await _uow.SaveChangesAsync(cancellationToken);
             return Result.Success();
         }
     }
