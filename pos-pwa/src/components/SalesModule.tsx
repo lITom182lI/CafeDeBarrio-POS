@@ -277,7 +277,7 @@ export default function SalesModule({ session, onLogout }: Props) {
 
   // Left sidebar menu items specification matching exact elements
   const sidebarItems = [
-    { type: 'terminal', label: 'Terminal de Ventas', icon: <Laptop size={18} /> },
+    { type: 'terminal', label: 'TERMINAL DE VENTAS', icon: <Laptop size={18} /> },
   ] as const
 
   return (

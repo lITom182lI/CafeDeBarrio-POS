@@ -112,7 +112,7 @@ export default function TerminalVentasView({
       <div className="flex-1 flex flex-col overflow-hidden bg-[#F8FAFC]">
         
         {/* Search header bar - Clean Minimalism style */}
-        <div className="p-4 bg-white border-b border-[#E2E8F0] flex-shrink-0 space-y-3">
+        <div className="pt-4 px-4 pb-2 bg-white border-b border-[#E2E8F0] flex-shrink-0 space-y-2">
           <div className="relative">
             <span className="absolute inset-y-0 left-3 flex items-center text-[#334155]/60">
               <Search size={18} />
@@ -127,12 +127,12 @@ export default function TerminalVentasView({
           </div>
 
           {/* Category Quick Chips - Clean Minimalism style */}
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <div className="flex gap-3 overflow-x-auto py-1 scrollbar-none">
             <button
               onClick={() => setSelectedCat(null)}
-              className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+              className={`flex-shrink-0 px-6 py-3 rounded-xl text-sm tracking-wide font-extrabold transition-all border cursor-pointer uppercase ${
                 selectedCat === null
-                  ? 'bg-[#7C2D12] text-white border-[#7C2D12] shadow-sm'
+                  ? 'bg-[#7C2D12] text-white border-[#7C2D12] shadow-md'
                   : 'bg-[#F8FAFC] text-[#334155] border-[#E2E8F0] hover:bg-white hover:text-[#1E293B]'
               }`}
             >
@@ -142,9 +142,9 @@ export default function TerminalVentasView({
               <button
                 key={cat.categoriaId}
                 onClick={() => setSelectedCat(cat.nombre)}
-                className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                className={`flex-shrink-0 px-6 py-3 rounded-xl text-sm tracking-wide font-extrabold transition-all border cursor-pointer uppercase ${
                   selectedCat === cat.nombre
-                    ? 'bg-[#7C2D12] text-white border-[#7C2D12] shadow-sm'
+                    ? 'bg-[#7C2D12] text-white border-[#7C2D12] shadow-md'
                     : 'bg-[#F8FAFC] text-[#334155] border-[#E2E8F0] hover:bg-white hover:text-[#1E293B]'
                 }`}
               >
@@ -240,13 +240,13 @@ export default function TerminalVentasView({
       </div>
 
       {/* ── RIGHT CART & PAYMENT SIDEBAR ── */}
-      <div className="w-[320px] xl:w-[350px] bg-white border-l border-[#E2E8F0] flex flex-col justify-between overflow-hidden shadow-sm flex-shrink-0">
+      <div className="w-[380px] xl:w-[420px] bg-white border-l border-[#E2E8F0] flex flex-col justify-between overflow-hidden shadow-sm flex-shrink-0">
         
         {/* Header order section */}
         <div className="p-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] flex-shrink-0">
           <div className="flex items-center gap-1.5 text-[#1E293B] font-extrabold">
             <ShoppingCart size={16} className="text-[#7C2D12]" />
-            <span className="text-sm">Comanda de Venta</span>
+            <span className="text-sm uppercase tracking-wider">COMANDA DE VENTA</span>
           </div>
           {cart.length > 0 && (
             <button
@@ -263,7 +263,7 @@ export default function TerminalVentasView({
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {cart.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center space-y-3 py-10">
-              <span className="text-4xl animate-bounce">☕</span>
+              <span className="text-4xl">☕</span>
               <p className="text-[#1E293B] font-extrabold text-sm">El carrito está vacío.</p>
               <p className="text-[#334155]/60 text-xs max-w-[200px] leading-relaxed">
                 Haga clic en los productos para agregarlos.
