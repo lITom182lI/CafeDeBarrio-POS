@@ -130,6 +130,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+builder.Services.AddHttpClient();
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<CafeBarrioDbContext>("database")
     .AddCheck<CafeBarrio.Infrastructure.HealthChecks.SunatHealthCheck>("sunat-ose");
@@ -279,6 +280,12 @@ app.UseHttpsRedirection();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+
+using (var scope = app.Services.CreateScope())
+{
+    await scope.ServiceProvider.GetRequiredService<CafeBarrio.Infrastructure.Persistence.Seeders.ICatalogDataSeeder>().SeedAsync();
+}
+
 app.MapControllers();
 app.MapHealthChecks("/health");
 app.Run();
