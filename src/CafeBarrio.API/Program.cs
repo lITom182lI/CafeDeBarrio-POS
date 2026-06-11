@@ -130,6 +130,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+builder.Services.AddHttpClient();
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<CafeBarrioDbContext>("database")
     .AddCheck<CafeBarrio.Infrastructure.HealthChecks.SunatHealthCheck>("sunat-ose");
