@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { Coffee } from 'lucide-react'
+import { Coffee, Sun, Moon } from 'lucide-react'
 
 export function Login() {
   const { login } = useAuth()
@@ -10,6 +10,19 @@ export function Login() {
   const [password, setPassword] = useState('')
   const [error,    setError]    = useState('')
   const [loading,  setLoading]  = useState(false)
+  const [isDark,   setIsDark]   = useState(() => document.documentElement.classList.contains('dark'))
+
+  const toggleDark = () => {
+    if (isDark) {
+      document.documentElement.classList.remove("dark")
+      localStorage.setItem('theme', 'light')
+      setIsDark(false)
+    } else {
+      document.documentElement.classList.add("dark")
+      localStorage.setItem('theme', 'dark')
+      setIsDark(true)
+    }
+  }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -43,7 +56,15 @@ export function Login() {
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center',
       justifyContent: 'center', background: 'var(--color-bg)',
+      position: 'relative'
     }}>
+      <button
+        onClick={toggleDark}
+        className="btn-theme-login"
+        title={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+      >
+        {isDark ? <Sun size={18} /> : <Moon size={18} />}
+      </button>
       <div style={{
         background: 'var(--color-card)', borderRadius: 'var(--radius)',
         border: '1px solid var(--color-border)', padding: '48px 40px',

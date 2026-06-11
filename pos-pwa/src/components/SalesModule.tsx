@@ -125,6 +125,7 @@ export default function SalesModule({ session, onLogout }: Props) {
         const turno = await getTurnoActivo()
         // Si la API responde exitosamente pero no hay turno (null), el administrador forzó el cierre
         if (!turno) {
+          alert("Su sesión ha finalizado automáticamente debido a un Cierre Forzado de caja desde el Dashboard.");
           onLogout()
         }
       } catch (err) {
