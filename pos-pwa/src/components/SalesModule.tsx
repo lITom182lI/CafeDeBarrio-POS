@@ -35,7 +35,19 @@ export default function SalesModule({ session, onLogout }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>('terminal')
   
   // ── Theme state ───────────────────────────────────────────────────────────
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(() => document.documentElement.classList.contains("dark"))
+
+  const toggleDark = () => {
+    if (isDarkMode) {
+      document.documentElement.classList.remove("dark")
+      localStorage.setItem('theme', 'light')
+      setIsDarkMode(false)
+    } else {
+      document.documentElement.classList.add("dark")
+      localStorage.setItem('theme', 'dark')
+      setIsDarkMode(true)
+    }
+  }
 
   // ── Catálogo ──────────────────────────────────────────────────────────────
   const [productos, setProductos] = useState<ProductoDto[]>([])
@@ -302,7 +314,7 @@ export default function SalesModule({ session, onLogout }: Props) {
   ] as const
 
   return (
-    <div className={`h-screen flex bg-[#F8FAFC] text-[#334155] overflow-hidden font-sans select-none ${isDarkMode ? 'dark bg-gray-900 text-gray-100' : ''}`}>
+    <div className={`h-screen flex bg-[#F8FAFC] dark:bg-gray-900 text-[#334155] dark:text-gray-100 overflow-hidden font-sans select-none`}>
       
       {/* ── LEFT NAVIGATION SIDEBAR ── */}
       <aside className="w-64 bg-white dark:bg-gray-800 dark:border-gray-700 border-r border-[#E2E8F0] flex flex-col justify-between flex-shrink-0 transition-colors">
@@ -363,8 +375,8 @@ export default function SalesModule({ session, onLogout }: Props) {
         <div className="p-3 border-t border-[#E2E8F0] dark:border-gray-700 space-y-2 flex-shrink-0 bg-white dark:bg-gray-800 transition-colors">
           
           <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className="w-full py-2.5 px-3 rounded-xl flex items-center justify-between transition-colors text-left text-[11px] border cursor-pointer font-bold bg-[#F8FAFC] dark:bg-gray-700 text-[#334155] dark:text-gray-200 border-[#E2E8F0] dark:border-gray-600 hover:bg-[#E2E8F0] dark:hover:bg-gray-600"
+            onClick={toggleDark}
+            className="w-full py-2.5 px-3 rounded-xl flex items-center justify-center transition-colors text-[11px] border cursor-pointer font-bold bg-orange-50 dark:bg-orange-900/30 text-[#7C2D12] dark:text-orange-400 border-orange-200 dark:border-orange-800/50 hover:bg-orange-100 dark:hover:bg-orange-900/50"
           >
             <span className="flex items-center gap-1.5 uppercase tracking-wide">
               {isDarkMode ? <Sun size={14} /> : <Moon size={14} />}

@@ -54,8 +54,9 @@ const getBadgeColorClass = (nombre: string | null) => {
 
 const getPaymentColorClass = (nombre: string) => {
   const n = nombre.toLowerCase();
-  if (n.includes('efectivo')) return 'bg-emerald-100/80 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700';
-  if (n.includes('yape') || n.includes('plin')) return 'bg-purple-100/80 dark:bg-purple-900/50 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-700';
+  if (n.includes('efectivo')) return 'bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800';
+  if (n.includes('yape')) return 'bg-purple-100/80 dark:bg-purple-900/50 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-700';
+  if (n.includes('plin')) return 'bg-cyan-100/80 dark:bg-cyan-950/60 text-cyan-800 dark:text-cyan-400 border-cyan-300 dark:border-cyan-800';
   if (n.includes('tarjeta')) return 'bg-blue-100/80 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700';
   return 'bg-slate-100/80 dark:bg-slate-800 text-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-600';
 };
