@@ -254,10 +254,8 @@ export function Transacciones() {
                   <td className="font-medium text-sm">
                     {tx.operadorNombre || "Administrador"}
                   </td>
-                  <td>
-                    <div className="product-name-block">
-                      <span className="product-display-name">{tx.clienteNombre || "Público General"}</span>
-                    </div>
+                  <td className="text-sm font-medium">
+                    {tx.clienteNombre || "Público General"}
                   </td>
                   <td>
                     {tx.tipoDocumento && tx.numeroDocumento ? (

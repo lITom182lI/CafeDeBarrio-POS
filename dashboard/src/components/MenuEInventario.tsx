@@ -1,5 +1,5 @@
 import { useState, useEffect, startTransition, type FormEvent, useRef } from "react";
-import { Plus, Check, AlertTriangle } from "lucide-react";
+import { Plus, Check, AlertTriangle, Info } from "lucide-react";
 import { api } from "../api/client";
 import type { ProductoDto, CategoriaCafeDto, ProductoFormData } from "../types";
 
@@ -16,6 +16,10 @@ export function MenuEInventario() {
   // Modal active states
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [editingProducto, setEditingProducto] = useState<ProductoDto | null>(null);
+
+  // Description modal states
+  const [descModalOpen, setDescModalOpen] = useState<boolean>(false);
+  const [selectedDescProducto, setSelectedDescProducto] = useState<ProductoDto | null>(null);
 
   // Form states
   const [formNombre, setFormNombre] = useState<string>("");
@@ -253,12 +257,7 @@ export function MenuEInventario() {
                     <tr key={p.productoId}>
                       <td>
                         <div className="product-name-block">
-                          <span className="product-display-name">{p.nombre}</span>
-                          {p.descripcion && (
-                            <span className="product-display-description">
-                              {p.descripcion}
-                            </span>
-                          )}
+                          <span className="product-display-name" style={{ textTransform: "uppercase" }}>{p.nombre}</span>
                         </div>
                       </td>
                       <td>
@@ -298,12 +297,25 @@ export function MenuEInventario() {
                         </span>
                       </td>
                       <td>
-                        <button
-                          className="btn-action-edit"
-                          onClick={() => handleOpenEditModal(p)}
-                        >
-                          Editar
-                        </button>
+                        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                          <button
+                            className="btn-action-edit"
+                            style={{ padding: "4px" }}
+                            onClick={() => {
+                              setSelectedDescProducto(p);
+                              setDescModalOpen(true);
+                            }}
+                            title="Ver descripción"
+                          >
+                            <Info size={18} />
+                          </button>
+                          <button
+                            className="btn-action-edit"
+                            onClick={() => handleOpenEditModal(p)}
+                          >
+                            Editar
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -494,6 +506,45 @@ export function MenuEInventario() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Description Modal Popup */}
+      {descModalOpen && selectedDescProducto && (
+        <div className="modal-overlay" role="presentation" onClick={() => setDescModalOpen(false)}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="desc-modal-title"
+            className="modal-box"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "480px" }}
+          >
+            <div className="modal-header">
+              <h2 id="desc-modal-title">Descripción del Producto</h2>
+              <button
+                className="modal-close"
+                aria-label="Cerrar modal"
+                onClick={() => setDescModalOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <div style={{ paddingTop: "8px", color: "var(--color-text)", fontSize: "0.95rem", lineHeight: "1.5" }}>
+              <p style={{ marginBottom: "24px" }}>
+                <strong style={{ color: "var(--color-text-title)", marginRight: "6px" }}>
+                  [{selectedDescProducto.nombre.toUpperCase()}]
+                </strong>
+                {selectedDescProducto.descripcion || "Sin descripción detallada registrada."}
+              </p>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => setDescModalOpen(false)}
+              >
+                Aceptar
+              </button>
+            </div>
           </div>
         </div>
       )}
