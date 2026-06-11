@@ -12,7 +12,7 @@ Tipo 2 (SaaS Escalable)
 - Entorno Híbrido: Despliegue Local (On-Premise) con proyección a Azure.
 
 ## Puertos
-- **Backend API:** `http://localhost:5000` / `https://localhost:5001`
+- **Backend API:** `http://localhost:5138` / `https://localhost:7240` (dev) · `http://+:8080` (Docker/producción)
 - **Frontend Dashboard / POS:** `http://localhost:5173` / `http://localhost:5174`
 
 ## Notas de Gobernanza

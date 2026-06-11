@@ -41,6 +41,7 @@ public static class DependencyInjection
         services.AddScoped<CafeBarrio.Application.Common.Interfaces.IJwtService, CafeBarrio.Infrastructure.Security.JwtService>();
         services.AddScoped<IPasswordHasher, Argon2PasswordHasher>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<CafeBarrio.Infrastructure.Persistence.Seeders.ICatalogDataSeeder, CafeBarrio.Infrastructure.Persistence.Seeders.CatalogDataSeeder>();
         services.Configure<SunatOptions>(configuration.GetSection(SunatOptions.Section));
         var sunatEnabled = configuration.GetValue<bool>($"{SunatOptions.Section}:Enabled");
         if (sunatEnabled)
