@@ -257,7 +257,7 @@ export function MenuEInventario() {
                     <tr key={p.productoId}>
                       <td>
                         <div className="product-name-block">
-                          <span className="product-display-name" style={{ textTransform: "uppercase" }}>{p.nombre}</span>
+                          <span className="text-sm font-medium" style={{ textTransform: "uppercase" }}>{p.nombre}</span>
                         </div>
                       </td>
                       <td>
@@ -363,9 +363,9 @@ export function MenuEInventario() {
                 <input
                   id="prod-nombre"
                   type="text"
-                  placeholder="ej. Espresso Doble"
+                  placeholder="EJ. ESPRESSO DOBLE"
                   value={formNombre}
-                  onChange={(e) => setFormNombre(e.target.value)}
+                  onChange={(e) => setFormNombre(e.target.value.toUpperCase())}
                   required
                 />
               </label>

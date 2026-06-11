@@ -66,7 +66,7 @@ export default function TicketModal({ ticket, onClose }: Props) {
               {ticket.items.map(item => (
                 <div key={item.productoId} className="flex justify-between items-start">
                   <div className="flex-1 pr-2">
-                    <p className="font-bold leading-tight">{item.nombre}</p>
+                    <p className="font-bold leading-tight uppercase">{item.nombre}</p>
                     <p className="text-[10px] text-stone-500">{item.cantidad} x {formatSoles(item.precio)}</p>
                   </div>
                   <span className="font-bold">{formatSoles(item.precio * item.cantidad)}</span>
