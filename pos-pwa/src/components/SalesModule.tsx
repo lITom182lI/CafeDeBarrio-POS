@@ -288,13 +288,13 @@ export default function SalesModule({ session, onLogout }: Props) {
         
         {/* Brand identifier - Match Screenshot Header */}
         <div className="space-y-4 pt-6">
-          <div className="px-6 flex items-start gap-2.5">
-            <div className="bg-[#7C2D12] p-2 rounded-xl text-white shadow-xs mt-0.5">
-              <span>☕</span>
+          <div className="px-6 flex items-center gap-3">
+            <div className="bg-[#7C2D12] w-[34px] h-[34px] rounded-lg text-white flex items-center justify-center text-[1.1rem]">
+              ☕
             </div>
             <div>
-              <h2 className="text-[#1E293B] font-extrabold text-sm tracking-wider leading-snug">Café de Barrio</h2>
-              <p className="text-[#7C2D12] text-[10px] uppercase font-extrabold tracking-wide">Punto de Venta POS</p>
+              <h2 className="text-[#7C2D12] font-extrabold text-[1.15rem] tracking-[-0.03em] leading-[1.1]">Café de Barrio</h2>
+              <p className="text-[#7C2D12] text-[0.65rem] uppercase font-bold tracking-[0.08em] mt-[2px]">Punto de Venta POS</p>
             </div>
           </div>
 
@@ -365,7 +365,7 @@ export default function SalesModule({ session, onLogout }: Props) {
 
           <button
             onClick={() => setShowCierreModal(true)}
-            className="w-full py-2.5 text-[#334155]/70 hover:text-red-600 rounded-xl hover:bg-red-50/50 border border-transparent font-bold text-xs tracking-wide flex items-center justify-center gap-2 transition active:scale-95"
+            className="w-full py-2.5 text-[#475569] bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] hover:border-red-200 hover:text-red-600 hover:bg-red-50 font-bold text-xs tracking-wide flex items-center justify-center gap-2 transition active:scale-95"
           >
             <LogOut size={14} />
             <span>Cerrar Sesión</span>

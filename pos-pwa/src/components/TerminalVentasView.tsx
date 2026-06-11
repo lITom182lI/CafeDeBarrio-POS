@@ -34,6 +34,33 @@ interface Props {
   handleCobrar: () => void
   errorMsg: string | null
 }
+const getCategoryColorClass = (nombre: string | null) => {
+  if (!nombre) return 'bg-[#7C2D12] text-white border-[#7C2D12] shadow-md'; // Todos
+  const n = nombre.toLowerCase();
+  if (n.includes('cafe') || n.includes('café')) return 'bg-[#92400E] text-white border-[#92400E] shadow-md'; // Amber-800
+  if (n.includes('bebida')) return 'bg-[#0369A1] text-white border-[#0369A1] shadow-md'; // Sky-700
+  if (n.includes('comida') || n.includes('postre')) return 'bg-[#CA8A04] text-white border-[#CA8A04] shadow-md'; // Yellow-600
+  return 'bg-[#7C2D12] text-white border-[#7C2D12] shadow-md'; // Default
+};
+
+const getBadgeColorClass = (nombre: string | null) => {
+  if (!nombre) return 'bg-[#7C2D12] text-white';
+  const n = nombre.toLowerCase();
+  if (n.includes('cafe') || n.includes('café')) return 'bg-[#92400E] text-white';
+  if (n.includes('bebida')) return 'bg-[#0369A1] text-white';
+  if (n.includes('comida') || n.includes('postre')) return 'bg-[#CA8A04] text-white';
+  return 'bg-[#7C2D12] text-white';
+};
+
+const getPaymentColorClass = (nombre: string | null) => {
+  if (!nombre) return 'bg-[#7C2D12] text-white border-[#7C2D12]';
+  const n = nombre.toLowerCase();
+  if (n.includes('yape')) return 'bg-[#7E22CE] text-white border-[#7E22CE]'; // Purple-700
+  if (n.includes('plin')) return 'bg-[#0891B2] text-white border-[#0891B2]'; // Cyan-600
+  if (n.includes('efectivo')) return 'bg-[#15803D] text-white border-[#15803D]'; // Green-700
+  if (n.includes('tarjeta')) return 'bg-[#334155] text-white border-[#334155]'; // Slate-700
+  return 'bg-[#7C2D12] text-white border-[#7C2D12]'; // Default
+};
 
 export default function TerminalVentasView({
   productos,
@@ -132,7 +159,7 @@ export default function TerminalVentasView({
               onClick={() => setSelectedCat(null)}
               className={`flex-shrink-0 px-6 py-3 rounded-xl text-sm tracking-wide font-extrabold transition-all border cursor-pointer uppercase ${
                 selectedCat === null
-                  ? 'bg-[#7C2D12] text-white border-[#7C2D12] shadow-md'
+                  ? getCategoryColorClass(null)
                   : 'bg-[#F8FAFC] text-[#334155] border-[#E2E8F0] hover:bg-white hover:text-[#1E293B]'
               }`}
             >
@@ -144,7 +171,7 @@ export default function TerminalVentasView({
                 onClick={() => setSelectedCat(cat.nombre)}
                 className={`flex-shrink-0 px-6 py-3 rounded-xl text-sm tracking-wide font-extrabold transition-all border cursor-pointer uppercase ${
                   selectedCat === cat.nombre
-                    ? 'bg-[#7C2D12] text-white border-[#7C2D12] shadow-md'
+                    ? getCategoryColorClass(cat.nombre)
                     : 'bg-[#F8FAFC] text-[#334155] border-[#E2E8F0] hover:bg-white hover:text-[#1E293B]'
                 }`}
               >
@@ -180,7 +207,7 @@ export default function TerminalVentasView({
                 >
                   {/* Category & Price line */}
                   <div className="flex justify-between items-start w-full">
-                    <span className="text-[10px] uppercase tracking-wider text-[#334155]/70 font-semibold bg-[#F1F5F9] px-2 py-0.5 rounded-lg">
+                    <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-lg ${getBadgeColorClass(p.categoriaNombre)}`}>
                       {p.categoriaNombre}
                     </span>
                     <span className="text-[#7C2D12] font-extrabold text-sm tracking-wide">
@@ -380,7 +407,7 @@ export default function TerminalVentasView({
                     onClick={() => { setMetodoPagoId(m.metodoPagoId); setMontoEfectivo('') }}
                     className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer ${
                       isActive
-                        ? 'bg-[#7C2D12] border-[#7C2D12] text-white shadow-2xs'
+                        ? `${getPaymentColorClass(m.nombre)} shadow-2xs`
                         : 'bg-white text-[#334155]/85 border-[#E2E8F0] hover:border-[#7C2D12]/40 hover:text-[#1E293B]'
                     }`}
                   >
@@ -430,8 +457,8 @@ export default function TerminalVentasView({
                           onClick={() => setMetodoPago2Id(m.metodoPagoId)}
                           className={`px-2 py-1 rounded font-bold border transition text-xs ${
                             metodoPago2Id === m.metodoPagoId
-                              ? 'bg-[#7C2D12] text-white border-[#7C2D12]'
-                              : 'bg-white text-[#334155] border-[#E2E8F0] hover:border-[#7C2D12]/30'
+                              ? getPaymentColorClass(m.nombre)
+                              : 'bg-white text-[#334155]/70 border-[#E2E8F0] hover:border-[#7C2D12]/40 hover:text-[#1E293B]'
                           }`}
                         >
                           {m.nombre}
@@ -459,6 +486,7 @@ export default function TerminalVentasView({
                 <input
                   id="monto-recibido"
                   type="number"
+                  min="0"
                   step="0.10"
                   value={montoEfectivo}
                   onChange={e => setMontoEfectivo(e.target.value)}
