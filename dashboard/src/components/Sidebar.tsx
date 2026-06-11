@@ -1,4 +1,5 @@
-import { LayoutDashboard, Package, Users, Receipt, Settings, LogOut, FileText, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Package, Users, Receipt, Settings, LogOut, FileText, ShieldCheck, Sun, Moon, Coffee } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface Props {
   activeTab: string;
@@ -18,6 +19,18 @@ export function Sidebar({ activeTab, onChangeTab, operatorName, onLogout }: Prop
       .toUpperCase();
   };
 
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDark]);
+
   const navItems = [
     { id: "arqueo",        label: "Arqueo de Caja",icon: <ShieldCheck size={18} /> },
     { id: "dashboard",     label: "Dashboard",     icon: <LayoutDashboard size={18} /> },
@@ -31,7 +44,9 @@ export function Sidebar({ activeTab, onChangeTab, operatorName, onLogout }: Prop
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <div className="brand-icon-container">☕</div>
+        <div className="brand-icon-container" style={{ backgroundColor: '#f97316' }}>
+          <Coffee size={24} strokeWidth={2.5} color="#ffffff" />
+        </div>
         <div>
           <div className="sidebar-brand-name">Café de Barrio</div>
           <span className="sidebar-pos">Punto de Venta POS</span>
@@ -59,7 +74,16 @@ export function Sidebar({ activeTab, onChangeTab, operatorName, onLogout }: Prop
         ))}
       </nav>
 
-      <div className="sidebar-footer">
+
+      <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <button 
+          className="btn-logout" 
+          onClick={() => setIsDark(!isDark)}
+          style={{ justifyContent: 'center' }}
+        >
+          {isDark ? <Sun size={16} /> : <Moon size={16} />}
+          <span>{isDark ? 'Modo Claro' : 'Modo Oscuro'}</span>
+        </button>
         <button className="btn-logout" onClick={onLogout}>
           <LogOut size={16} />
           <span>Cerrar Sesión</span>

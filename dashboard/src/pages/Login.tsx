@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { Coffee } from 'lucide-react'
 
 export function Login() {
   const { login } = useAuth()
@@ -51,11 +52,13 @@ export function Login() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32 }}>
           <div style={{
-            background: 'var(--color-brand)', borderRadius: 8,
+            background: '#f97316', borderRadius: 10,
             width: 36, height: 36, display: 'flex',
             alignItems: 'center', justifyContent: 'center',
-            color: '#fff', fontSize: '1.1rem',
-          }}>☕</div>
+            color: '#fff',
+          }}>
+            <Coffee size={20} strokeWidth={2.5} color="#ffffff" />
+          </div>
           <div>
             <div style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--color-brand)', letterSpacing: '-0.03em' }}>
               Café de Barrio

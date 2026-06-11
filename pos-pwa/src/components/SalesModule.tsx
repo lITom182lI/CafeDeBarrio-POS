@@ -3,7 +3,7 @@ import type {
   ProductoDto, CategoriaDto, MetodoPagoDto,
   CartItem, ComprobanteData, CreateTransaccionRequest, OperadorSession, TicketData,
 } from '../types'
-import { getProductos, getCategorias, getMetodosPago, getOperadores, crearTransaccion, OfflineError } from '../api'
+import { getProductos, getCategorias, getMetodosPago, getOperadores, crearTransaccion, OfflineError, getTurnoActivo } from '../api'
 import { calcularTotales, generateLocalId } from '../utils'
 import { config } from '../config'
 import { useSync, savePending, setSimulatedOnline, getSimulatedOnline } from '../offline'
@@ -15,12 +15,13 @@ import {
 import ComprobanteModal from './ComprobanteModal'
 import TicketModal from './TicketModal'
 import ArqueoCierreModal from './ArqueoCierreModal'
+import { Coffee } from 'lucide-react'
 
 // List of Sub-Views
 import TerminalVentasView from './TerminalVentasView'
 
 // Side Nav Icons
-import { Laptop, LogOut, ChevronRight, Wifi, WifiOff } from 'lucide-react'
+import { Laptop, LogOut, ChevronRight, Wifi, WifiOff, Moon, Sun } from 'lucide-react'
 
 interface Props {
   session: OperadorSession | null
@@ -32,6 +33,9 @@ type TabType = 'terminal' | 'turnos' | 'inventario' | 'historial' | 'reportes' |
 export default function SalesModule({ session, onLogout }: Props) {
   // ── Tab state ─────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<TabType>('terminal')
+  
+  // ── Theme state ───────────────────────────────────────────────────────────
+  const [isDarkMode, setIsDarkMode] = useState(false)
 
   // ── Catálogo ──────────────────────────────────────────────────────────────
   const [productos, setProductos] = useState<ProductoDto[]>([])
@@ -101,6 +105,23 @@ export default function SalesModule({ session, onLogout }: Props) {
   }
 
   useEffect(() => { startTransition(() => { void loadCatalog() }) }, [])
+
+  // Polling para detectar Cierre Forzado desde el Dashboard
+  useEffect(() => {
+    const checkInterval = setInterval(async () => {
+      try {
+        const turno = await getTurnoActivo()
+        // Si la API responde exitosamente pero no hay turno (null), el administrador forzó el cierre
+        if (!turno) {
+          onLogout()
+        }
+      } catch (err) {
+        // Si hay error de red o similar, simplemente ignoramos y seguimos intentando después
+      }
+    }, 10000) // Verificar cada 10 segundos
+
+    return () => clearInterval(checkInterval)
+  }, [onLogout])
 
   // ── Carrito Operations ────────────────────────────────────────────────────
   function addToCart(p: ProductoDto) {
@@ -281,33 +302,35 @@ export default function SalesModule({ session, onLogout }: Props) {
   ] as const
 
   return (
-    <div className="h-screen flex bg-[#F8FAFC] text-[#334155] overflow-hidden font-sans select-none">
+    <div className={`h-screen flex bg-[#F8FAFC] text-[#334155] overflow-hidden font-sans select-none ${isDarkMode ? 'dark bg-gray-900 text-gray-100' : ''}`}>
       
       {/* ── LEFT NAVIGATION SIDEBAR ── */}
-      <aside className="w-64 bg-white border-r border-[#E2E8F0] flex flex-col justify-between flex-shrink-0">
+      <aside className="w-64 bg-white dark:bg-gray-800 dark:border-gray-700 border-r border-[#E2E8F0] flex flex-col justify-between flex-shrink-0 transition-colors">
         
         {/* Brand identifier - Match Screenshot Header */}
-        <div className="space-y-4 pt-6">
+        <div className="pt-8 border-b border-[#E2E8F0] dark:border-gray-700">
           <div className="px-6 flex items-center gap-3">
-            <div className="bg-[#7C2D12] w-[34px] h-[34px] rounded-lg text-white flex items-center justify-center text-[1.1rem]">
-              ☕
+            <div className="bg-[#f97316] w-[34px] h-[34px] rounded-lg text-white flex items-center justify-center transition-colors">
+              <Coffee size={20} strokeWidth={2.5} />
             </div>
             <div>
-              <h2 className="text-[#7C2D12] font-extrabold text-[1.15rem] tracking-[-0.03em] leading-[1.1]">Café de Barrio</h2>
-              <p className="text-[#7C2D12] text-[0.65rem] uppercase font-bold tracking-[0.08em] mt-[2px]">Punto de Venta POS</p>
+              <h2 className="text-[#7C2D12] dark:text-orange-500 font-extrabold text-[1.15rem] tracking-[-0.03em] leading-[1.1] transition-colors">Café de Barrio</h2>
+              <p className="text-[#7C2D12] dark:text-orange-500/80 text-[0.65rem] uppercase font-bold tracking-[0.08em] mt-[2px] transition-colors">Punto de Venta POS</p>
             </div>
           </div>
 
-          {/* Cajero / Operador profile badge - Match Screenshot layout */}
-          <div className="mx-4 p-3 bg-[#F8FAFC] rounded-2xl flex items-center gap-3 border border-[#E2E8F0]">
-            <div className="w-9 h-9 rounded-full bg-[#7C2D12] text-white flex items-center justify-center font-extrabold text-sm shadow-2xs">
-              {session?.nombre ? session.nombre.charAt(0) : 'C'}
+          {/* Cajero / Operador profile badge - Dashboard exact match */}
+          <div className="px-6 py-5 flex items-center gap-3 border-t border-[#E2E8F0] dark:border-gray-700 bg-transparent transition-colors mt-6">
+            <div className="w-[38px] h-[38px] min-w-[38px] shrink-0 rounded-full bg-white dark:bg-gray-800 text-[#7C2D12] dark:text-orange-500 flex items-center justify-center font-extrabold text-[0.9rem] border-[1.5px] border-[#E2E8F0] dark:border-gray-700 transition-colors">
+              {session?.nombre ? session.nombre.substring(0, 2).toUpperCase() : 'CG'}
             </div>
-            <div className="min-w-0">
-              <p className="font-extrabold text-[#1E293B] text-xs truncate leading-normal">
+            <div className="min-w-0 flex flex-col">
+              <p className="font-extrabold text-[#1E293B] dark:text-gray-100 text-[0.88rem] tracking-[-0.01em] truncate transition-colors">
                 {session?.nombre || 'Cajero Genérico'}
               </p>
-              <p className="text-[#334155]/60 text-[10px] font-bold">Cajero POS</p>
+              <p className="text-[#64748B] dark:text-gray-400 text-[0.72rem] font-semibold tracking-[0.02em] transition-colors">
+                Cajero POS
+              </p>
             </div>
           </div>
         </div>
@@ -323,10 +346,10 @@ export default function SalesModule({ session, onLogout }: Props) {
                 className={`w-full px-3.5 py-3 rounded-xl flex items-center gap-3 font-bold text-xs transition duration-150 active:scale-95 text-left cursor-pointer ${
                   isSelected
                     ? 'bg-[#7C2D12] text-white shadow-sm font-bold shadow-[#7C2D12]/10'
-                    : 'text-[#334155]/70 hover:bg-[#F8FAFC] hover:text-[#1E293B] border border-transparent'
+                    : 'text-[#334155]/70 dark:text-gray-300 hover:bg-[#F8FAFC] dark:hover:bg-gray-700 hover:text-[#1E293B] dark:hover:text-white border border-transparent'
                 }`}
               >
-                <span className={isSelected ? 'text-white' : 'text-[#334155]/60'}>
+                <span className={isSelected ? 'text-white' : 'text-[#334155]/60 dark:text-gray-400'}>
                   {item.icon}
                 </span>
                 <span className="flex-1">{item.label}</span>
@@ -337,22 +360,32 @@ export default function SalesModule({ session, onLogout }: Props) {
         </nav>
 
         {/* Offline Toggle and Log out stack */}
-        <div className="p-3 border-t border-[#E2E8F0] space-y-2 flex-shrink-0 bg-white">
+        <div className="p-3 border-t border-[#E2E8F0] dark:border-gray-700 space-y-2 flex-shrink-0 bg-white dark:bg-gray-800 transition-colors">
           
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className="w-full py-2.5 px-3 rounded-xl flex items-center justify-between transition-colors text-left text-[11px] border cursor-pointer font-bold bg-[#F8FAFC] dark:bg-gray-700 text-[#334155] dark:text-gray-200 border-[#E2E8F0] dark:border-gray-600 hover:bg-[#E2E8F0] dark:hover:bg-gray-600"
+          >
+            <span className="flex items-center gap-1.5 uppercase tracking-wide">
+              {isDarkMode ? <Sun size={14} /> : <Moon size={14} />}
+              <span>{isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}</span>
+            </span>
+          </button>
+
           {/* Real network simulation block - Clicking this lets user toggle network state! */}
           <button
             onClick={toggleNetworkConnection}
-            className={`w-full py-2.5 px-3 rounded-xl flex items-center justify-between transition text-left text-[11px] border cursor-pointer font-bold ${
+            className={`w-full py-2.5 px-3 rounded-xl flex items-center justify-between transition-colors text-left text-[11px] border cursor-pointer font-bold ${
               isOnline
-                ? 'bg-emerald-50/50 text-emerald-700 border-emerald-200 hover:bg-emerald-100/50'
-                : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 animate-pulse'
+                ? 'bg-emerald-50/50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100/50 dark:hover:bg-emerald-900/50'
+                : 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-900/50 animate-pulse'
             }`}
           >
             <span className="flex items-center gap-1.5 uppercase tracking-wide">
               {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
               <span>{isOnline ? '● En Línea' : '○ Desconectado'}</span>
             </span>
-            <span className="text-[9px] bg-[#7C2D12]/10 text-[#7C2D12] px-1.5 py-0.5 rounded font-mono font-bold">Simular</span>
+            <span className="text-[9px] bg-[#7C2D12]/10 dark:bg-[#7C2D12]/30 text-[#7C2D12] dark:text-orange-300 px-1.5 py-0.5 rounded font-mono font-bold">Simular</span>
           </button>
 
           {pendingCount > 0 && (
@@ -365,7 +398,7 @@ export default function SalesModule({ session, onLogout }: Props) {
 
           <button
             onClick={() => setShowCierreModal(true)}
-            className="w-full py-2.5 text-[#475569] bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] hover:border-red-200 hover:text-red-600 hover:bg-red-50 font-bold text-xs tracking-wide flex items-center justify-center gap-2 transition active:scale-95"
+            className="w-full py-2.5 text-[#475569] dark:text-gray-300 bg-[#F8FAFC] dark:bg-gray-700 rounded-xl border border-[#E2E8F0] dark:border-gray-600 hover:border-red-200 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 font-bold text-xs tracking-wide flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer"
           >
             <LogOut size={14} />
             <span>Cerrar Sesión</span>
@@ -375,7 +408,7 @@ export default function SalesModule({ session, onLogout }: Props) {
       </aside>
 
       {/* ── RIGHT MAIN PANEL SUB-VIEWS MOUNT POINT ── */}
-      <main className="flex-1 flex flex-col overflow-hidden h-full">
+      <main className="flex-1 flex flex-col overflow-hidden h-full bg-[#F8FAFC] dark:bg-gray-900 transition-colors">
         <TerminalVentasView
           productos={productos}
           categorias={categorias}

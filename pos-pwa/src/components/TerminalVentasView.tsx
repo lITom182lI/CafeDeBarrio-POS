@@ -52,14 +52,12 @@ const getBadgeColorClass = (nombre: string | null) => {
   return 'bg-[#7C2D12] text-white';
 };
 
-const getPaymentColorClass = (nombre: string | null) => {
-  if (!nombre) return 'bg-[#7C2D12] text-white border-[#7C2D12]';
+const getPaymentColorClass = (nombre: string) => {
   const n = nombre.toLowerCase();
-  if (n.includes('yape')) return 'bg-[#7E22CE] text-white border-[#7E22CE]'; // Purple-700
-  if (n.includes('plin')) return 'bg-[#0891B2] text-white border-[#0891B2]'; // Cyan-600
-  if (n.includes('efectivo')) return 'bg-[#15803D] text-white border-[#15803D]'; // Green-700
-  if (n.includes('tarjeta')) return 'bg-[#334155] text-white border-[#334155]'; // Slate-700
-  return 'bg-[#7C2D12] text-white border-[#7C2D12]'; // Default
+  if (n.includes('efectivo')) return 'bg-emerald-100/80 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700';
+  if (n.includes('yape') || n.includes('plin')) return 'bg-purple-100/80 dark:bg-purple-900/50 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-700';
+  if (n.includes('tarjeta')) return 'bg-blue-100/80 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700';
+  return 'bg-slate-100/80 dark:bg-slate-800 text-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-600';
 };
 
 export default function TerminalVentasView({
@@ -136,10 +134,10 @@ export default function TerminalVentasView({
   return (
     <div className="flex-1 flex overflow-hidden h-full">
       {/* ── CENTRAL CATALOG PANEL ── */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-[#F8FAFC]">
+      <div className="flex-1 flex flex-col overflow-hidden bg-[#F8FAFC] dark:bg-gray-900 transition-colors">
         
         {/* Search header bar - Clean Minimalism style */}
-        <div className="pt-4 px-4 pb-2 bg-white border-b border-[#E2E8F0] flex-shrink-0 space-y-2">
+        <div className="pt-4 px-4 pb-2 bg-white dark:bg-gray-800 border-b border-[#E2E8F0] dark:border-gray-700 flex-shrink-0 space-y-2 transition-colors">
           <div className="relative">
             <span className="absolute inset-y-0 left-3 flex items-center text-[#334155]/60">
               <Search size={18} />
@@ -149,7 +147,7 @@ export default function TerminalVentasView({
               placeholder="Buscar café, té, postres o sandwiches..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl pl-10 pr-4 py-3 text-[#1E293B] placeholder-[#334155]/50 font-sans text-sm focus:outline-none focus:border-[#7C2D12] focus:bg-white transition"
+              className="w-full bg-[#F8FAFC] dark:bg-gray-700 border border-[#E2E8F0] dark:border-gray-600 rounded-xl pl-10 pr-4 py-3 text-[#1E293B] dark:text-gray-100 placeholder-[#334155]/50 dark:placeholder-gray-400 font-sans text-sm focus:outline-none focus:border-[#7C2D12] dark:focus:border-orange-500 focus:bg-white dark:focus:bg-gray-800 transition-colors"
             />
           </div>
 
@@ -160,7 +158,7 @@ export default function TerminalVentasView({
               className={`flex-shrink-0 px-6 py-3 rounded-xl text-sm tracking-wide font-extrabold transition-all border cursor-pointer uppercase ${
                 selectedCat === null
                   ? getCategoryColorClass(null)
-                  : 'bg-[#F8FAFC] text-[#334155] border-[#E2E8F0] hover:bg-white hover:text-[#1E293B]'
+                  : 'bg-[#F8FAFC] dark:bg-gray-700 text-[#334155] dark:text-gray-300 border-[#E2E8F0] dark:border-gray-600 hover:bg-white dark:hover:bg-gray-600 hover:text-[#1E293B] dark:hover:text-white'
               }`}
             >
               Todos
@@ -172,7 +170,7 @@ export default function TerminalVentasView({
                 className={`flex-shrink-0 px-6 py-3 rounded-xl text-sm tracking-wide font-extrabold transition-all border cursor-pointer uppercase ${
                   selectedCat === cat.nombre
                     ? getCategoryColorClass(cat.nombre)
-                    : 'bg-[#F8FAFC] text-[#334155] border-[#E2E8F0] hover:bg-white hover:text-[#1E293B]'
+                    : 'bg-[#F8FAFC] dark:bg-gray-700 text-[#334155] dark:text-gray-300 border-[#E2E8F0] dark:border-gray-600 hover:bg-white dark:hover:bg-gray-600 hover:text-[#1E293B] dark:hover:text-white'
                 }`}
               >
                 {cat.nombre}
@@ -182,7 +180,7 @@ export default function TerminalVentasView({
         </div>
 
         {/* Product Catalog Grid - Clean Minimalism style */}
-        <div className="flex-1 overflow-y-auto p-4 bg-[#F8FAFC]">
+        <div className="flex-1 overflow-y-auto p-4 bg-[#F8FAFC] dark:bg-gray-900 transition-colors">
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             {productosFiltrados.map(p => {
               const cartItem = cart.find(i => i.productoId === p.productoId)
@@ -195,14 +193,14 @@ export default function TerminalVentasView({
                   key={p.productoId}
                   disabled={isAgotado || qtyInCart >= p.cantidadDisponible}
                   onClick={() => addToCart(p)}
-                  className={`text-left bg-white rounded-2xl p-4 border transition-all text-[#334155] relative flex flex-col justify-between shadow-xs h-40 group cursor-pointer ${
+                  className={`text-left bg-white dark:bg-gray-800 rounded-2xl p-4 border transition-all text-[#334155] dark:text-gray-200 relative flex flex-col justify-between shadow-xs h-40 group cursor-pointer ${
                     isAgotado
-                      ? 'opacity-30 bg-slate-100 border-[#E2E8F0] cursor-not-allowed'
+                      ? 'opacity-30 bg-slate-100 dark:bg-gray-800 border-[#E2E8F0] dark:border-gray-700 cursor-not-allowed'
                       : qtyInCart >= p.cantidadDisponible
-                      ? 'opacity-80 bg-[#F8FAFC] border-[#E2E8F0] cursor-not-allowed'
+                      ? 'opacity-80 bg-[#F8FAFC] dark:bg-gray-800 border-[#E2E8F0] dark:border-gray-700 cursor-not-allowed'
                       : qtyInCart > 0
-                      ? 'border-[#7C2D12] bg-[#7C2D12]/5 ring-1 ring-[#7C2D12]/20 shadow-xs'
-                      : 'border-[#E2E8F0] hover:border-[#7C2D12]/40 hover:shadow-xs hover:transform active:scale-95'
+                      ? 'border-[#7C2D12] dark:border-orange-500 bg-[#7C2D12]/5 dark:bg-orange-500/10 ring-1 ring-[#7C2D12]/20 dark:ring-orange-500/20 shadow-xs'
+                      : 'border-[#E2E8F0] dark:border-gray-700 hover:border-[#7C2D12]/40 dark:hover:border-orange-500/50 hover:shadow-xs hover:transform active:scale-95'
                   }`}
                 >
                   {/* Category & Price line */}
@@ -210,17 +208,17 @@ export default function TerminalVentasView({
                     <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-lg ${getBadgeColorClass(p.categoriaNombre)}`}>
                       {p.categoriaNombre}
                     </span>
-                    <span className="text-[#7C2D12] font-extrabold text-sm tracking-wide">
+                    <span className="text-[#7C2D12] dark:text-orange-400 font-extrabold text-sm tracking-wide">
                       {formatSoles(p.precio)}
                     </span>
                   </div>
 
                   {/* Name & Short Description */}
                   <div className="my-2 flex-1 flex flex-col justify-center">
-                    <p className="font-extrabold text-[#1E293B] text-sm leading-snug group-hover:text-[#7C2D12] transition uppercase">
+                    <p className="font-extrabold text-[#1E293B] dark:text-gray-100 text-sm leading-snug group-hover:text-[#7C2D12] dark:group-hover:text-orange-400 transition uppercase">
                       {p.nombre}
                     </p>
-                    <p className="text-[11px] text-[#334155]/85 font-sans line-clamp-2 mt-1 leading-relaxed">
+                    <p className="text-[11px] text-[#334155]/85 dark:text-gray-400 font-sans line-clamp-2 mt-1 leading-relaxed">
                       {p.nombre === 'Espresso Doble' && 'Extracción concentrada de café seleccionado.'}
                       {p.nombre === 'Cappuccino Italiano' && 'Espresso con leche texturizada y cacao en polvo.'}
                       {p.nombre === 'Latte Caramel' && 'Café latte saborizado con salsa premium de caramelo.'}
@@ -267,12 +265,12 @@ export default function TerminalVentasView({
       </div>
 
       {/* ── RIGHT CART & PAYMENT SIDEBAR ── */}
-      <div className="w-[380px] xl:w-[420px] bg-white border-l border-[#E2E8F0] flex flex-col justify-between overflow-hidden shadow-sm flex-shrink-0">
+      <div className="w-[380px] xl:w-[420px] bg-white dark:bg-gray-800 border-l border-[#E2E8F0] dark:border-gray-700 flex flex-col justify-between overflow-hidden shadow-sm flex-shrink-0 transition-colors">
         
         {/* Header order section */}
-        <div className="p-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] flex-shrink-0">
-          <div className="flex items-center gap-1.5 text-[#1E293B] font-extrabold">
-            <ShoppingCart size={16} className="text-[#7C2D12]" />
+        <div className="p-4 border-b border-[#E2E8F0] dark:border-gray-700 flex items-center justify-between bg-[#F8FAFC] dark:bg-gray-800/50 flex-shrink-0 transition-colors">
+          <div className="flex items-center gap-1.5 text-[#1E293B] dark:text-gray-100 font-extrabold">
+            <ShoppingCart size={16} className="text-[#7C2D12] dark:text-orange-500" />
             <span className="text-sm uppercase tracking-wider">COMANDA DE VENTA</span>
           </div>
           {cart.length > 0 && (
@@ -291,8 +289,8 @@ export default function TerminalVentasView({
           {cart.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center space-y-3 py-10">
               <span className="text-4xl">☕</span>
-              <p className="text-[#1E293B] font-extrabold text-sm">El carrito está vacío.</p>
-              <p className="text-[#334155]/60 text-xs max-w-[200px] leading-relaxed">
+              <p className="text-[#1E293B] dark:text-gray-300 font-extrabold text-sm">El carrito está vacío.</p>
+              <p className="text-[#334155]/60 dark:text-gray-500 text-xs max-w-[200px] leading-relaxed">
                 Haga clic en los productos para agregarlos.
               </p>
             </div>
@@ -302,29 +300,29 @@ export default function TerminalVentasView({
                 const prod = productos.find(p => p.productoId === item.productoId)
                 const isMax = prod && item.cantidad >= prod.cantidadDisponible
                 return (
-                <div key={item.productoId} className="bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E2E8F0] flex items-center justify-between gap-1">
+                <div key={item.productoId} className="bg-[#F8FAFC] dark:bg-gray-700/50 p-2.5 rounded-xl border border-[#E2E8F0] dark:border-gray-600 flex items-center justify-between gap-1 transition-colors">
                   <div className="flex-1 min-w-0">
-                     <p className="font-extrabold text-[12px] text-[#1E293B] truncate uppercase">{item.nombre}</p>
-                     <p className="text-[10px] text-[#334155]/60 font-semibold">{formatSoles(item.precio)} c/u</p>
+                     <p className="font-extrabold text-[12px] text-[#1E293B] dark:text-gray-100 truncate uppercase">{item.nombre}</p>
+                     <p className="text-[10px] text-[#334155]/60 dark:text-gray-400 font-semibold">{formatSoles(item.precio)} c/u</p>
                   </div>
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => updateQty(item.productoId, -1)}
-                      className="w-5 h-5 rounded-lg bg-[#E2E8F0] hover:bg-[#cbd5e0] text-[#334155] text-[10px] font-bold flex items-center justify-center transition active:scale-90 cursor-pointer"
+                      className="w-5 h-5 rounded-lg bg-[#E2E8F0] dark:bg-gray-600 hover:bg-[#cbd5e0] dark:hover:bg-gray-500 text-[#334155] dark:text-gray-200 text-[10px] font-bold flex items-center justify-center transition active:scale-90 cursor-pointer"
                     >
                       −
                     </button>
-                    <span className="w-4 text-center font-extrabold text-xs text-[#1E293B]">{item.cantidad}</span>
+                    <span className="w-4 text-center font-extrabold text-xs text-[#1E293B] dark:text-gray-100">{item.cantidad}</span>
                     <button
                       disabled={isMax}
                       onClick={() => updateQty(item.productoId, 1)}
-                      className={`w-5 h-5 rounded-lg text-[10px] font-bold flex items-center justify-center transition ${isMax ? 'bg-rose-100 text-rose-300 cursor-not-allowed' : 'bg-[#E2E8F0] hover:bg-[#cbd5e0] text-[#334155] cursor-pointer active:scale-90'}`}
+                      className={`w-5 h-5 rounded-lg text-[10px] font-bold flex items-center justify-center transition ${isMax ? 'bg-rose-100 dark:bg-rose-900/50 text-rose-300 dark:text-rose-400 cursor-not-allowed' : 'bg-[#E2E8F0] dark:bg-gray-600 hover:bg-[#cbd5e0] dark:hover:bg-gray-500 text-[#334155] dark:text-gray-200 cursor-pointer active:scale-90'}`}
                     >
                       +
                     </button>
                   </div>
-                  <div className="w-16 text-right flex-shrink-0 bg">
-                    <p className="font-bold text-[#1E293B] text-xs">{formatSoles(item.precio * item.cantidad)}</p>
+                  <div className="w-16 text-right flex-shrink-0">
+                    <p className="font-bold text-[#1E293B] dark:text-gray-100 text-xs">{formatSoles(item.precio * item.cantidad)}</p>
                   </div>
                   <button
                     onClick={() => removeFromCart(item.productoId)}
@@ -340,12 +338,12 @@ export default function TerminalVentasView({
         </div>
 
         {/* Totales, Customer Data & Checkout Controls Panel */}
-        <div className="p-4 bg-white border-t border-[#E2E8F0] space-y-4 flex-shrink-0">
+        <div className="p-4 bg-white dark:bg-gray-800 border-t border-[#E2E8F0] dark:border-gray-700 space-y-4 flex-shrink-0 transition-colors">
           
           {/* Metadata: Comprobante Type & Name selectors matching Screenshot 2 */}
           <div className="space-y-2.5">
             <div>
-              <label htmlFor="comprobante-select" className="block text-[10px] uppercase tracking-wider text-[#1E293B] font-extrabold mb-1">
+              <label htmlFor="comprobante-select" className="block text-[10px] uppercase tracking-wider text-[#1E293B] dark:text-gray-300 font-extrabold mb-1">
                 COMPROBANTE DE VENTA
               </label>
               <select
@@ -360,7 +358,7 @@ export default function TerminalVentasView({
                     setComprobante(null)
                   }
                 }}
-                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#1E293B] rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:border-[#7C2D12]"
+                className="w-full bg-[#F8FAFC] dark:bg-gray-700 border border-[#E2E8F0] dark:border-gray-600 text-[#1E293B] dark:text-gray-100 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:border-[#7C2D12] dark:focus:border-orange-500"
               >
                 <option value="simple">Ticket de Venta Simple</option>
                 <option value="boleta">Boleta Nominada o Factura</option>
@@ -368,7 +366,7 @@ export default function TerminalVentasView({
             </div>
 
             <div>
-              <label htmlFor="client-input" className="block text-[10px] uppercase tracking-wider text-[#1E293B] font-extrabold mb-1">
+              <label htmlFor="client-input" className="block text-[10px] uppercase tracking-wider text-[#1E293B] dark:text-gray-300 font-extrabold mb-1">
                 NOMBRE DEL CLIENTE
               </label>
               <input
@@ -383,10 +381,10 @@ export default function TerminalVentasView({
                     // setting the plain simple text
                   }
                 }}
-                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#1E293B] rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:border-[#7C2D12] placeholder-slate-400"
+                className="w-full bg-[#F8FAFC] dark:bg-gray-700 border border-[#E2E8F0] dark:border-gray-600 text-[#1E293B] dark:text-gray-100 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:border-[#7C2D12] dark:focus:border-orange-500 placeholder-slate-400 dark:placeholder-gray-500"
               />
               {comprobante && (
-                <p className="text-[10px] text-[#7C2D12] font-semibold mt-1">
+                <p className="text-[10px] text-[#7C2D12] dark:text-orange-400 font-semibold mt-1">
                   ✅ Listado con {comprobante.tipoDocumento}: {comprobante.numeroDocumento}
                 </p>
               )}
@@ -395,7 +393,7 @@ export default function TerminalVentasView({
 
           {/* Payment Methods Selection Stack - Grid 2x2 matched precisely to screenshot 2 */}
           <div className="space-y-1.5">
-            <span className="block text-[10px] uppercase tracking-wider text-[#1E293B] font-extrabold mb-1">
+            <span className="block text-[10px] uppercase tracking-wider text-[#1E293B] dark:text-gray-300 font-extrabold mb-1">
               CANAL / MEDIO DE PAGO
             </span>
             <div className="grid grid-cols-2 gap-1.5">
@@ -408,7 +406,7 @@ export default function TerminalVentasView({
                     className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer ${
                       isActive
                         ? `${getPaymentColorClass(m.nombre)} shadow-2xs`
-                        : 'bg-white text-[#334155]/85 border-[#E2E8F0] hover:border-[#7C2D12]/40 hover:text-[#1E293B]'
+                        : 'bg-white dark:bg-gray-700 text-[#334155]/85 dark:text-gray-300 border-[#E2E8F0] dark:border-gray-600 hover:border-[#7C2D12]/40 dark:hover:border-orange-500 hover:text-[#1E293B] dark:hover:text-white'
                     }`}
                   >
                     {renderPaymentIcon(m.nombre)}
@@ -426,15 +424,15 @@ export default function TerminalVentasView({
                 onChange={e => { setPagoDoble(e.target.checked); setMetodoPago2Id(null); setMontoMetodo1('') }}
                 className="w-3.5 h-3.5 accent-[#7C2D12] rounded cursor-pointer"
               />
-              <span className="text-[#334155]/70 text-[10px] font-bold uppercase tracking-wider">Pago doble (dos formas)</span>
+              <span className="text-[#334155]/70 dark:text-gray-400 text-[10px] font-bold uppercase tracking-wider">Pago doble (dos formas)</span>
             </label>
 
             {pagoDoble && (
-              <div className="bg-[#F8FAFC] rounded-xl p-2.5 space-y-2 border border-[#E2E8F0] text-[11px]">
+              <div className="bg-[#F8FAFC] dark:bg-gray-700/50 rounded-xl p-2.5 space-y-2 border border-[#E2E8F0] dark:border-gray-600 text-[11px]">
                 <div>
-                  <p className="text-[#334155] font-bold mb-1">Monto en {metodosPago.find(m => m.metodoPagoId === metodoPagoId)?.nombre ?? 'Efectivo'}</p>
+                  <p className="text-[#334155] dark:text-gray-200 font-bold mb-1">Monto en {metodosPago.find(m => m.metodoPagoId === metodoPagoId)?.nombre ?? 'Efectivo'}</p>
                   <div className="flex items-center gap-1">
-                    <span className="text-slate-400 font-bold">S/</span>
+                    <span className="text-slate-400 dark:text-gray-500 font-bold">S/</span>
                     <input
                       type="number"
                       min="0.10"
@@ -442,12 +440,12 @@ export default function TerminalVentasView({
                       value={montoMetodo1}
                       onChange={e => setMontoMetodo1(e.target.value)}
                       placeholder="0.00"
-                      className="w-full bg-white border border-[#E2E8F0] text-[#1E293B] rounded px-2 py-1 text-xs focus:outline-none focus:border-[#7C2D12] font-semibold"
+                      className="w-full bg-white dark:bg-gray-700 border border-[#E2E8F0] dark:border-gray-600 text-[#1E293B] dark:text-gray-100 rounded px-2 py-1 text-xs focus:outline-none focus:border-[#7C2D12] dark:focus:border-orange-500 font-semibold"
                     />
                   </div>
                 </div>
                 <div>
-                  <p className="text-[#334155] font-bold mb-1">Elegir segundo método</p>
+                  <p className="text-[#334155] dark:text-gray-200 font-bold mb-1">Elegir segundo método</p>
                   <div className="flex gap-1.5 flex-wrap">
                     {metodosPago
                       .filter(m => m.metodoPagoId !== metodoPagoId)
@@ -458,7 +456,7 @@ export default function TerminalVentasView({
                           className={`px-2 py-1 rounded font-bold border transition text-xs ${
                             metodoPago2Id === m.metodoPagoId
                               ? getPaymentColorClass(m.nombre)
-                              : 'bg-white text-[#334155]/70 border-[#E2E8F0] hover:border-[#7C2D12]/40 hover:text-[#1E293B]'
+                              : 'bg-white dark:bg-gray-700 text-[#334155]/70 dark:text-gray-300 border-[#E2E8F0] dark:border-gray-600 hover:border-[#7C2D12]/40 dark:hover:border-orange-500 hover:text-[#1E293B] dark:hover:text-white'
                           }`}
                         >
                           {m.nombre}
@@ -466,7 +464,7 @@ export default function TerminalVentasView({
                       ))}
                   </div>
                   {montoMetodo1 && parseFloat(montoMetodo1) > 0 && parseFloat(montoMetodo1) < total && (
-                    <p className="text-[#7C2D12] font-extrabold text-[10px] sm:text-right mt-1.5">
+                    <p className="text-[#7C2D12] dark:text-orange-400 font-extrabold text-[10px] sm:text-right mt-1.5">
                       Resta para método 2: {formatSoles(total - parseFloat(montoMetodo1))}
                     </p>
                   )}
@@ -477,12 +475,12 @@ export default function TerminalVentasView({
 
           {/* Vuelto Calculation block (only for single Cash payments) */}
           {!pagoDoble && isEfectivo && (
-            <div className="bg-[#F8FAFC] rounded-xl p-2.5 space-y-1.5 border border-[#E2E8F0]">
-              <label htmlFor="monto-recibido" className="text-[10px] text-[#1E293B] uppercase tracking-wider font-extrabold block">
+            <div className="bg-[#F8FAFC] dark:bg-gray-700/50 rounded-xl p-2.5 space-y-1.5 border border-[#E2E8F0] dark:border-gray-600 transition-colors">
+              <label htmlFor="monto-recibido" className="text-[10px] text-[#1E293B] dark:text-gray-300 uppercase tracking-wider font-extrabold block">
                 Efectivo Recibido
               </label>
               <div className="flex items-center gap-1.5">
-                <span className="text-[#7C2D12] font-extrabold text-sm">S/</span>
+                <span className="text-[#7C2D12] dark:text-orange-400 font-extrabold text-sm">S/</span>
                 <input
                   id="monto-recibido"
                   type="number"
@@ -491,7 +489,7 @@ export default function TerminalVentasView({
                   value={montoEfectivo}
                   onChange={e => setMontoEfectivo(e.target.value)}
                   placeholder="Monto entregado"
-                  className="flex-1 bg-white border border-[#E2E8F0] rounded-lg px-2.5 py-1 text-xs text-[#1E293B] font-semibold placeholder-[#334155]/40 focus:outline-none focus:border-[#7C2D12]"
+                  className="flex-1 bg-white dark:bg-gray-700 border border-[#E2E8F0] dark:border-gray-600 rounded-lg px-2.5 py-1 text-xs text-[#1E293B] dark:text-gray-100 font-semibold placeholder-[#334155]/40 dark:placeholder-gray-500 focus:outline-none focus:border-[#7C2D12] dark:focus:border-orange-500"
                 />
               </div>
               {valMontoEfectivo > 0 && (
@@ -504,18 +502,18 @@ export default function TerminalVentasView({
           )}
 
           {/* Totales Block matching Clean Minimalism */}
-          <div className="space-y-1 text-[#334155]/80 text-[11px] pt-1.5 border-t border-[#E2E8F0]">
+          <div className="space-y-1 text-[#334155]/80 dark:text-gray-400 text-[11px] pt-1.5 border-t border-[#E2E8F0] dark:border-gray-700">
             <div className="flex justify-between">
               <span>Subtotal Gravado (S/.):</span>
-              <span className="font-extrabold text-[#1E293B]">{formatSoles(subtotal)}</span>
+              <span className="font-extrabold text-[#1E293B] dark:text-gray-100">{formatSoles(subtotal)}</span>
             </div>
             <div className="flex justify-between">
               <span>IGV (18% S/.):</span>
-              <span className="font-extrabold text-[#1E293B]">{formatSoles(igv)}</span>
+              <span className="font-extrabold text-[#1E293B] dark:text-gray-100">{formatSoles(igv)}</span>
             </div>
-            <div className="flex justify-between font-extrabold text-[#1E293B] border-t border-[#E2E8F0] pt-1.5 text-xs tracking-wide">
+            <div className="flex justify-between font-extrabold text-[#1E293B] dark:text-gray-100 border-t border-[#E2E8F0] dark:border-gray-700 pt-1.5 text-xs tracking-wide">
               <span>TOTAL A PAGAR:</span>
-              <span className="text-base text-[#7C2D12] font-black">{formatSoles(total)}</span>
+              <span className="text-base text-[#7C2D12] dark:text-orange-500 font-black">{formatSoles(total)}</span>
             </div>
           </div>
 

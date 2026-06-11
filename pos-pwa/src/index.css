@@ -16,6 +16,8 @@
   --color-warning:     var(--dtcg-color-warning);
 }
 
+@custom-variant dark (&:is(.dark *));
+
 @layer base {
   body {
     font-family: var(--font-sans);

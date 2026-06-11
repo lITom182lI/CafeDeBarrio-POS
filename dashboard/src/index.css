@@ -39,6 +39,8 @@
   --sidebar-w:   var(--dimension-sidebar-w);
 }
 
+@custom-variant dark (&:is(.dark *));
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -137,6 +139,8 @@ body {
 .profile-avatar {
   width: 38px;
   height: 38px;
+  min-width: 38px;
+  flex-shrink: 0;
   border-radius: 50%;
   background-color: var(--color-bg);
   color: var(--color-brand);
@@ -151,6 +155,7 @@ body {
 .profile-info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .profile-name {
@@ -158,6 +163,9 @@ body {
   font-size: 0.88rem;
   font-weight: 800;
   letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .profile-role {
@@ -1302,3 +1310,80 @@ tbody tr.data-row:hover > td { background: var(--bg); }
 .w-pct-98 { width: 98%; }
 .w-pct-99 { width: 99%; }
 .w-pct-100 { width: 100%; }
+
+/* ── DARK MODE OVERRIDES ── */
+html.dark {
+  --color-brand:       #f97316; /* orange-500 to match POS product selection */
+  --color-brand-hover: #ea580c; /* orange-600 */
+  --color-bg:          #0f172a; /* slate-900 */
+  --color-card:        #1e293b; /* slate-800 */
+  --color-text:        #cbd5e1; /* slate-300 */
+  --color-text-title:  #f8fafc; /* slate-50 */
+  --color-muted:       #94a3b8; /* slate-400 */
+  --color-border:      #334155; /* slate-700 */
+  --color-sidebar:     #1e293b; /* slate-800 */
+  --color-sidebar-dark:#1e293b;
+}
+
+/* Fix hardcoded backgrounds in dark mode */
+html.dark .card,
+html.dark .desglose-section,
+html.dark .filter-wrap-card,
+html.dark .table-wrap,
+html.dark .caja-input,
+html.dark .auth-card,
+html.dark .modal-content,
+html.dark .styled-select {
+  background: var(--color-card);
+  color: var(--color-text-title);
+}
+
+html.dark .auth-card input,
+html.dark .modal-content input,
+html.dark .modal-content select,
+html.dark .modal-content textarea {
+  background: #0f172a;
+  color: var(--color-text-title);
+  border-color: var(--color-border);
+}
+
+html.dark .btn-logout:hover {
+  background: #450a0a;
+  border-color: #7f1d1d;
+}
+
+/* Badges */
+html.dark .badge-stock-normal,
+html.dark .badge-habilitado,
+html.dark .caja-status.abierto {
+  background-color: #064e3b;
+  color: #34d399;
+  border-color: #065f46;
+}
+
+html.dark .badge-stock-critical,
+html.dark .caja-status.cerrado,
+html.dark .alert-danger {
+  background-color: #450a0a;
+  color: #f87171;
+  border-color: #7f1d1d;
+}
+
+html.dark .badge-deshabilitado {
+  background-color: #334155;
+  color: #94a3b8;
+}
+
+html.dark .page-meta {
+  background: #431407;
+  border-color: #7c2d12;
+  color: var(--color-brand);
+}
+
+html.dark .modal-overlay {
+  background: rgba(15, 23, 42, 0.75);
+}
+
+html.dark .pos-table tbody tr:hover td {
+  background-color: var(--color-bg);
+}
