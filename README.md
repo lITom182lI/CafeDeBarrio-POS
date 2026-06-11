@@ -33,7 +33,7 @@ Editar `.env`: reemplazar `MSSQL_SA_PASSWORD` con una contraseña segura
 **2. Iniciar SQL Server:**
 
 ```bash
-docker-compose up -d
+docker-compose -f docker-compose.dev.yml up -d
 ```
 
 **3. Aplicar migraciones y arrancar la API:**
