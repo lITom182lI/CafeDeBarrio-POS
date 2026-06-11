@@ -68,7 +68,6 @@ ADMIN_PASSWORD=$admin
 SUNAT_ENABLED=false
 SUNAT_RUC=
 SUNAT_OSE_TOKEN=
-GHCR_PAT=REEMPLAZAR_CON_PAT_GITHUB
 "@
 
 Set-Content -Path $envPath -Value $envContent -Encoding utf8NoBOM
@@ -84,20 +83,11 @@ Write-Host ""
 Write-Warn "Estas credenciales NO se volveran a mostrar. Guardalas ahora."
 
 # ── 5. Instrucciones siguientes ────────────────────────────────────────────
-Write-Step "Siguiente paso"
+Write-Step "Siguiente paso — ejecuta estos comandos"
 Write-Host ""
-Write-Host "  1. Obtener un PAT de GitHub con scope 'read:packages':" -ForegroundColor White
-Write-Host "     github.com -> Settings -> Developer settings -> Personal access tokens" -ForegroundColor DarkGray
-Write-Host "     Scope requerido: read:packages" -ForegroundColor DarkGray
+Write-Host "  docker compose pull" -ForegroundColor White
+Write-Host "  docker compose up -d" -ForegroundColor White
 Write-Host ""
-Write-Host "  2. Editar .env y reemplazar GHCR_PAT con el token generado" -ForegroundColor White
-Write-Host ""
-Write-Host "  3. Autenticar Docker y levantar:" -ForegroundColor White
-Write-Host '     $env:GHCR_PAT = (Get-Content .env | Select-String "GHCR_PAT=").ToString().Split("=")[1]' -ForegroundColor DarkGray
-Write-Host '     $env:GHCR_PAT | docker login ghcr.io -u <tu-usuario-github> --password-stdin'            -ForegroundColor DarkGray
-Write-Host "     docker compose pull"                                                                       -ForegroundColor DarkGray
-Write-Host "     docker compose up -d"                                                                      -ForegroundColor DarkGray
-Write-Host ""
-Write-Host "  API:       http://localhost:8080" -ForegroundColor DarkGray
-Write-Host "  Dashboard: http://localhost:5173" -ForegroundColor DarkGray
-Write-Host "  Login:     admin@cafedebarrio.com / $admin`n" -ForegroundColor DarkGray
+Write-Host "  API:       http://localhost:8080"              -ForegroundColor DarkGray
+Write-Host "  Dashboard: http://localhost:5173"              -ForegroundColor DarkGray
+Write-Host "  Login:     admin@cafedebarrio.com / $admin`n"  -ForegroundColor DarkGray

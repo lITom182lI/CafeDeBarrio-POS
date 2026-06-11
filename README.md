@@ -1,82 +1,74 @@
 # CafeDeBarrio POS
 
-Sistema de punto de venta para cafeterías. Tipología MUIS Tipo 1 (Monolítico Simple).
+Sistema de punto de venta para cafeterías. Tipología MUIS Tipo 2 (SaaS Escalable).
 
 ## Componentes
 
-| Componente | Tecnología     | Puerto local | Descripción                       |
-| ---------- | --------------- | ------------ | ---------------------------------- |
-| API        | .NET 9          | 5000/5001    | Backend REST — Clean Architecture |
-| Dashboard  | React 19 + Vite | 5173         | Panel de administración web       |
-| POS PWA    | React 19 + Vite | 5174         | Punto de venta — funciona offline |
-| pos-client | WinForms .NET 9 | —           | Cliente de escritorio Windows      |
+| Componente | Tecnología      | Puerto local | Descripción                        |
+|------------|-----------------|-------------|-------------------------------------|
+| API        | .NET 9          | 8080        | Backend REST — Clean Architecture  |
+| Dashboard  | React 19 + Vite | 5173        | Panel de administración web        |
+| POS PWA    | React 19 + Vite | 5174        | Punto de venta — funciona offline  |
 
 ## Prerrequisitos
 
-- .NET SDK 9.x — https://dotnet.microsoft.com/download/dotnet/9.0
-- Node.js 20+ — https://nodejs.org
-- Docker Desktop — https://www.docker.com/products/docker-desktop (para SQL Server local)
-- PowerShell 7+ (incluido en Windows 11)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) — incluye Docker Compose
+- PowerShell 5.1+ (incluido en Windows 10/11)
+- Git
 
-## Quick Start (5 pasos)
+> Para desarrollo local (sin Docker) se necesita adicionalmente .NET SDK 9 y Node.js 22+.
 
-**1. Clonar y configurar entorno:**
+## Setup en cualquier PC — 3 comandos
 
-```bash
-git clone <repo-url>
+```powershell
+git clone https://github.com/lITom182lI/CafeDeBarrio-POS
 cd CafeDeBarrio-POS
-cp .env.example .env
+.\setup.ps1
 ```
 
-Editar `.env`: reemplazar `MSSQL_SA_PASSWORD` con una contraseña segura
+El script genera el archivo `.env` con credenciales seguras únicas y muestra las instrucciones finales.
 
-**2. Iniciar SQL Server:**
+Luego:
 
-```bash
-docker-compose -f docker-compose.dev.yml up -d
+```powershell
+docker compose pull
+docker compose up -d
 ```
 
-**3. Aplicar migraciones y arrancar la API:**
+La API aplica las migraciones automáticamente al arrancar.
 
-```bash
-dotnet ef database update --project src/CafeBarrio.Infrastructure --startup-project src/CafeBarrio.API
+| Servicio  | URL                          | Credenciales                              |
+|-----------|------------------------------|-------------------------------------------|
+| Dashboard | http://localhost:5173        | admin@cafedebarrio.com / (ver setup.ps1)  |
+| API       | http://localhost:8080        | —                                         |
+| POS PWA   | http://localhost:5174        | PIN del operador desde el Dashboard       |
+
+## Variables de entorno (.env)
+
+Generadas automáticamente por `setup.ps1`. Referencia completa en `.env.example`.
+
+| Variable         | Descripción                                      |
+|------------------|--------------------------------------------------|
+| `SA_PASSWORD`    | Contraseña SA de SQL Server en Docker            |
+| `JWT_KEY`        | Secreto JWT — mínimo 32 caracteres               |
+| `CORS_ORIGIN`    | Orígenes CORS permitidos (separados por coma)    |
+| `ADMIN_PASSWORD` | Contraseña inicial del administrador             |
+| `SUNAT_ENABLED`  | Activar integración SUNAT (`true`/`false`)       |
+
+## Desarrollo local (sin Docker)
+
+```powershell
+# Terminal 1 — API
 dotnet run --project src/CafeBarrio.API
+
+# Terminal 2 — Dashboard
+cd dashboard && npm install && npm run dev
+
+# Terminal 3 — POS PWA
+cd pos-pwa && npm install && npm run dev
 ```
 
-La API queda en `https://localhost:5001`. Usuario admin: `admin@cafedebarrio.com` / `Admin2026!`
-
-**4. Arrancar el Dashboard:**
-
-```bash
-cd dashboard
-npm install
-npm run dev
-```
-
-Abre `http://localhost:5173`
-
-**5. Arrancar el POS PWA:**
-
-```bash
-cd pos-pwa
-npm install
-npm run dev
-```
-
-Abre `http://localhost:5174`
-
-## Configuración de producción
-
-Copiar `.env.example` como guía. Las siguientes variables de entorno son obligatorias:
-
-| Variable de entorno                      | Descripción                                                                   |
-| ---------------------------------------- | ------------------------------------------------------------------------------ |
-| `Jwt__Key`                             | Secret JWT ≥ 48 chars base64. Generar con `scripts/generate-jwt-secret.ps1` |
-| `ConnectionStrings__DefaultConnection` | Cadena de conexión SQL Server de producción                                  |
-| `Cors__AllowedOrigin`                  | URL del Dashboard en producción (ej.`https://mi-dominio.com`)               |
-| `MSSQL_SA_PASSWORD`                    | Contraseña SA de SQL Server (solo para docker-compose local)                  |
-
-La API lee las variables de entorno automáticamente. No es necesario modificar `appsettings.json`.
+Requiere SQL Server accesible y `.env` con `ConnectionStrings__DefaultConnection` configurado.
 
 ## Tests
 
