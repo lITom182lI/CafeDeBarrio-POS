@@ -257,7 +257,7 @@ export default function LoginScreen({ onLogin }: Props) {
                     className="w-full bg-[#F8FAFC] dark:bg-gray-900 text-[#1E293B] dark:text-gray-100 rounded-xl px-4 py-3 border border-[#E2E8F0] dark:border-gray-700 focus:outline-none focus:border-[#7C2D12] dark:focus:border-orange-500 text-xs font-bold transition-colors cursor-pointer"
                   >
                     <option value="" className="bg-white dark:bg-gray-800 text-[#334155]/60 dark:text-gray-500">— Seleccionar Cajero —</option>
-                    {operadores.filter(op => op.activo).map(op => (
+                    {operadores.map(op => (
                       <option key={op.operadorId} value={op.operadorId} className="bg-white dark:bg-gray-800 text-[#1E293B] dark:text-gray-200">
                         [#{op.operadorId.toString().padStart(2, '0')}] {op.nombre}
                       </option>
