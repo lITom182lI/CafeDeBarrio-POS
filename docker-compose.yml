@@ -1,18 +1,41 @@
-version: '3.8'
-
 services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: muis_sql_server
     environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
-      - MSSQL_PID=Developer
-    ports:
-      - "1433:1433"
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD}
+      MSSQL_PID: Express
     volumes:
-      - sqlserver_data:/var/opt/mssql
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa",
+             "-P", "${SA_PASSWORD}", "-Q", "SELECT 1", "-No", "-C"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+    restart: unless-stopped
+
+  api:
+    image: ghcr.io/litom182li/cafebarrio-api:latest
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: >-
+        Server=sqlserver,1433;Database=CafeDeBarrio;
+        User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;
+      Jwt__Key: ${JWT_KEY}
+      Jwt__Issuer: CafeDeBarrioPOS
+      Jwt__Audience: CafeDeBarrioClients
+      Cors__AllowedOrigin: ${CORS_ORIGIN}
+      Seed__AdminPassword: ${ADMIN_PASSWORD}
+      Sunat__Enabled: ${SUNAT_ENABLED:-false}
+      Sunat__Ruc: ${SUNAT_RUC:-}
+      Sunat__OseToken: ${SUNAT_OSE_TOKEN:-}
+    depends_on:
+      sqlserver:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
-  sqlserver_data:
+  sqlserver-data:
