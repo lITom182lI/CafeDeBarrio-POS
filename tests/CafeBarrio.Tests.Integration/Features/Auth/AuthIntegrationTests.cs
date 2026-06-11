@@ -33,7 +33,8 @@ public class AuthIntegrationTests : IntegrationTestBase
         
         var jwtService = new JwtService(config);
         var hasher = new Argon2PasswordHasher();
-        _handler = new LoginCommandHandler(usuariosRepo, jwtService, hasher);
+        var uow = new UnitOfWork(Db);
+        _handler = new LoginCommandHandler(usuariosRepo, jwtService, hasher, uow);
     }
 
     [Fact]

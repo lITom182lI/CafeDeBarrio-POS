@@ -24,5 +24,9 @@ public class CreateTransaccionCommandValidator : AbstractValidator<CreateTransac
                 catch (ArgumentException ex) { ctx.AddFailure(ex.Message); }
             })
             .When(x => x.TipoDocumento is not null || x.NumeroDocumento is not null);
+
+        RuleFor(x => x.IdempotencyKey)
+            .NotEmpty()
+            .MaximumLength(64);
     }
 }

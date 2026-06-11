@@ -5,11 +5,13 @@ using CafeBarrio.Infrastructure.Persistence.Repositories;
 using CafeBarrio.Tests.Integration.Base;
 using FluentAssertions;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using MediatR;
+using CafeBarrio.Application.Common.Interfaces;
+using MUIS_CORE.Wrappers;
+using MUIS_CORE.Pagination;
 
 namespace CafeBarrio.Tests.Integration.Features.Transacciones;
 
@@ -26,14 +28,26 @@ public class TransaccionesIntegrationTests : IntegrationTestBase
         public Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default) where TNotification : INotification => Task.CompletedTask;
     }
 
+    private class DummyIdempotencyRepo : IIdempotencyRecordRepository
+    {
+        public Task<IdempotencyRecord?> GetByKeyAsync(string idempotencyKey, CancellationToken ct = default) => Task.FromResult<IdempotencyRecord?>(null);
+        public Task<IdempotencyRecord?> GetByIdAsync(int id, CancellationToken ct = default) => Task.FromResult<IdempotencyRecord?>(null);
+        public Task<MUIS_CORE.Pagination.PagedResult<IdempotencyRecord>> GetPagedAsync(MUIS_CORE.Pagination.PaginationRequest request, CancellationToken ct = default) => null!;
+        public Task<Result<int>> AddAsync(IdempotencyRecord entity, CancellationToken ct = default) => Task.FromResult(Result<int>.Success(1));
+        public Task<Result> UpdateAsync(IdempotencyRecord entity, CancellationToken ct = default) => Task.FromResult(Result.Success());
+        public Task<Result> DeleteAsync(int id, CancellationToken ct = default) => Task.FromResult(Result.Success());
+    }
+
     public TransaccionesIntegrationTests() : base()
     {
         var transaccionesRepo = new TransaccionRepository(Db);
         var productosRepo = new ProductoRepository(Db);
         var configRepo = new ConfiguracionNegocioRepository(Db);
         var uow = new UnitOfWork(Db);
+        var pub = new DummyPublisher();
+        var idemp = new DummyIdempotencyRepo();
 
-        _handler = new CreateTransaccionHandler(transaccionesRepo, productosRepo, configRepo, uow, new DummyPublisher());
+        _handler = new CreateTransaccionHandler(transaccionesRepo, productosRepo, configRepo, uow, pub, idemp);
     }
 
     [Fact]
@@ -73,16 +87,17 @@ public class TransaccionesIntegrationTests : IntegrationTestBase
 
         await Db.SaveChangesAsync();
 
-        var items = new List<CreateTransaccionItemDto> { new CreateTransaccionItemDto(producto.ProductoId, 2) };
         var command = new CreateTransaccionCommand(
             SedeId: sede.SedeId,
             MetodoPagoId: mp.MetodoPagoId,
-            Items: items,
-            ClienteId: cliente.ClienteId,
-            Canal: "POS",
-            TurnoId: turno.TurnoId,
-            OperadorId: op.OperadorId
-        );
+            Items: new[] { new CreateTransaccionItemDto(producto.ProductoId, 2) })
+        {
+            IdempotencyKey = "integration-test-key-1",
+            ClienteId = cliente.ClienteId,
+            Canal = "POS",
+            TurnoId = turno.TurnoId,
+            OperadorId = op.OperadorId
+        };
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);

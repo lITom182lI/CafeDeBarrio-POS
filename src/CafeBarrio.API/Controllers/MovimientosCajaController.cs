@@ -5,11 +5,13 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+using CafeBarrio.Domain.Common;
+
 namespace CafeBarrio.API.Controllers;
 
 [ApiController]
 [Route("api/movimientos-caja")]
-[Authorize]
+[Authorize(Roles = Roles.Admin)]
 [Produces("application/json")]
 public class MovimientosCajaController : ControllerBase
 {

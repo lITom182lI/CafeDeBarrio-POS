@@ -10,6 +10,7 @@ public class OperadorRepository : BaseRepository<Operador>, IOperadorRepository
 
     public async Task<IReadOnlyList<Operador>> GetAllAsync(CancellationToken ct = default)
         => await Context.Set<Operador>()
+            .Where(o => !o.Eliminado)
             .OrderBy(o => o.Nombre)
             .AsNoTracking()
             .ToListAsync(ct);

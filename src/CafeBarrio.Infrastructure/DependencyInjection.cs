@@ -38,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<IMetodoPagoRepository, MetodoPagoRepository>();
         services.AddScoped<IReportesRepository, ReportesRepository>();
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+        services.AddScoped<IIdempotencyRecordRepository, IdempotencyRecordRepository>();
         services.AddScoped<CafeBarrio.Application.Common.Interfaces.IJwtService, CafeBarrio.Infrastructure.Security.JwtService>();
         services.AddScoped<IPasswordHasher, Argon2PasswordHasher>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();

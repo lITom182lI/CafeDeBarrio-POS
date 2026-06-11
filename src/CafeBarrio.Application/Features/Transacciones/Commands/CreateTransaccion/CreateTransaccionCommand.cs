@@ -18,6 +18,8 @@ public record CreateTransaccionCommand(
     string? NumeroDocumento = null,
     string? RazonSocial    = null,
     int? MetodoPagoSecundarioId = null,
-    decimal? MontoMetodoPrimario = null,
-    Guid? IdempotencyKey = null
-) : IRequest<Result<int>>;
+    decimal? MontoMetodoPrimario = null
+) : IRequest<Result<int>>
+{
+    public required string IdempotencyKey { get; init; }
+}

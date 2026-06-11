@@ -6,6 +6,8 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+using CafeBarrio.Domain.Common;
+
 namespace CafeBarrio.API.Controllers;
 
 [ApiController]
@@ -18,6 +20,7 @@ public class TurnosController : ControllerBase
     public TurnosController(IMediator mediator) => _mediator = mediator;
 
     [HttpGet("activo")]
+    [Authorize(Roles = Roles.Operador + "," + Roles.Admin)]
     [ProducesResponseType<TurnoActivoDto>(200)]
     [ProducesResponseType(204)]
     public async Task<IActionResult> GetActivo([FromQuery] int sedeId)
@@ -28,6 +31,7 @@ public class TurnosController : ControllerBase
     }
 
     [HttpPost("abrir")]
+    [Authorize(Roles = Roles.Operador)]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
     public async Task<IActionResult> Abrir([FromBody] AbrirTurnoCommand command)
@@ -37,6 +41,7 @@ public class TurnosController : ControllerBase
     }
 
     [HttpPut("{id}/cerrar")]
+    [Authorize(Roles = Roles.Operador + "," + Roles.Admin)]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
     public async Task<IActionResult> Cerrar(int id, [FromBody] CerrarTurnoRequest request)

@@ -23,18 +23,27 @@ public class CerrarTurnoHandler : IRequestHandler<CerrarTurnoCommand, Result<Cer
         if (turno.Estado != "Abierto")
             return Result<CerrarTurnoResultDto>.Failure(new Error("Turno.NoPuedesCerrar", "El turno no está en estado Abierto."));
 
-        var totalEfectivo = await _turnos.GetTotalEfectivoByTurnoAsync(request.TurnoId, ct);
+        var resumen = await _turnos.GetResumenEfectivoAsync(request.TurnoId, ct);
+
+        var diferencia = request.MontoEfectivoCierto - resumen.SaldoEsperado;
 
         turno.FechaCierre = DateTime.UtcNow;
         turno.MontoEfectivoCierto = request.MontoEfectivoCierto;
-        turno.TotalEfectivoSistema = turno.MontoApertura + totalEfectivo;
+        turno.TotalEfectivoSistema = resumen.SaldoEsperado; // Maintained for backwards compatibility in other parts of the system if needed
         turno.Estado = "Cerrado";
         turno.Observaciones = request.Observaciones;
 
+        // Guardar desglose en el turno cerrado
+        turno.TotalVentasEfectivo      = resumen.TotalVentasEfectivo;
+        turno.TotalAnulacionesEfectivo = resumen.TotalAnulacionesEfectivo;
+        turno.TotalMovimientosEntrada  = resumen.TotalEntradasCaja;
+        turno.TotalMovimientosSalida   = resumen.TotalSalidasCaja;
+        turno.SaldoEsperado            = resumen.SaldoEsperado;
+        turno.Diferencia               = diferencia;
+
         await _uow.SaveChangesAsync(ct);
 
-        var diferencia = request.MontoEfectivoCierto - turno.TotalEfectivoSistema.Value;
-        var dto = new CerrarTurnoResultDto(turno.TotalEfectivoSistema.Value, request.MontoEfectivoCierto, diferencia);
+        var dto = new CerrarTurnoResultDto(resumen.SaldoEsperado, request.MontoEfectivoCierto, diferencia);
         return Result<CerrarTurnoResultDto>.Success(dto);
     }
 }

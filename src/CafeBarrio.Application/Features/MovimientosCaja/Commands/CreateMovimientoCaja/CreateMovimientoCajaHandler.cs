@@ -1,4 +1,5 @@
 using CafeBarrio.Application.Common.Interfaces;
+using CafeBarrio.Domain.Common;
 using CafeBarrio.Domain.Entities;
 using MediatR;
 using MUIS_CORE.Wrappers;
@@ -23,8 +24,8 @@ public class CreateMovimientoCajaHandler : IRequestHandler<CreateMovimientoCajaC
 
     public async Task<Result<int>> Handle(CreateMovimientoCajaCommand request, CancellationToken ct)
     {
-        if (request.TipoMovimiento != "Ingreso" && request.TipoMovimiento != "Egreso")
-            return Result<int>.Failure(new Error("MovimientoCaja.TipoInvalido", "El tipo de movimiento debe ser 'Ingreso' o 'Egreso'."));
+        if (request.TipoMovimiento != TipoMovimiento.Entrada && request.TipoMovimiento != TipoMovimiento.Salida)
+            return Result<int>.Failure(new Error("MovimientoCaja.TipoInvalido", $"El tipo de movimiento debe ser '{TipoMovimiento.Entrada}' o '{TipoMovimiento.Salida}'."));
 
         if (request.Monto <= 0)
             return Result<int>.Failure(new Error("MovimientoCaja.MontoInvalido", "El monto debe ser mayor a 0."));

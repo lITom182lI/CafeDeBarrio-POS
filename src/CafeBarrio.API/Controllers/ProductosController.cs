@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MUIS_CORE.Pagination;
 
+using CafeBarrio.Domain.Common;
+
 namespace CafeBarrio.API.Controllers;
 
 [ApiController]
@@ -19,7 +21,6 @@ public class ProductosController : ControllerBase
     public ProductosController(IMediator mediator) => _mediator = mediator;
 
     [HttpGet]
-    [AllowAnonymous]
     [ProducesResponseType<PagedResult<ProductoDto>>(200)]
     public async Task<IActionResult> GetPaged(
         [FromQuery] int pageNumber = 1,
@@ -31,6 +32,7 @@ public class ProductosController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = Roles.Admin)]
     [EnableRateLimiting("api-write-policy")]
     [ProducesResponseType<int>(201)]
     [ProducesResponseType(400)]
@@ -44,6 +46,7 @@ public class ProductosController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Roles = Roles.Admin)]
     [ProducesResponseType(204)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
@@ -56,6 +59,7 @@ public class ProductosController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = Roles.Admin)]
     [ProducesResponseType(204)]
     [ProducesResponseType(404)]
     public async Task<IActionResult> Delete(int id, CancellationToken ct)

@@ -2,11 +2,30 @@ import { useState, useEffect, useRef } from 'react'
 import { getOperadores, validarPin, OfflineError, setOperadorToken, getTurnoActivo } from '../api'
 import type { OperadorDto, OperadorSession } from '../types'
 import { saveCatalogOperadores, getCatalogOperadores } from '../offline'
-import { Coffee, Key, AlertCircle, WifiOff, CornerDownLeft, Delete, Sun, Moon, Eraser } from 'lucide-react'
+import { Coffee, AlertCircle, WifiOff, CornerDownLeft, Delete, Sun, Moon, Eraser } from 'lucide-react'
 
 interface Props {
   onLogin: (session: OperadorSession | null) => void
 }
+
+const tryRestoreOfflineSession = async (): Promise<string | null> => {
+  try {
+    const cached = await getCatalogOperadores();
+    if (cached.length === 0) return null;
+    const token = localStorage.getItem('pos_auth_token');
+    if (!token) return null;
+    // Verificar expiración del JWT sin llamar al backend
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const expMs = payload.exp * 1000;
+    if (Date.now() >= expMs) {
+      localStorage.removeItem('pos_auth_token');
+      return null;
+    }
+    return token;
+  } catch {
+    return null;
+  }
+};
 
 export default function LoginScreen({ onLogin }: Props) {
   const [operadores, setOperadores] = useState<OperadorDto[]>([])
@@ -84,13 +103,17 @@ export default function LoginScreen({ onLogin }: Props) {
     } catch (err) {
       if (err instanceof OfflineError) {
         setOffline(true)
-        // Permitir inicio offline limitado si el operador ya existe localmente
         const op = operadores.find(o => o.operadorId === id)
         if (op) {
-          setError('Modo Sin Conexión: Iniciando sesión de Cajero offline...')
-          setTimeout(() => {
-            onLogin({ operadorId: id, nombre: op.nombre, token: null })
-          }, 1000)
+          const validToken = await tryRestoreOfflineSession()
+          if (validToken) {
+            setError('Modo Sin Conexión: Iniciando sesión de Cajero offline...')
+            setTimeout(() => {
+              onLogin({ operadorId: id, nombre: op.nombre, token: validToken })
+            }, 1000)
+          } else {
+            setError('Sin conexión. Inicia sesión cuando recuperes la red.')
+          }
         } else {
           setError('PIN de seguridad no validado en modo offline')
         }
@@ -287,14 +310,7 @@ export default function LoginScreen({ onLogin }: Props) {
                   )}
                 </button>
                 
-                {(offline || operadores.length === 0) && (
-                  <button
-                    onClick={() => onLogin(null)}
-                    className="w-full py-2.5 rounded-xl text-[#334155] dark:text-gray-300 text-xs hover:text-[#7C2D12] dark:hover:text-orange-400 hover:bg-[#F8FAFC] dark:hover:bg-gray-700 transition-colors border border-[#E2E8F0] dark:border-gray-600 border-dashed cursor-pointer font-semibold"
-                  >
-                    Ingresar como Cajero Genérico
-                  </button>
-                )}
+                {/* Botón de Cajero Genérico eliminado por seguridad */}
               </div>
 
               {/* Tactile Numpad */}

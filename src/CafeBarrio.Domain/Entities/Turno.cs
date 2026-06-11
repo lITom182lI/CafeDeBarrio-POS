@@ -12,6 +12,14 @@ public class Turno : IAuditable, IAggregateRoot
     public decimal MontoApertura { get; set; }
     public decimal? MontoEfectivoCierto { get; set; }
     public decimal? TotalEfectivoSistema { get; set; }
+    
+    // Desglose del Arqueo
+    public decimal TotalVentasEfectivo { get; set; }
+    public decimal TotalAnulacionesEfectivo { get; set; }
+    public decimal TotalMovimientosEntrada { get; set; }
+    public decimal TotalMovimientosSalida { get; set; }
+    public decimal SaldoEsperado { get; set; }
+    public decimal? Diferencia { get; set; }
     public string Estado { get; set; } = "Abierto";
     public string? Observaciones { get; set; }
 

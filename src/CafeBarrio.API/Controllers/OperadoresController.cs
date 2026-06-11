@@ -9,11 +9,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
+using CafeBarrio.Domain.Common;
+
 namespace CafeBarrio.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles = Roles.Admin)]
 [Produces("application/json")]
 public class OperadoresController : ControllerBase
 {
@@ -27,7 +29,6 @@ public class OperadoresController : ControllerBase
     }
 
     [HttpGet]
-    [AllowAnonymous]
     [ProducesResponseType<IReadOnlyList<OperadorResumenDto>>(200)]
     public async Task<IActionResult> GetAll(
         [FromQuery] bool soloActivos = false,

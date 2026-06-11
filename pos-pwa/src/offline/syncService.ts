@@ -36,6 +36,7 @@ export async function syncNow(): Promise<void> {
         tipoDocumento:   tx.tipoDocumento,
         numeroDocumento: tx.numeroDocumento,
         razonSocial:     tx.razonSocial,
+        idempotencyKey:  tx.idempotencyKey,
       }
       const id = await crearTransaccion(request)
       await markSynced(tx.localId, id)

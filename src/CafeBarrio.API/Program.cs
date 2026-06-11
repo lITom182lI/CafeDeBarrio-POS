@@ -28,6 +28,28 @@ DotNetEnv.Env.TraversePath().Load();
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
 
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? throw new InvalidOperationException("Jwt:Key no configurado.");
+
+var knownPlaceholders = new[]
+{
+    "REEMPLAZAR_CON_SECRETO_MINIMO_32_CARACTERES",
+    "OVERRIDE_VIA_ENV_VAR",
+    "your-secret-key",
+    "changeme",
+    "secret"
+};
+
+if (jwtKey.Length < 32)
+    throw new InvalidOperationException(
+        "Jwt:Key debe tener mínimo 32 caracteres.");
+
+if (knownPlaceholders.Any(p =>
+        jwtKey.Contains(p, StringComparison.OrdinalIgnoreCase)))
+    throw new InvalidOperationException(
+        "Jwt:Key contiene un valor placeholder. " +
+        "Configura un secreto real antes de arrancar.");
+
 static void RequireConfig(IConfiguration cfg, string key)
 {
     var value = cfg[key];
@@ -41,17 +63,11 @@ static void RequireConfig(IConfiguration cfg, string key)
             $"Configuración requerida no establecida o con valor placeholder: '{key}'. " +
             $"Configura la variable de entorno antes de iniciar en producción.");
     }
-    
-    if (key == "Jwt:Key" && value.Length < 32)
-    {
-        throw new InvalidOperationException("La longitud de Jwt:Key debe ser al menos de 32 caracteres.");
-    }
 }
 
 if (!builder.Environment.IsDevelopment())
 {
     RequireConfig(builder.Configuration, "ConnectionStrings:DefaultConnection");
-    RequireConfig(builder.Configuration, "Jwt:Key");
     RequireConfig(builder.Configuration, "Cors:AllowedOrigin");
 }
 builder.Host.UseSerilog();
@@ -86,8 +102,20 @@ builder.Services.AddAuthorization();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    options.KnownNetworks.Clear();
+    options.RequireHeaderSymmetry = false;
+    options.ForwardLimit = 1;
     options.KnownProxies.Clear();
+    options.KnownNetworks.Clear();
+
+    var trustedProxies = builder.Configuration
+        .GetSection("ReverseProxy:TrustedProxyIPs")
+        .Get<string[]>() ?? [];
+
+    foreach (var ip in trustedProxies)
+    {
+        if (System.Net.IPAddress.TryParse(ip.Trim(), out var parsed))
+            options.KnownProxies.Add(parsed);
+    }
 });
 
 builder.Services.AddRateLimiter(options =>
@@ -147,6 +175,8 @@ builder.Services.AddHealthChecks()
     .AddCheck<CafeBarrio.Infrastructure.HealthChecks.SunatHealthCheck>("sunat-ose");
 
 var app = builder.Build();
+
+app.UseForwardedHeaders();
 
 // Seeder de datos de referencia para instalacion nueva
 using (var scope = app.Services.CreateScope())
@@ -281,7 +311,7 @@ app.Use(async (ctx, next) =>
     await next();
 });
 
-app.UseForwardedHeaders();
+
 
 app.Use(async (ctx, next) =>
 {

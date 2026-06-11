@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CafeBarrio.Application.Common.Interfaces;
 using CafeBarrio.Application.Features.Turnos.Commands.CerrarTurno;
+using CafeBarrio.Application.Features.Turnos.Dtos;
 using CafeBarrio.Domain.Entities;
 using FluentAssertions;
 using NSubstitute;
@@ -48,7 +49,7 @@ public class CerrarTurnoHandlerTests
     {
         var turno = new Turno { TurnoId = 1, Estado = "Abierto", MontoApertura = 200m };
         _turnos.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(turno);
-        _turnos.GetTotalEfectivoByTurnoAsync(1, Arg.Any<CancellationToken>()).Returns(300m);
+        _turnos.GetResumenEfectivoAsync(1, Arg.Any<CancellationToken>()).Returns(new ResumenEfectivoDto(200m, 300m, 0m, 0m, 0m));
         _uow.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
 
         var result = await _sut.Handle(new CerrarTurnoCommand(1, 480m, "Sin novedad"), CancellationToken.None);

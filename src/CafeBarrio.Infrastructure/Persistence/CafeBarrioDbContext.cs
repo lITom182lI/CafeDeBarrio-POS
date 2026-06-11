@@ -25,11 +25,20 @@ public class CafeBarrioDbContext : DbContext
     public DbSet<Anulacion> Anulaciones => Set<Anulacion>();
     public DbSet<ConfiguracionNegocio> ConfiguracionesNegocio => Set<ConfiguracionNegocio>();
 
+    public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CafeBarrioDbContext).Assembly);
+
+        modelBuilder.Entity<IdempotencyRecord>(e =>
+        {
+            e.HasIndex(r => r.IdempotencyKey)
+                .IsUnique()
+                .HasDatabaseName("UX_IdempotencyRecords_Key");
+            e.Property(r => r.IdempotencyKey).HasMaxLength(64);
+        });
 
         modelBuilder.Entity<Usuario>(e =>
         {

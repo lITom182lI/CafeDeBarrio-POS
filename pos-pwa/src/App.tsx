@@ -12,7 +12,7 @@ export default function App() {
   useEffect(() => {
     void loadRemoteConfig()
     try {
-      const storedToken = localStorage.getItem('CDB_TOKEN')
+      const storedToken = localStorage.getItem('pos_auth_token')
       const storedNombre = localStorage.getItem('CDB_SESSION_NAME')
       const storedId = localStorage.getItem('CDB_SESSION_ID')
 
@@ -33,11 +33,13 @@ export default function App() {
     setSession(newSession)
     if (newSession) {
       // Persist to prevent terminal timeouts on page reloading
-      localStorage.setItem('CDB_TOKEN', newSession.token || 'offline_generic_token')
+      if (newSession.token) {
+        localStorage.setItem('pos_auth_token', newSession.token)
+      }
       localStorage.setItem('CDB_SESSION_NAME', newSession.nombre)
       localStorage.setItem('CDB_SESSION_ID', String(newSession.operadorId))
     } else {
-      localStorage.removeItem('CDB_TOKEN')
+      localStorage.removeItem('pos_auth_token')
       localStorage.removeItem('CDB_SESSION_NAME')
       localStorage.removeItem('CDB_SESSION_ID')
     }
@@ -46,7 +48,7 @@ export default function App() {
   const handleLogout = () => {
     setSession(null)
     setOperadorToken(null)
-    localStorage.removeItem('CDB_TOKEN')
+    localStorage.removeItem('pos_auth_token')
     localStorage.removeItem('CDB_SESSION_NAME')
     localStorage.removeItem('CDB_SESSION_ID')
   }

@@ -78,6 +78,7 @@ export interface CreateTransaccionRequest {
   razonSocial?: string | null
   metodoPagoSecundarioId?: number | null
   montoMetodoPrimario?: number | null
+  idempotencyKey?: string
 }
 
 // ─── Cola offline (IndexedDB) ─────────────────────────────────────────────
@@ -100,6 +101,7 @@ export interface PendingTransaction {
   sincronizada: number
   transaccionIdServidor: number | null
   error: string | null
+  idempotencyKey?: string
 }
 
 // ─── Estado de la sesión del operador ────────────────────────────────────

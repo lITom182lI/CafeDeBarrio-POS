@@ -84,7 +84,7 @@ export class CafeBarrioPosAdapter {
 
   async validarPin(operadorId: number, pin: string): Promise<OperadorLoginDto | null> {
     try {
-      return await this.apiFetch<OperadorLoginDto>(
+      const result = await this.apiFetch<OperadorLoginDto>(
         '/api/operadores/validar-pin',
         {
           method: 'POST',
@@ -93,6 +93,10 @@ export class CafeBarrioPosAdapter {
         },
         15000
       )
+      if (result && result.token) {
+        localStorage.setItem('pos_auth_token', result.token)
+      }
+      return result
     } catch (err) {
       if (err instanceof Error && err.message.includes('401')) return null
       throw err
@@ -102,11 +106,13 @@ export class CafeBarrioPosAdapter {
   turnoActivo = () =>
     this.apiFetch<import('../types').TurnoActivoDto | null>(`/api/turnos/activo?sedeId=${config.sedeId}&t=${Date.now()}`, { cache: 'no-store' })
 
-  cerrarTurno = (turnoId: number, montoEfectivoCierto: number, observaciones: string) =>
-    this.apiFetch<unknown>(`/api/turnos/${turnoId}/cerrar`, {
+  cerrarTurno = (turnoId: number, montoEfectivoCierto: number, observaciones: string) => {
+    localStorage.removeItem('pos_auth_token')
+    return this.apiFetch<unknown>(`/api/turnos/${turnoId}/cerrar`, {
       method: 'PUT',
       body: JSON.stringify({ montoEfectivoCierto, observaciones }),
     })
+  }
 
   crearTransaccion = (request: CreateTransaccionRequest) =>
     this.apiFetch<number>('/api/transacciones', {

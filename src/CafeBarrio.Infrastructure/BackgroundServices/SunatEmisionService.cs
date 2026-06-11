@@ -23,8 +23,24 @@ public sealed class SunatEmisionService : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            await ProcesarPendientesAsync(stoppingToken);
-            await Task.Delay(_intervalo, stoppingToken);
+            try
+            {
+                await ProcesarPendientesAsync(stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // Cierre normal del host — no loggear como error
+                break;
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex,
+                    "SunatBackgroundService: error en ciclo de polling. " +
+                    "Se reintentará en el próximo intervalo.");
+            }
+
+            await Task.Delay(_intervalo, stoppingToken)
+                      .ContinueWith(_ => { }, CancellationToken.None);
         }
     }
 

@@ -7,6 +7,8 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+using CafeBarrio.Domain.Common;
+
 namespace CafeBarrio.API.Controllers;
 
 [ApiController]
@@ -19,6 +21,7 @@ public class TransaccionesController : ControllerBase
     public TransaccionesController(IMediator mediator) => _mediator = mediator;
 
     [HttpPost]
+    [Authorize(Roles = Roles.Operador)]
     [EnableRateLimiting("api-write-policy")]
     [ProducesResponseType<int>(201)]
     [ProducesResponseType(400)]
@@ -32,6 +35,7 @@ public class TransaccionesController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = Roles.Admin)]
     [ProducesResponseType<IReadOnlyList<TransaccionListItemDto>>(200)]
     public async Task<IActionResult> GetLista([FromQuery] int sedeId)
     {
@@ -40,6 +44,7 @@ public class TransaccionesController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize(Roles = Roles.Admin)]
     [ProducesResponseType<TransaccionDetalleDto>(200)]
     [ProducesResponseType(404)]
     public async Task<IActionResult> GetDetalle(int id)
@@ -49,6 +54,7 @@ public class TransaccionesController : ControllerBase
     }
 
     [HttpPost("{id}/anular")]
+    [Authorize(Roles = Roles.Admin)]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
     public async Task<IActionResult> Anular(int id, [FromBody] CafeBarrio.Application.Features.Transacciones.Commands.AnularTransaccion.AnularTransaccionCommand command, CancellationToken ct = default)

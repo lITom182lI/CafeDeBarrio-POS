@@ -3,7 +3,11 @@ import type { PendingTransaction } from '../types'
 
 export async function savePending(tx: PendingTransaction): Promise<void> {
   const db = await getDb()
-  await db.put('pendingTransactions', tx)
+  const pending = {
+    ...tx,
+    idempotencyKey: tx.idempotencyKey || crypto.randomUUID()
+  }
+  await db.put('pendingTransactions', pending)
 }
 
 export async function getPending(): Promise<PendingTransaction[]> {

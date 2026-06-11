@@ -18,15 +18,19 @@ public class CreateTransaccionHandlerTests
     private readonly IConfiguracionNegocioRepository _conf  = Substitute.For<IConfiguracionNegocioRepository>();
     private readonly IUnitOfWork _uow                       = Substitute.For<IUnitOfWork>();
     private readonly IPublisher _publisher                  = Substitute.For<IPublisher>();
+    private readonly IIdempotencyRecordRepository _idemp    = Substitute.For<IIdempotencyRecordRepository>();
     private readonly CreateTransaccionHandler _sut;
 
     public CreateTransaccionHandlerTests()
     {
-        _sut = new CreateTransaccionHandler(_transacciones, _productos, _conf, _uow, _publisher);
+        _sut = new CreateTransaccionHandler(_transacciones, _productos, _conf, _uow, _publisher, _idemp);
     }
 
     private static CreateTransaccionCommand BuildCommand(int productoId = 1, int cantidad = 2)
-        => new(SedeId: 1, MetodoPagoId: 1, Items: new[] { new CreateTransaccionItemDto(productoId, cantidad) });
+        => new(SedeId: 1, MetodoPagoId: 1, Items: new[] { new CreateTransaccionItemDto(productoId, cantidad) })
+        {
+            IdempotencyKey = "test-key-123"
+        };
 
     private static ConfiguracionNegocio BuildConfig() => new()
     {
