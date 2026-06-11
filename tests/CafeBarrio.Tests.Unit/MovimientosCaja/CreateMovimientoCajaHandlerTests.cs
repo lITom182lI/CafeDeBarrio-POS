@@ -1,5 +1,6 @@
 using CafeBarrio.Application.Common.Interfaces;
 using CafeBarrio.Application.Features.MovimientosCaja.Commands.CreateMovimientoCaja;
+using CafeBarrio.Domain.Common;
 using CafeBarrio.Domain.Entities;
 using FluentAssertions;
 using NSubstitute;
@@ -27,8 +28,8 @@ public class CreateMovimientoCajaHandlerTests
     }
 
     [Theory]
-    [InlineData("ingreso")]
-    [InlineData("EGRESO")]
+    [InlineData("INVALIDO")]
+    [InlineData("FALSO_TIPO")]
     [InlineData("Otro")]
     public async Task Handle_TipoInvalido_ReturnsFailure(string tipoInvalido)
     {
@@ -47,7 +48,7 @@ public class CreateMovimientoCajaHandlerTests
     public async Task Handle_MontoNegativo_ReturnsFailure()
     {
         // Arrange
-        var command = new CreateMovimientoCajaCommand(1, "Ingreso", "Motivo", -50);
+        var command = new CreateMovimientoCajaCommand(1, TipoMovimiento.Entrada, "Motivo", -50);
 
         // Act
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -61,7 +62,7 @@ public class CreateMovimientoCajaHandlerTests
     public async Task Handle_TurnoNotFound_ReturnsFailure()
     {
         // Arrange
-        var command = new CreateMovimientoCajaCommand(1, "Ingreso", "Motivo", 100);
+        var command = new CreateMovimientoCajaCommand(1, TipoMovimiento.Entrada, "Motivo", 100);
         _turnos.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns((Turno?)null);
 
         // Act
@@ -76,7 +77,7 @@ public class CreateMovimientoCajaHandlerTests
     public async Task Handle_TurnoCerrado_ReturnsFailure()
     {
         // Arrange
-        var command = new CreateMovimientoCajaCommand(1, "Ingreso", "Motivo", 100);
+        var command = new CreateMovimientoCajaCommand(1, TipoMovimiento.Entrada, "Motivo", 100);
         var turno = new Turno { TurnoId = 1, Estado = "Cerrado" };
         _turnos.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(turno);
 
@@ -92,7 +93,7 @@ public class CreateMovimientoCajaHandlerTests
     public async Task Handle_ValidRequest_ReturnsSuccess()
     {
         // Arrange
-        var command = new CreateMovimientoCajaCommand(1, "Ingreso", "Motivo", 100);
+        var command = new CreateMovimientoCajaCommand(1, TipoMovimiento.Entrada, "Motivo", 100);
         var turno = new Turno { TurnoId = 1, Estado = "Abierto" };
         _turnos.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(turno);
 

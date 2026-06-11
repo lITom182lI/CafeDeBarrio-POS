@@ -70,7 +70,7 @@ public class CreateTransaccionHandlerTests
         var result = await _sut.Handle(BuildCommand(cantidad: 5), CancellationToken.None);
 
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.Code == "Producto.StockInsuficiente");
+        result.Errors.Should().Contain(e => e.Code == "Stock.Insuficiente");
     }
 
     [Fact]
