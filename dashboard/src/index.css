@@ -241,6 +241,30 @@ body {
   border-color: #FEE2E2;
 }
 
+.btn-theme {
+  width: 100%;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  padding: 12px;
+  text-align: center;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-theme:hover {
+  background: #FFF7ED;
+  color: var(--color-brand);
+  border-color: #FFEDD5;
+}
+
 /* Page Header */
 .page-header {
   display: flex;
@@ -1350,6 +1374,12 @@ html.dark .modal-content textarea {
 html.dark .btn-logout:hover {
   background: #450a0a;
   border-color: #7f1d1d;
+}
+
+html.dark .btn-theme:hover {
+  background: #431407;
+  color: #fb923c;
+  border-color: #7c2d12;
 }
 
 /* Badges */

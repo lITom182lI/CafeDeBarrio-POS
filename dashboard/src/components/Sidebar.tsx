@@ -77,7 +77,7 @@ export function Sidebar({ activeTab, onChangeTab, operatorName, onLogout }: Prop
 
       <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <button 
-          className="btn-logout" 
+          className="btn-theme" 
           onClick={() => setIsDark(!isDark)}
           style={{ justifyContent: 'center' }}
         >
