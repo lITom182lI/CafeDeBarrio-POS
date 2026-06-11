@@ -19,7 +19,7 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 | A-03 | Application / Domain | Se encapsuló la lógica de descuento de inventario dentro del método `DescontarStock` en la entidad `Producto`. | PASSED |
 | A-01 | Application | Implementado IdempotencyKey en `Transaccion` para prevenir la duplicación de tickets en PWA por reintentos de red. | PASSED |
 | A-02 | Application / Infra | Llamada a SUNAT separada del hilo principal mediante el Patrón Outbox y un `BackgroundService`. La venta se procesa y responde inmediatamente. | PASSED |
-| F-05 | Infrastructure | `ReportesRepository` agrupa en memoria (C#) después de un `ToListAsync()`. Migrado a SQL mediante GroupBy en IQueryable. | PASSED |
+| F-05 | Infrastructure | `ReportesRepository` cargaba todas las columnas antes de agrupar. Corregido: `Where` + `Select(Fecha, Total)` en SQL, luego `GroupBy` en memoria. EF Core 9 no puede traducir `GroupBy(t => t.Fecha.Date)` con filtro de navegación a SQL. | PASSED |
 | F-06 | Root / Docs | Falta del archivo obligatorio `CLAUDE.md` con la Clasificación de Tipología (Regla 0). Se creó con Tipo 2 y datos de perfil. | PASSED |
 | F-07 | Domain | `Producto` tenía duplicados los campos `FechaCreacion` y `FechaActualizacion`. Unificados en `IAuditable`. | PASSED |
 | F-08 | Tests | Proyecto `CafeBarrio.Tests` (legacy) contenía solo `UnitTest1.cs`. Eliminado en favor de los proyectos Unit e Integration. | PASSED |
@@ -34,6 +34,8 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 | WARN-03 | Frontend | `const SEDE = 1` hardcodeado en dashboard. Migrado a `import.meta.env.VITE_SEDE_ID`. Creados `dashboard/.env` y `dashboard/.env.production`. | PASSED |
 | WARN-05 | API / Observability | Exception handler no incluía Correlation ID. Middleware añadido que propaga `X-Correlation-ID` en headers y en el cuerpo JSON de errores 500. | PASSED |
 | WARN-06 | Infrastructure | Health check solo cubría DB. `SunatHealthCheck` añadido: verifica stub-mode, credenciales y conectividad HTTP al OSE (Nubefact). | PASSED |
+| PROD-05 | Infrastructure / DevOps | Sin datos de catálogo inicial: sistema arrancaba vacío, inutilizable sin carga manual. `CatalogDataSeeder` idempotente añadido: siembra Sede 1, ConfiguracionNegocio, 3 categorías y 16 productos al primer arranque. | PASSED |
+| DEVX-01 | DevOps / DX | Sin proceso estandarizado de onboarding para nuevos desarrolladores. `appsettings.Development.json` gitignoreado sin template de referencia. Añadidos `docker-compose.dev.yml`, `appsettings.Development.template.json` y `scripts/dev-setup.ps1`. Un solo comando post-clonado levanta SQL Server, crea configs y aplica migraciones. | PASSED |
 
 ---
 
