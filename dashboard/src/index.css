@@ -1037,7 +1037,7 @@ textarea.caja-input {
   color: var(--color-muted);
   font-size: 0.9rem;
   font-weight: 600;
-  background: #ffffff;
+  background: transparent;
   border-radius: 24px;
   border: 2px dashed var(--color-border);
 }
@@ -1411,7 +1411,8 @@ html.dark .btn-theme:hover {
 /* Badges */
 html.dark .badge-stock-normal,
 html.dark .badge-habilitado,
-html.dark .caja-status.abierto {
+html.dark .caja-status.abierto,
+html.dark .success-banner {
   background-color: #064e3b;
   color: #34d399;
   border-color: #065f46;

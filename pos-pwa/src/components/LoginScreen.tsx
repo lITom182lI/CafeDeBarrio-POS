@@ -338,7 +338,7 @@ export default function LoginScreen({ onLogin }: Props) {
                     aria-label="Limpiar todo"
                     disabled={!operadorId || pin.length === 0}
                     onClick={clearPin}
-                    className="aspect-square bg-white dark:bg-gray-900 hover:bg-[#F8FAFC] dark:hover:bg-gray-700 hover:text-[#7C2D12] dark:hover:text-orange-500 active:scale-95 disabled:opacity-20 text-[#1E293B] dark:text-gray-200 font-bold text-lg rounded-xl flex items-center justify-center transition-all border border-[#E2E8F0] dark:border-gray-700 shadow-2xs cursor-pointer"
+                    className="aspect-square bg-white dark:bg-gray-900 hover:bg-[#F8FAFC] dark:hover:bg-gray-700 text-slate-400 dark:text-slate-500 hover:text-[#7C2D12] dark:hover:text-orange-500 active:scale-95 disabled:opacity-20 rounded-xl flex items-center justify-center transition-all border border-[#E2E8F0] dark:border-gray-700 shadow-2xs cursor-pointer"
                   >
                     <Eraser size={20} />
                   </button>
