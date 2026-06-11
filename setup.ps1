@@ -73,6 +73,12 @@ SUNAT_OSE_TOKEN=
 Set-Content -Path $envPath -Value $envContent -Encoding utf8NoBOM
 Write-Ok ".env creado en $envPath"
 
+# ── Crear .env.local para frontends (apuntan al API Docker en 8080) ────────
+$frontendEnv = "VITE_API_TARGET=http://127.0.0.1:8080"
+Set-Content -Path (Join-Path $PSScriptRoot 'dashboard\.env.local')  -Value $frontendEnv -Encoding utf8NoBOM
+Set-Content -Path (Join-Path $PSScriptRoot 'pos-pwa\.env.local')    -Value $frontendEnv -Encoding utf8NoBOM
+Write-Ok "dashboard/.env.local y pos-pwa/.env.local creados (proxy → Docker :8080)"
+
 # ── 4. Mostrar credenciales generadas ──────────────────────────────────────
 Write-Step "Credenciales generadas (guárdalas en un lugar seguro)"
 Write-Host ""

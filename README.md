@@ -18,30 +18,35 @@ Sistema de punto de venta para cafeterías. Tipología MUIS Tipo 2 (SaaS Escalab
 
 > Para desarrollo local (sin Docker) se necesita adicionalmente .NET SDK 9 y Node.js 22+.
 
-## Setup en cualquier PC — 3 comandos
+## Setup en cualquier PC — 5 comandos
 
 ```powershell
 git clone https://github.com/lITom182lI/CafeDeBarrio-POS
 cd CafeDeBarrio-POS
-.\setup.ps1
+.\setup.ps1                   # genera .env + .env.local de frontends
+docker compose pull
+docker compose up -d          # levanta API + SQL Server, migra y seedea automáticamente
 ```
 
-El script genera el archivo `.env` con credenciales seguras únicas y muestra las instrucciones finales.
-
-Luego:
+Luego abrir los frontends en terminales separadas:
 
 ```powershell
-docker compose pull
-docker compose up -d
+# Terminal 1 — Dashboard
+cd dashboard && npm install && npm run dev
+
+# Terminal 2 — POS PWA
+cd pos-pwa && npm install && npm run dev
 ```
 
-La API aplica las migraciones automáticamente al arrancar.
+| Servicio  | URL                   | Credenciales                             |
+|-----------|-----------------------|------------------------------------------|
+| Dashboard | http://localhost:5173 | admin@cafedebarrio.com / (ver setup.ps1) |
+| POS PWA   | http://localhost:5174 | PIN del operador configurado en Dashboard|
+| API       | http://localhost:8080 | —                                        |
 
-| Servicio  | URL                          | Credenciales                              |
-|-----------|------------------------------|-------------------------------------------|
-| Dashboard | http://localhost:5173        | admin@cafedebarrio.com / (ver setup.ps1)  |
-| API       | http://localhost:8080        | —                                         |
-| POS PWA   | http://localhost:5174        | PIN del operador desde el Dashboard       |
+> `setup.ps1` crea automáticamente `dashboard/.env.local` y `pos-pwa/.env.local`
+> con el proxy apuntando al API Docker (`:8080`). Sin este paso los frontends
+> no conectan con el backend.
 
 ## Variables de entorno (.env)
 
