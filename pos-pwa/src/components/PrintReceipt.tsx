@@ -48,7 +48,7 @@ function buildReceipt(ticket: TicketData): string {
   lines.push(SEP)
 
   for (const item of ticket.items) {
-    const nombre = padR(item.nombre, 18)
+    const nombre = padR(item.nombre.toUpperCase(), 18)
     const cant   = padL(String(item.cantidad), 5)
     const tot    = padL(`S/${(item.precio * item.cantidad).toFixed(2)}`, 9)
     lines.push(`${nombre}${cant}${tot}`)

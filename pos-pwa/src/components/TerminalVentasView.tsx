@@ -190,7 +190,7 @@ export default function TerminalVentasView({
 
                   {/* Name & Short Description */}
                   <div className="my-2 flex-1 flex flex-col justify-center">
-                    <p className="font-extrabold text-[#1E293B] text-sm leading-snug group-hover:text-[#7C2D12] transition">
+                    <p className="font-extrabold text-[#1E293B] text-sm leading-snug group-hover:text-[#7C2D12] transition uppercase">
                       {p.nombre}
                     </p>
                     <p className="text-[11px] text-[#334155]/85 font-sans line-clamp-2 mt-1 leading-relaxed">
@@ -277,7 +277,7 @@ export default function TerminalVentasView({
                 return (
                 <div key={item.productoId} className="bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E2E8F0] flex items-center justify-between gap-1">
                   <div className="flex-1 min-w-0">
-                     <p className="font-extrabold text-[12px] text-[#1E293B] truncate">{item.nombre}</p>
+                     <p className="font-extrabold text-[12px] text-[#1E293B] truncate uppercase">{item.nombre}</p>
                      <p className="text-[10px] text-[#334155]/60 font-semibold">{formatSoles(item.precio)} c/u</p>
                   </div>
                   <div className="flex items-center gap-1">

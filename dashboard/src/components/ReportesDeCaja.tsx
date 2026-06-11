@@ -251,7 +251,7 @@ export function ReportesDeCaja() {
               >
                 <div className="text-center border-b border-dashed border-slate-300 pb-4 mb-4">
                   <h3 className="font-black text-sm tracking-widest uppercase block text-slate-900 mb-1">Resultado de Cierre</h3>
-                  <span className="text-[10px] text-slate-500 font-medium block mb-1">Cajera/o: {selectedTurno.operadorNombre}</span>
+                  <span className="text-[10px] text-slate-500 font-medium block mb-1"><strong>Cajera/o:</strong> {selectedTurno.operadorNombre}</span>
                 </div>
 
                 <div className="space-y-1 text-slate-600 text-[11px]">
@@ -262,15 +262,15 @@ export function ReportesDeCaja() {
                 <div className="border-t border-b border-dashed border-slate-300 py-3 my-3">
                   <div className="space-y-2 text-right">
                     <div className="flex justify-between font-normal">
-                      <span>Monto Inicial en Caja:</span>
+                      <span><strong>Monto Inicial en Caja:</strong></span>
                       <span>{formatSoles(selectedTurno.montoApertura)}</span>
                     </div>
                     <div className="flex justify-between font-normal text-sky-700">
-                      <span>Efectivo Total Sistema:</span>
+                      <span><strong>Efectivo Total Sistema:</strong></span>
                       <span>{formatSoles(selectedTurno.totalEfectivoSistema)}</span>
                     </div>
                     <div className="flex justify-between font-bold text-slate-800">
-                      <span>Monto Arqueado Físico:</span>
+                      <span><strong>Monto Arqueado Físico:</strong></span>
                       <span>{formatSoles(selectedTurno.montoEfectivoCierto)}</span>
                     </div>
                   </div>
@@ -278,7 +278,7 @@ export function ReportesDeCaja() {
 
                 <div className="space-y-1 text-right font-bold text-sm">
                   <div className={`flex justify-between ${selectedTurno.diferencia < 0 ? 'text-rose-600' : selectedTurno.diferencia > 0 ? 'text-sky-600' : 'text-emerald-600'}`}>
-                    <span>Diferencia ({selectedTurno.estadoCierre}):</span>
+                    <span><strong>Diferencia ({selectedTurno.estadoCierre}):</strong></span>
                     <span>{formatSoles(selectedTurno.diferencia)}</span>
                   </div>
                 </div>
@@ -310,15 +310,10 @@ export function ReportesDeCaja() {
               <button onClick={handleCloseObs} className="modal-close" aria-label="Cerrar modal">×</button>
             </div>
 
-            <div className="p-4 bg-amber-50 text-amber-900 border border-amber-200 rounded-lg text-sm mb-4">
-              {obsTurno.observaciones ? (
-                <p className="whitespace-pre-wrap">{obsTurno.observaciones}</p>
-              ) : (
-                <p className="text-amber-700/60 italic">No se registraron observaciones durante el cierre de caja.</p>
-              )}
-            </div>
-
-            <div className="flex justify-end">
+            <div style={{ paddingTop: "8px", color: "var(--color-text)", fontSize: "0.95rem", lineHeight: "1.5" }}>
+              <p style={{ marginBottom: "24px" }} className="whitespace-pre-wrap">
+                {obsTurno.observaciones || <span className="text-slate-400 italic">No se registraron observaciones durante el cierre de caja.</span>}
+              </p>
               <button onClick={handleCloseObs} className="btn btn-primary">
                 Aceptar
               </button>
