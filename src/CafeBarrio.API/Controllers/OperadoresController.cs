@@ -79,6 +79,15 @@ public class OperadoresController : ControllerBase
         return result.IsSuccess ? NoContent() : NotFound(result.Errors);
     }
 
+    [HttpGet("activos")]
+    [AllowAnonymous]
+    [ProducesResponseType<IReadOnlyList<OperadorLoginItemDto>>(200)]
+    public async Task<IActionResult> GetActivos(CancellationToken ct)
+    {
+        var lista = await _operadores.GetAllActivosAsync(ct);
+        return Ok(lista.Select(o => new OperadorLoginItemDto(o.OperadorId, o.Nombre)).ToList());
+    }
+
     [HttpPost("validar-pin")]
     [AllowAnonymous]
     [EnableRateLimiting("pin-policy")]

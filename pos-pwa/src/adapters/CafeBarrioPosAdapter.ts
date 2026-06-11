@@ -78,7 +78,7 @@ export class CafeBarrioPosAdapter {
 
   getCategorias  = () => this.apiFetch<CategoriaDto[]>('/api/categorias')
   getMetodosPago = () => this.apiFetch<MetodoPagoDto[]>('/api/metodos-pago')
-  getOperadores  = () => this.apiFetch<OperadorDto[]>('/api/operadores')
+  getOperadores  = () => this.apiFetch<OperadorDto[]>('/api/operadores/activos')
   getTasas       = (sedeId: number) =>
     this.apiFetch<{ tasaIgv: number }>(`/api/configuracion/tasas?sedeId=${sedeId}`)
 
