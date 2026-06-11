@@ -110,5 +110,145 @@ public class CatalogDataSeeder : ICatalogDataSeeder
                 await _context.SaveChangesAsync(ct);
             }
         }
+
+        // 5. Metodos de pago (si no existen)
+        bool metodosExisten = await _context.MetodosPago.AnyAsync(ct);
+        if (!metodosExisten)
+        {
+            _context.MetodosPago.AddRange(
+                new MetodoPago { Nombre = "Efectivo", Activo = true },
+                new MetodoPago { Nombre = "Yape", Activo = true },
+                new MetodoPago { Nombre = "Plin", Activo = true },
+                new MetodoPago { Nombre = "Tarjeta", Activo = true }
+            );
+            await _context.SaveChangesAsync(ct);
+        }
+
+        var metodoEfec = await _context.MetodosPago.FirstOrDefaultAsync(m => m.Nombre == "Efectivo", ct);
+        var metodoYape = await _context.MetodosPago.FirstOrDefaultAsync(m => m.Nombre == "Yape", ct);
+
+        // 6. Test Data Simulation (Operadores, Turnos, Transacciones, Anulaciones)
+        bool hasTestData = await _context.Operadores.CountAsync(ct) >= 10;
+        if (!hasTestData)
+        {
+            // Generar 10 operadores
+            var ops = new List<Operador>();
+            for(int i = 1; i <= 10; i++)
+            {
+                ops.Add(new Operador { 
+                    SedeId = sede.SedeId, 
+                    Nombre = $"Test Operador {i}", 
+                    PinHash = "123456", 
+                    Activo = true, 
+                    CreatedAt = DateTime.UtcNow 
+                });
+            }
+            _context.Operadores.AddRange(ops);
+            await _context.SaveChangesAsync(ct);
+
+            // Generar 10 turnos (9 cerrados, 1 abierto)
+            var turnos = new List<Turno>();
+            for(int i = 0; i < 10; i++)
+            {
+                var t = new Turno {
+                    OperadorId = ops[i].OperadorId,
+                    SedeId = sede.SedeId,
+                    FechaApertura = DateTime.UtcNow.AddDays(-10 + i),
+                    MontoApertura = 100m,
+                    Estado = i == 9 ? "Abierto" : "Cerrado",
+                    FechaCierre = i == 9 ? null : DateTime.UtcNow.AddDays(-10 + i).AddHours(8),
+                    MontoEfectivoCierto = i == 9 ? null : 500m,
+                    TotalEfectivoSistema = i == 9 ? null : 500m
+                };
+                turnos.Add(t);
+            }
+            _context.Turnos.AddRange(turnos);
+            await _context.SaveChangesAsync(ct);
+
+            var allProds = await _context.Productos.ToListAsync(ct);
+            if (allProds.Any() && metodoEfec != null && metodoYape != null)
+            {
+                // Generar 10 Ventas Completadas
+                var ventas = new List<Transaccion>();
+                for(int i = 0; i < 10; i++)
+                {
+                    var v = new Transaccion {
+                        SedeId = sede.SedeId,
+                        TurnoId = turnos[0].TurnoId,
+                        OperadorId = ops[0].OperadorId,
+                        MetodoPagoId = i % 2 == 0 ? metodoEfec.MetodoPagoId : metodoYape.MetodoPagoId,
+                        Fecha = DateTime.UtcNow.AddDays(-5).AddHours(i),
+                        Subtotal = 10m,
+                        Impuesto = 1.8m,
+                        Total = 11.8m,
+                        Canal = "Local",
+                        CreatedAt = DateTime.UtcNow,
+                        SunatEstado = "Aceptado",
+                        Detalles = new List<DetalleTransaccion> {
+                            new DetalleTransaccion {
+                                ProductoId = allProds[0].ProductoId,
+                                Cantidad = 1,
+                                PrecioUnitario = 10m,
+                                Subtotal = 10m
+                            }
+                        }
+                    };
+                    ventas.Add(v);
+                }
+                _context.Transacciones.AddRange(ventas);
+                await _context.SaveChangesAsync(ct);
+
+                // Generar 10 Ventas para luego ser Anuladas
+                var ventasParaAnular = new List<Transaccion>();
+                for(int i = 0; i < 10; i++)
+                {
+                    var v = new Transaccion {
+                        SedeId = sede.SedeId,
+                        TurnoId = turnos[1].TurnoId,
+                        OperadorId = ops[1].OperadorId,
+                        MetodoPagoId = metodoEfec.MetodoPagoId,
+                        Fecha = DateTime.UtcNow.AddDays(-2).AddHours(i),
+                        Subtotal = 20m,
+                        Impuesto = 3.6m,
+                        Total = 23.6m,
+                        Canal = "Local",
+                        CreatedAt = DateTime.UtcNow,
+                        SunatEstado = "Anulado",
+                        Detalles = new List<DetalleTransaccion> {
+                            new DetalleTransaccion {
+                                ProductoId = allProds[1].ProductoId,
+                                Cantidad = 2,
+                                PrecioUnitario = 10m,
+                                Subtotal = 20m
+                            }
+                        }
+                    };
+                    ventasParaAnular.Add(v);
+                }
+                _context.Transacciones.AddRange(ventasParaAnular);
+                await _context.SaveChangesAsync(ct);
+
+                // Crear las 10 Anulaciones
+                var anulaciones = new List<Anulacion>();
+                for(int i = 0; i < 10; i++)
+                {
+                    anulaciones.Add(new Anulacion {
+                        TransaccionId = ventasParaAnular[i].TransaccionId,
+                        OperadorSolicitanteId = ops[2].OperadorId,
+                        AutorizadorId = ops[0].OperadorId,
+                        FechaHora = ventasParaAnular[i].Fecha.AddMinutes(30),
+                        TipoAnulacion = "DevolucionTotal",
+                        Motivo = "Error en el pedido de prueba",
+                        MontoOriginal = ventasParaAnular[i].Total,
+                        MontoDevuelto = ventasParaAnular[i].Total,
+                        MetodoDevolucion = "Efectivo",
+                        ImpactoInventario = true,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+                _context.Anulaciones.AddRange(anulaciones);
+                await _context.SaveChangesAsync(ct);
+            }
+        }
     }
 }
