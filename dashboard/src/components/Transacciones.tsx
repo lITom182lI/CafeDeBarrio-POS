@@ -462,7 +462,8 @@ export function Transacciones() {
               <label>
                 Motivo de la anulación
                 <textarea 
-                  className="resize-none h-20"
+                  className="h-20"
+                  style={{ resize: "none" }}
                   placeholder="Explique brevemente el motivo..."
                   value={cancelMotivo}
                   onChange={(e) => setCancelMotivo(e.target.value)}
