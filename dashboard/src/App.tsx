@@ -2,6 +2,7 @@ import { useState, useTransition } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar } from "./components/Sidebar";
 import { ReportesYGraficos } from "./components/ReportesYGraficos";
+import { ArqueoCaja } from "./components/ArqueoCaja";
 import { MenuEInventario } from "./components/MenuEInventario";
 import { Transacciones } from "./components/Transacciones";
 import { ReportesDeCaja } from "./components/ReportesDeCaja";
@@ -12,7 +13,7 @@ import { useAuth } from "./hooks/useAuth";
 export default function App() {
   const { email, logout } = useAuth()
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState<string>("dashboard");
+  const [activeTab, setActiveTab] = useState<string>("arqueo");
   const [, startTransition] = useTransition();
 
   const handleTabChange = (tab: string) => {
@@ -28,13 +29,14 @@ export default function App() {
 
   const renderActiveView = () => {
     switch (activeTab) {
+      case "arqueo":        return <ArqueoCaja />;
       case "dashboard":     return <ReportesYGraficos />;
       case "productos":     return <MenuEInventario />;
       case "transacciones": return <Transacciones />;
       case "reportes":      return <ReportesDeCaja />;
       case "operadores":    return <GestionOperadores />;
       case "configuracion": return <Configuracion />;
-      default:              return <ReportesYGraficos />;
+      default:              return <ArqueoCaja />;
     }
   };
 

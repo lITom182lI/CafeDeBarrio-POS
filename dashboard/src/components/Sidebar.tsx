@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, Users, Receipt, Settings, LogOut, FileText } from "lucide-react";
+import { LayoutDashboard, Package, Users, Receipt, Settings, LogOut, FileText, ShieldCheck } from "lucide-react";
 
 interface Props {
   activeTab: string;
@@ -19,6 +19,7 @@ export function Sidebar({ activeTab, onChangeTab, operatorName, onLogout }: Prop
   };
 
   const navItems = [
+    { id: "arqueo",        label: "Arqueo de Caja",icon: <ShieldCheck size={18} /> },
     { id: "dashboard",     label: "Dashboard",     icon: <LayoutDashboard size={18} /> },
     { id: "productos",     label: "Productos",     icon: <Package size={18} /> },
     { id: "transacciones", label: "Transacciones", icon: <Receipt size={18} /> },
