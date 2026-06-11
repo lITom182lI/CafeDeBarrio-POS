@@ -18,6 +18,8 @@ Tipo 2 (SaaS Escalable)
 ## Notas de Gobernanza
 *Evaluado bajo el ECOSISTEMA-MUIS. Ver `docs/MUIS_EVALUATION_LEDGER.md` para el estado actual de la deuda técnica y cumplimiento arquitectónico.*
 
+*Memoria arquitectónica persistente: cargar `docs/MUIS_GUARDRAILS.md` al inicio de cada sesión. Para detalle por capa: `docs/guardrails/INDEX.md`. Para decisiones con rationale: `docs/adr/INDEX.md`.*
+
 ## Protocolo de Orquestación IA (MUIS_DEVOPS)
 - **Claude Code** actúa como Arquitecto/Revisor: evalúa, genera instrucciones, valida. **No ejecuta código directamente.**
 - Toda instrucción al modelo ejecutor se emite como **Task Bundle B** (ver `MUIS_DEVOPS/bundles/TASK_BUNDLE_TEMPLATE.md`).

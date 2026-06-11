@@ -66,4 +66,16 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 
 ---
 
+---
+
+## Integración con sistema de memoria arquitectónica
+
+Las entradas de este Ledger con patrones recurrentes o decisiones no obvias tienen entradas correspondientes en:
+- **Guardrails** (`docs/guardrails/`): qué no hacer y por qué — consultar antes de emitir Bundle B
+- **Decisiones** (`docs/adr/`): rationale completo con alternativas evaluadas
+
+Ver `docs/MUIS_GUARDRAILS.md` para el índice maestro y el protocolo de carga para IA.
+
+---
+
 > *Este ledger debe ser actualizado conforme se solucionen los hallazgos. Ningún PR debe ser fusionado sin actualizar el estado a PASSED.*
