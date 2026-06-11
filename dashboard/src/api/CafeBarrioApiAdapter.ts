@@ -8,7 +8,7 @@ import type {
 
 interface PaginatedResult<T> { items: T[]; totalCount: number }
 
-const SEDE = 1
+const SEDE = Number(import.meta.env.VITE_SEDE_ID ?? '1')
 
 export class CafeBarrioApiAdapter {
   private get token(): string | null {

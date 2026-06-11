@@ -120,12 +120,16 @@ public class ReportesRepository : IReportesRepository
 
     public async Task<IReadOnlyList<VentasPorDiaDto>> GetVentasPorDiaAsync(int sedeId, DateTime desde, DateTime hasta, CancellationToken ct)
     {
-        return await _context.Transacciones
+        var rows = await _context.Transacciones
             .Where(t => t.SedeId == sedeId && t.Fecha >= desde && t.Fecha <= hasta && t.Anulacion == null)
+            .Select(t => new { t.Fecha, t.Total })
+            .ToListAsync(ct);
+
+        return rows
             .GroupBy(t => t.Fecha.Date)
             .Select(g => new VentasPorDiaDto(g.Key, g.Sum(t => t.Total), g.Count()))
             .OrderBy(x => x.Fecha)
-            .ToListAsync(ct);
+            .ToList();
     }
 
     public async Task<IReadOnlyList<TurnoCerradoDto>> GetTurnosCerradosAsync(int sedeId, DateTime desde, DateTime hasta, CancellationToken ct)

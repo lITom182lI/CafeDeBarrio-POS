@@ -51,8 +51,8 @@ var allowedOrigins = (builder.Configuration["Cors:AllowedOrigin"]
 builder.Services.AddCors(options =>
     options.AddPolicy("Dashboard", policy =>
         policy.WithOrigins(allowedOrigins)
-              .AllowAnyHeader()
-              .AllowAnyMethod()));
+              .WithHeaders("Content-Type", "Authorization", "X-Operator-Id")
+              .WithMethods("GET", "POST", "PUT", "DELETE")));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -105,6 +105,17 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit           = 0
             }));
 
+    options.AddPolicy("api-write-policy", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "anon",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit          = 200,
+                Window               = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit           = 0
+            }));
+
     options.OnRejected = async (context, token) =>
     {
         context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
@@ -119,8 +130,10 @@ builder.Services.AddOpenApi();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+builder.Services.AddHttpClient();
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<CafeBarrioDbContext>("database");
+    .AddDbContextCheck<CafeBarrioDbContext>("database")
+    .AddCheck<CafeBarrio.Infrastructure.HealthChecks.SunatHealthCheck>("sunat-ose");
 
 var app = builder.Build();
 
@@ -226,16 +239,18 @@ if (app.Environment.IsDevelopment())
 app.UseExceptionHandler(errApp => errApp.Run(async ctx =>
 {
     var ex = ctx.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
+    var correlationId = ctx.Items["CorrelationId"]?.ToString() ?? "unknown";
     if (ex is not null)
-        Log.Error(ex, "Unhandled exception on {Method} {Path}",
-            ctx.Request.Method, ctx.Request.Path);
+        Log.Error(ex, "Unhandled exception [{CorrelationId}] on {Method} {Path}",
+            correlationId, ctx.Request.Method, ctx.Request.Path);
 
     ctx.Response.StatusCode  = StatusCodes.Status500InternalServerError;
     ctx.Response.ContentType = "application/problem+json";
     await ctx.Response.WriteAsync(
-        "{\"type\":\"https://tools.ietf.org/html/rfc7807\"," +
-        "\"title\":\"Error interno del servidor.\"," +
-        "\"status\":500}");
+        $"{{\"type\":\"https://tools.ietf.org/html/rfc7807\"," +
+        $"\"title\":\"Error interno del servidor.\"," +
+        $"\"status\":500," +
+        $"\"correlationId\":\"{correlationId}\"}}");
 }));
 
 if (!app.Environment.IsDevelopment())
@@ -251,11 +266,26 @@ app.Use(async (ctx, next) =>
 });
 
 app.UseForwardedHeaders();
+
+app.Use(async (ctx, next) =>
+{
+    var correlationId = ctx.Request.Headers["X-Correlation-ID"].FirstOrDefault()
+        ?? Guid.NewGuid().ToString("N");
+    ctx.Items["CorrelationId"] = correlationId;
+    ctx.Response.Headers.Append("X-Correlation-ID", correlationId);
+    await next();
+});
 app.UseCors("Dashboard");
 app.UseHttpsRedirection();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+
+using (var scope = app.Services.CreateScope())
+{
+    await scope.ServiceProvider.GetRequiredService<CafeBarrio.Infrastructure.Persistence.Seeders.ICatalogDataSeeder>().SeedAsync();
+}
+
 app.MapControllers();
 app.MapHealthChecks("/health");
 app.Run();

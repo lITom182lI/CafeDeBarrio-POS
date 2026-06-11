@@ -19,7 +19,7 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 | A-03 | Application / Domain | Se encapsuló la lógica de descuento de inventario dentro del método `DescontarStock` en la entidad `Producto`. | PASSED |
 | A-01 | Application | Implementado IdempotencyKey en `Transaccion` para prevenir la duplicación de tickets en PWA por reintentos de red. | PASSED |
 | A-02 | Application / Infra | Llamada a SUNAT separada del hilo principal mediante el Patrón Outbox y un `BackgroundService`. La venta se procesa y responde inmediatamente. | PASSED |
-| F-05 | Infrastructure | `ReportesRepository` agrupa en memoria (C#) después de un `ToListAsync()`. Migrado a SQL mediante GroupBy en IQueryable. | PASSED |
+| F-05 | Infrastructure | `ReportesRepository` cargaba todas las columnas antes de agrupar. Corregido: `Where` + `Select(Fecha, Total)` en SQL, luego `GroupBy` en memoria. EF Core 9 no puede traducir `GroupBy(t => t.Fecha.Date)` con filtro de navegación a SQL. | PASSED |
 | F-06 | Root / Docs | Falta del archivo obligatorio `CLAUDE.md` con la Clasificación de Tipología (Regla 0). Se creó con Tipo 2 y datos de perfil. | PASSED |
 | F-07 | Domain | `Producto` tenía duplicados los campos `FechaCreacion` y `FechaActualizacion`. Unificados en `IAuditable`. | PASSED |
 | F-08 | Tests | Proyecto `CafeBarrio.Tests` (legacy) contenía solo `UnitTest1.cs`. Eliminado en favor de los proyectos Unit e Integration. | PASSED |
@@ -29,6 +29,13 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 | PROD-02 | Infrastructure | `SunatEmisionService` reintentaba indefinidamente en caso de fallo de infraestructura. Implementado `MaxRetries = 3` + estado `DeadLetter` + columna `SunatIntentos`. Migración `S10_SunatIntentos`. | PASSED |
 | PROD-03 | DevOps | Sin imagen Docker. Creados `Dockerfile` multi-stage (sdk:9.0 → aspnet:9.0, non-root `appuser`, puerto 8080) y `.dockerignore`. | PASSED |
 | PROD-04 | DevOps / CI | Sin pipeline de entrega continua. Job `docker-publish` añadido a `ci.yml`: construye y publica imagen a `ghcr.io` en cada push a `main` (solo si `build-and-test` pasa). | PASSED |
+| WARN-01 | API / Boot | CORS usaba `AllowAnyHeader` + `AllowAnyMethod`. Restringido a `WithHeaders("Content-Type","Authorization","X-Operator-Id")` y `WithMethods("GET","POST","PUT","DELETE")`. | PASSED |
+| WARN-02 | API / Security | Rate limiting ausente en endpoints de escritura. Política `api-write-policy` (200 req/min/IP) aplicada a `POST /api/transacciones` y `POST /api/productos`. | PASSED |
+| WARN-03 | Frontend | `const SEDE = 1` hardcodeado en dashboard. Migrado a `import.meta.env.VITE_SEDE_ID`. Creados `dashboard/.env` y `dashboard/.env.production`. | PASSED |
+| WARN-05 | API / Observability | Exception handler no incluía Correlation ID. Middleware añadido que propaga `X-Correlation-ID` en headers y en el cuerpo JSON de errores 500. | PASSED |
+| WARN-06 | Infrastructure | Health check solo cubría DB. `SunatHealthCheck` añadido: verifica stub-mode, credenciales y conectividad HTTP al OSE (Nubefact). | PASSED |
+| PROD-05 | Infrastructure / DevOps | Sin datos de catálogo inicial: sistema arrancaba vacío, inutilizable sin carga manual. `CatalogDataSeeder` idempotente añadido: siembra Sede 1, ConfiguracionNegocio, 3 categorías y 16 productos al primer arranque. | PASSED |
+| DEVX-01 | DevOps / DX | Sin proceso estandarizado de onboarding para nuevos desarrolladores. `appsettings.Development.json` gitignoreado sin template de referencia. Añadidos `docker-compose.dev.yml`, `appsettings.Development.template.json` y `scripts/dev-setup.ps1`. Un solo comando post-clonado levanta SQL Server, crea configs y aplica migraciones. | PASSED |
 
 ---
 
@@ -55,6 +62,19 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 | ID | Capa | Descripción | Estado | Fecha Límite / Sprint |
 |---|---|---|---|---|
 | F-10 | Infrastructure | `JwtService` inyecta `IConfiguration` directo. Funciona en Tipo 1, pero se refactorizará a `IOptions<JwtOptions>`. | DEFERRED | Sprint V2 |
+| WARN-04 | Frontend / Observability | `VITE_SENTRY_DSN` vacío en `pos-pwa/.env.production`. Requiere cuenta Sentry externa — diferido hasta provisionar DSN. | DEFERRED | Cuando se configure Sentry |
+
+---
+
+---
+
+## Integración con sistema de memoria arquitectónica
+
+Las entradas de este Ledger con patrones recurrentes o decisiones no obvias tienen entradas correspondientes en:
+- **Guardrails** (`docs/guardrails/`): qué no hacer y por qué — consultar antes de emitir Bundle B
+- **Decisiones** (`docs/adr/`): rationale completo con alternativas evaluadas
+
+Ver `docs/MUIS_GUARDRAILS.md` para el índice maestro y el protocolo de carga para IA.
 
 ---
 
