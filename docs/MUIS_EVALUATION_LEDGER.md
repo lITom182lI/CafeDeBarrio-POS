@@ -29,6 +29,11 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 | PROD-02 | Infrastructure | `SunatEmisionService` reintentaba indefinidamente en caso de fallo de infraestructura. Implementado `MaxRetries = 3` + estado `DeadLetter` + columna `SunatIntentos`. Migración `S10_SunatIntentos`. | PASSED |
 | PROD-03 | DevOps | Sin imagen Docker. Creados `Dockerfile` multi-stage (sdk:9.0 → aspnet:9.0, non-root `appuser`, puerto 8080) y `.dockerignore`. | PASSED |
 | PROD-04 | DevOps / CI | Sin pipeline de entrega continua. Job `docker-publish` añadido a `ci.yml`: construye y publica imagen a `ghcr.io` en cada push a `main` (solo si `build-and-test` pasa). | PASSED |
+| WARN-01 | API / Boot | CORS usaba `AllowAnyHeader` + `AllowAnyMethod`. Restringido a `WithHeaders("Content-Type","Authorization","X-Operator-Id")` y `WithMethods("GET","POST","PUT","DELETE")`. | PASSED |
+| WARN-02 | API / Security | Rate limiting ausente en endpoints de escritura. Política `api-write-policy` (200 req/min/IP) aplicada a `POST /api/transacciones` y `POST /api/productos`. | PASSED |
+| WARN-03 | Frontend | `const SEDE = 1` hardcodeado en dashboard. Migrado a `import.meta.env.VITE_SEDE_ID`. Creados `dashboard/.env` y `dashboard/.env.production`. | PASSED |
+| WARN-05 | API / Observability | Exception handler no incluía Correlation ID. Middleware añadido que propaga `X-Correlation-ID` en headers y en el cuerpo JSON de errores 500. | PASSED |
+| WARN-06 | Infrastructure | Health check solo cubría DB. `SunatHealthCheck` añadido: verifica stub-mode, credenciales y conectividad HTTP al OSE (Nubefact). | PASSED |
 
 ---
 
@@ -55,6 +60,7 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 | ID | Capa | Descripción | Estado | Fecha Límite / Sprint |
 |---|---|---|---|---|
 | F-10 | Infrastructure | `JwtService` inyecta `IConfiguration` directo. Funciona en Tipo 1, pero se refactorizará a `IOptions<JwtOptions>`. | DEFERRED | Sprint V2 |
+| WARN-04 | Frontend / Observability | `VITE_SENTRY_DSN` vacío en `pos-pwa/.env.production`. Requiere cuenta Sentry externa — diferido hasta provisionar DSN. | DEFERRED | Cuando se configure Sentry |
 
 ---
 

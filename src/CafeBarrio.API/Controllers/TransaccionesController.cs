@@ -1,4 +1,5 @@
 using CafeBarrio.Application.Features.Transacciones.Commands.CreateTransaccion;
+using Microsoft.AspNetCore.RateLimiting;
 using CafeBarrio.Application.Features.Transacciones.Dtos;
 using CafeBarrio.Application.Features.Transacciones.Queries.GetTransacciones;
 using CafeBarrio.Application.Features.Transacciones.Queries.GetTransaccionDetalle;
@@ -18,6 +19,7 @@ public class TransaccionesController : ControllerBase
     public TransaccionesController(IMediator mediator) => _mediator = mediator;
 
     [HttpPost]
+    [EnableRateLimiting("api-write-policy")]
     [ProducesResponseType<int>(201)]
     [ProducesResponseType(400)]
     public async Task<IActionResult> Create(
