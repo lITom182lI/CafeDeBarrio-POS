@@ -108,6 +108,11 @@ public class CafeBarrioDbContext : DbContext
                 .HasDatabaseName("IX_Turnos_OperadorId");
             e.HasIndex(t => t.FechaApertura)
                 .HasDatabaseName("IX_Turnos_FechaApertura");
+            // Un solo turno abierto por sede — previene duplicados por race condition
+            e.HasIndex(t => t.SedeId)
+                .HasFilter("[Estado] = 'Abierto'")
+                .IsUnique()
+                .HasDatabaseName("UX_Turnos_SedeId_Abierto");
         });
     }
 }

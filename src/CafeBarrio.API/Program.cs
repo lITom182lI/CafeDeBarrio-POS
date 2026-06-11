@@ -95,6 +95,25 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
         };
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var stampClaim = context.Principal?.FindFirst("security_stamp")?.Value;
+                if (stampClaim is null) return; // token de Operador — no tiene stamp
+
+                var db = context.HttpContext.RequestServices
+                    .GetRequiredService<CafeBarrioDbContext>();
+
+                var idClaim = context.Principal?.FindFirst(
+                    System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(idClaim, out var userId)) { context.Fail("Invalid token"); return; }
+
+                var usuario = await db.Usuarios.FindAsync(userId);
+                if (usuario is null || usuario.SecurityStamp != stampClaim)
+                    context.Fail("Token revocado. Inicia sesión nuevamente.");
+            }
+        };
     });
 
 builder.Services.AddAuthorization();

@@ -20,6 +20,7 @@ public class JwtService : IJwtService
             new Claim(ClaimTypes.NameIdentifier, usuario.UsuarioId.ToString()),
             new Claim(ClaimTypes.Email, usuario.Email),
             new Claim(ClaimTypes.Role, usuario.Rol),
+            new Claim("security_stamp", usuario.SecurityStamp),
         };
         // Admin JWT: 4 horas (MUIS_SECURITY_AUTH — Access Token de corta duración para Tipo 1)
         var adminHours = int.TryParse(_config["Jwt:AdminExpiryHours"], out var ah) ? ah : 4;

@@ -10,4 +10,5 @@ public class Usuario
     public int FailedLoginAttempts { get; set; } = 0;
     public bool IsLocked { get; set; } = false;
     public DateTime? LockedUntil { get; set; }
+    public string SecurityStamp { get; set; } = Guid.NewGuid().ToString();
 }

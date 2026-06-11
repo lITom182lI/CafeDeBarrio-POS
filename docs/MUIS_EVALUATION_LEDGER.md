@@ -37,18 +37,31 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 | PROD-05 | Infrastructure / DevOps | Sin datos de catálogo inicial: sistema arrancaba vacío, inutilizable sin carga manual. `CatalogDataSeeder` idempotente añadido: siembra Sede 1, ConfiguracionNegocio, 3 categorías y 16 productos al primer arranque. | PASSED |
 | DEVX-01 | DevOps / DX | Sin proceso estandarizado de onboarding para nuevos desarrolladores. `appsettings.Development.json` gitignoreado sin template de referencia. Añadidos `docker-compose.dev.yml`, `appsettings.Development.template.json` y `scripts/dev-setup.ps1`. Un solo comando post-clonado levanta SQL Server, crea configs y aplica migraciones. | PASSED |
 
+### Auditoría de Seguridad Fable 5 — Junio 2026
+
+| ID | Capa | Descripción | Estado |
+|---|---|---|---|
+| H-01 | API / Security | JWT guard sólo bloqueaba un placeholder. Expandido a 5 placeholders conocidos + mínimo 32 chars. | PASSED |
+| H-02 | PWA / Security | Backdoor `offline_generic_token` hardcodeado en `App.tsx`/`LoginScreen.tsx`. Eliminado; reemplazado por `tryRestoreOfflineSession()` con validación de expiración JWT. | PASSED |
+| H-03 | Application | `IdempotencyKey` opcional en `CreateTransaccionCommand`; PWA nunca la enviaba. Ahora es `required`, tabla `IdempotencyRecords` con índice único, UUID generado con `crypto.randomUUID()` en IndexedDB. | PASSED |
+| H-04 | Application | `CreateMovimientoCajaValidator` usaba `"Entrada"/"Salida"`, handler usaba `"Ingreso"/"Egreso"` — ningún input era válido. Unificado con constantes `TipoMovimiento` de dominio. | PASSED |
+| H-05 | Application / Domain | Fórmula de arqueo incorrecta (`apertura + ventas`). Corregido: `apertura + ventas - anulaciones + entradas - salidas`. Encapsulado en `ResumenEfectivoDto`. Migración `AddTurnoArqueoDesglose`. | PASSED |
+| H-06 | Infrastructure | `SunatEmisionService.ExecuteAsync` sin `try/catch` global — excepción no manejada mataba el host. Envuelto con `try/catch` + `OperationCanceledException` + `ContinueWith` en `Task.Delay`. | PASSED |
+| NEW-02 | API / Security | `GET /api/operadores` sin `[Authorize]` y sin filtro soft-delete. Aplicado `[Authorize(Roles=Admin)]` y `.Where(o => !o.Eliminado)` en repositorio. Nuevo endpoint público `GET /api/operadores/activos` para login screen POS. | PASSED |
+| NEW-03 | Application / Security | RBAC ausente en todos los controllers. Aplicado `Roles.Admin` / `Roles.Operador` vía constantes de dominio. | PASSED |
+| NEW-04 | Application | Descuento de stock no atómico (foreach con SaveChanges por ítem). Refactorizado con `BeginTransactionAsync`/`CommitAsync`/`RollbackAsync` en `IUnitOfWork`. Validación de stock completa previa al descuento. | PASSED |
+| NEW-05 | API / Security | `ForwardedHeaders` sin lista de proxies confiables — bypass de rate limiting vía IP spoofing. `TrustedProxyIPs` leída desde configuración. | PASSED |
+| NEW-07 | API / Security | Parámetro `periodo` en reportes sin whitelist. Creado `PeriodoReporte` con `HashSet<string>` validado en 7 endpoints. Handler usa `switch` sobre constantes, no SQL dinámico. | PASSED |
+| NEW-09 | Domain / Security | Sin `FailedLoginAttempts`/`IsLocked` en `Usuario`. Implementado lockout de 5 intentos / 15 min con reset automático en login exitoso. Migración `AddUsuarioLockout`. | PASSED |
+| NEW-10 | Domain / Security | Sin `SecurityStamp` en `Usuario` — JWT no se invalidaba al cambiar password. Añadido `SecurityStamp` (GUID), incluido en claims JWT, validado en `OnTokenValidated` contra BD. Regenerado en `ChangePasswordHandler`. Migración `AddUsuarioSecurityStamp`. | PASSED |
+| P1-01 | Infrastructure / DB | Sin unique filtered index en `Turnos` para garantizar un solo turno abierto por sede. Añadido `UX_Turnos_SedeId_Abierto` con filtro `[Estado] = 'Abierto'`. Handler ya validaba en código; índice actúa como safety net ante race conditions. | PASSED |
+| DEVX-02 | DevOps | `setup.ps1` y `.env.example` añadidos. Flujo completo en nueva PC: `git clone → .\setup.ps1 → docker compose up -d`. Auto-migración ya existente en `Program.cs`. | PASSED |
+| DEVX-03 | DevOps / CI | `docker-publish` job no corría por CI rojo. Tests unitarios e integración corregidos (40/40 + 8/8). CI verde, imagen publicada a `ghcr.io`. | PASSED |
+
 ---
 
 ## 🔴 Hallazgos Pendientes (PENDING)
 
-### Arquitectura Backend & DDD
-
-| ID | Capa | Hallazgo | Riesgo | Estado |
-|---|---|---|---|---|
-### Concurrencia y Datos
-
-| ID | Capa | Hallazgo | Riesgo | Estado |
-|---|---|---|---|---|
 ### Frontend Web / Mobile
 
 | ID | Capa | Hallazgo | Riesgo | Estado |

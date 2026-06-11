@@ -26,9 +26,10 @@ public class ChangePasswordHandler : IRequestHandler<ChangePasswordCommand, Resu
         if (!_hasher.Verify(request.CurrentPassword, usuario.PasswordHash))
             return new Error("Auth.InvalidCurrentPassword", "La contraseña actual es incorrecta.");
 
-        usuario.PasswordHash = _hasher.Hash(request.NewPassword);
+        usuario.PasswordHash  = _hasher.Hash(request.NewPassword);
+        usuario.SecurityStamp = Guid.NewGuid().ToString();
         await _uow.SaveChangesAsync(ct);
-        
+
         return Result.Success();
     }
 }
