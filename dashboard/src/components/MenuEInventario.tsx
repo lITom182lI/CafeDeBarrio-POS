@@ -99,6 +99,19 @@ export function MenuEInventario() {
     setModalOpen(true);
   };
 
+  const handleDeleteProducto = async (p: ProductoDto) => {
+    if (window.confirm(`¿Estás seguro de eliminar el producto "${p.nombre}"? Esta acción también lo removerá de la terminal de ventas POS PWA.`)) {
+      try {
+        await api.eliminarProducto(p.productoId);
+        setSuccessMsg("Producto eliminado correctamente");
+        setTimeout(() => setSuccessMsg(""), 3000);
+        loadData();
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Error al eliminar producto");
+      }
+    }
+  };
+
   const handleSaveProducto = async (e: FormEvent) => {
     e.preventDefault();
     setFormError("");
@@ -166,7 +179,7 @@ export function MenuEInventario() {
         <h1 className="page-title">Gestión de Inventario y Productos</h1>
         <button className="btn btn-primary-dark" onClick={handleOpenNewModal}>
           <Plus size={16} />
-          <span>+ Nuevo Producto</span>
+          <span>Nuevo Producto</span>
         </button>
       </div>
 
@@ -314,6 +327,12 @@ export function MenuEInventario() {
                             onClick={() => handleOpenEditModal(p)}
                           >
                             Editar
+                          </button>
+                          <button
+                            className="btn-action-delete"
+                            onClick={() => handleDeleteProducto(p)}
+                          >
+                            Eliminar
                           </button>
                         </div>
                       </td>

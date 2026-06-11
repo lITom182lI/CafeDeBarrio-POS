@@ -14,8 +14,8 @@
   --color-success:     #10B981; /* Fresh emerald green */
   --color-danger:      #EF4444; /* Clean minimalist red */
   --color-warning:     #F59E0B; /* Amber yellow */
-  --color-sidebar:     #ffffff; /* Clean white sidebar */
-  --color-sidebar-dark:#ffffff; /* Map dark sidebar design to clean white as well */
+  --color-sidebar:     #F8FAFC; /* Unified background with main content */
+  --color-sidebar-dark:#1e293b; /* Reverted to dark sidebar */
   
   --dimension-radius:    24px;   /* Sophisticated curved corners */
   --dimension-sidebar-w: 260px;  /* Generous breathing space */
@@ -729,6 +729,28 @@ html.dark .btn-theme-login:hover {
   color: var(--color-brand);
 }
 
+.btn-action-delete {
+  border: none;
+  background: transparent;
+  color: var(--danger);
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.btn-action-delete:hover {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+html.dark .btn-action-delete:hover {
+  background-color: #450a0a;
+  color: #fca5a5;
+}
+
 /* Cierre de Caja Layout */
 .caja-grid {
   display: grid;
@@ -1053,6 +1075,10 @@ textarea.caja-input {
 .ticket-bg {
   background-image: linear-gradient(#fefbeb 1px, transparent 1px);
   background-size: 100% 20px;
+}
+
+html.dark .ticket-bg {
+  background-image: none;
 }
 
 .loading-spinner-wrap {
@@ -1383,6 +1409,7 @@ html.dark .table-wrap,
 html.dark .caja-input,
 html.dark .auth-card,
 html.dark .modal-content,
+html.dark .modal-box,
 html.dark .styled-select {
   background: var(--color-card);
   color: var(--color-text-title);
@@ -1391,7 +1418,10 @@ html.dark .styled-select {
 html.dark .auth-card input,
 html.dark .modal-content input,
 html.dark .modal-content select,
-html.dark .modal-content textarea {
+html.dark .modal-content textarea,
+html.dark .modal-box input,
+html.dark .modal-box select,
+html.dark .modal-box textarea {
   background: #0f172a;
   color: var(--color-text-title);
   border-color: var(--color-border);
@@ -1406,6 +1436,14 @@ html.dark .btn-theme:hover {
   background: #431407;
   color: #fb923c;
   border-color: #7c2d12;
+}
+
+html.dark .btn-primary-dark {
+  color: #0f172a;
+}
+
+html.dark .btn-primary-dark:hover {
+  color: #ffffff;
 }
 
 /* Badges */

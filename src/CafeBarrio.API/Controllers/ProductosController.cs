@@ -54,4 +54,13 @@ public class ProductosController : ControllerBase
         var result = await _mediator.Send(command, ct);
         return result.IsSuccess ? NoContent() : NotFound(result.Errors);
     }
+
+    [HttpDelete("{id:int}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> Delete(int id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new CafeBarrio.Application.Features.Productos.Commands.DeleteProducto.DeleteProductoCommand(id), ct);
+        return result.IsSuccess ? NoContent() : NotFound(result.Errors);
+    }
 }

@@ -85,6 +85,11 @@ export class CafeBarrioApiAdapter {
   crearProducto       = (data: ProductoFormData) => this._post<number>('/api/productos', data)
   actualizarProducto  = (id: number, data: ProductoFormData) =>
     this._put(`/api/productos/${id}`, { productoId: id, ...data })
+  eliminarProducto    = (id: number) =>
+    fetch(`/api/productos/${id}`, { method: 'DELETE', headers: this.authHeaders }).then(r => {
+      if (r.status === 401) { localStorage.removeItem('token'); window.dispatchEvent(new CustomEvent('auth:unauthorized')); throw new Error('Sesión expirada') }
+      if (!r.ok) throw new Error('No se pudo eliminar el producto, probablemente tenga ventas registradas.')
+    })
   stockBajo           = () => this._get<StockBajoDto[]>('/api/reportes/stock-bajo').then(r => Array.isArray(r) ? r : [])
   productos           = async () => {
     let allProducts: ProductoDto[] = []

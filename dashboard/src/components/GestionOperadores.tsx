@@ -126,7 +126,7 @@ export function GestionOperadores() {
         <h1 className="page-title">Gestión de Operadores y Cajeros</h1>
         <button className="btn btn-primary" onClick={handleOpenNewModal}>
           <Plus size={16} />
-          <span>+ Nuevo Operador</span>
+          <span>Nuevo Operador</span>
         </button>
       </div>
 
