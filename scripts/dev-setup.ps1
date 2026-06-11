@@ -36,9 +36,10 @@ Write-Host "`n[3/6] Configurando API..." -ForegroundColor Yellow
 $settingsPath = "src/CafeBarrio.API/appsettings.Development.json"
 if (-not (Test-Path $settingsPath)) {
     $template = Get-Content "src/CafeBarrio.API/appsettings.Development.template.json" -Raw
-    $jwtKey = [Convert]::ToBase64String(
-        [byte[]](1..64 | ForEach-Object { [System.Security.Cryptography.RandomNumberGenerator]::GetInt32(256) })
-    )
+    $bytes = New-Object byte[] 64
+    $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+    $rng.GetBytes($bytes)
+    $jwtKey = [Convert]::ToBase64String($bytes)
     $template = $template -replace "DEV_JWT_KEY_PLACEHOLDER", $jwtKey
     Set-Content $settingsPath $template -Encoding UTF8
     Write-Host "  appsettings.Development.json creado" -ForegroundColor Green
