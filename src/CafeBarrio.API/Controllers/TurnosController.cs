@@ -31,7 +31,7 @@ public class TurnosController : ControllerBase
     }
 
     [HttpPost("abrir")]
-    [Authorize(Roles = Roles.Operador)]
+    [Authorize(Roles = Roles.Admin)]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
     public async Task<IActionResult> Abrir([FromBody] AbrirTurnoCommand command)
