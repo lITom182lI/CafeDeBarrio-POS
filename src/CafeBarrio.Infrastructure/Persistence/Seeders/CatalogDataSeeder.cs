@@ -189,7 +189,7 @@ public class CatalogDataSeeder : ICatalogDataSeeder
                                 ProductoId = allProds[0].ProductoId,
                                 Cantidad = 1,
                                 PrecioUnitario = 10m,
-                                Subtotal = 10m
+                                SubtotalLinea = 10m
                             }
                         }
                     };
@@ -219,7 +219,7 @@ public class CatalogDataSeeder : ICatalogDataSeeder
                                 ProductoId = allProds[1].ProductoId,
                                 Cantidad = 2,
                                 PrecioUnitario = 10m,
-                                Subtotal = 20m
+                                SubtotalLinea = 20m
                             }
                         }
                     };

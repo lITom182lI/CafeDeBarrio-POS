@@ -1,8 +1,6 @@
 import { useState, useEffect, startTransition, type FormEvent } from "react";
 import { AlertCircle, Lock, Unlock, Check, ShieldCheck } from "lucide-react";
 import { api } from "../api/client";
-import { useAuth } from "../hooks/useAuth";
-import { useNavigate } from "react-router-dom";
 import type { TurnoActivoDto, OperadorDto, CerrarTurnoResultDto } from "../types";
 
 export function ArqueoCaja() {

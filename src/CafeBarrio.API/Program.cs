@@ -28,17 +28,28 @@ DotNetEnv.Env.TraversePath().Load();
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
 
+static void RequireConfig(IConfiguration cfg, string key)
+{
+    var value = cfg[key];
+    if (string.IsNullOrWhiteSpace(value) || 
+        value.StartsWith("OVERRIDE_VIA_ENV_VAR") ||
+        value.StartsWith("REEMPLAZAR_") ||
+        value.StartsWith("DEV_JWT_KEY") ||
+        value.StartsWith("AQUI_"))
+    {
+        throw new InvalidOperationException(
+            $"Configuración requerida no establecida o con valor placeholder: '{key}'. " +
+            $"Configura la variable de entorno antes de iniciar en producción.");
+    }
+    
+    if (key == "Jwt:Key" && value.Length < 32)
+    {
+        throw new InvalidOperationException("La longitud de Jwt:Key debe ser al menos de 32 caracteres.");
+    }
+}
+
 if (!builder.Environment.IsDevelopment())
 {
-    static void RequireConfig(IConfiguration cfg, string key)
-    {
-        var value = cfg[key];
-        if (string.IsNullOrWhiteSpace(value) || value.StartsWith("OVERRIDE_VIA_ENV_VAR"))
-            throw new InvalidOperationException(
-                $"Configuración requerida no establecida o con valor placeholder: '{key}'. " +
-                $"Configura la variable de entorno antes de iniciar en producción.");
-    }
-
     RequireConfig(builder.Configuration, "ConnectionStrings:DefaultConnection");
     RequireConfig(builder.Configuration, "Jwt:Key");
     RequireConfig(builder.Configuration, "Cors:AllowedOrigin");
@@ -220,6 +231,11 @@ using (var scope = app.Services.CreateScope())
     // ── Usuario admin ────────────────────────────────────────────────────
     if (!db.Usuarios.Any())
     {
+        if (!app.Environment.IsDevelopment())
+        {
+            RequireConfig(builder.Configuration, "Seed:AdminPassword");
+        }
+
         db.Usuarios.Add(new Usuario
         {
             Email        = "admin@cafedebarrio.com",
