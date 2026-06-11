@@ -134,8 +134,9 @@ export function ReportesDeCaja() {
 
           {/* Status filter */}
           <div className="select-group">
-            <label className="select-grouplabel">Estado</label>
+            <label htmlFor="filter-estado" className="select-grouplabel">Estado</label>
             <select
+              id="filter-estado"
               value={filterEstado}
               onChange={(e) => setFilterEstado(e.target.value)}
               className="styled-select"

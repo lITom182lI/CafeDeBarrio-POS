@@ -154,6 +154,9 @@ jobs:
       contents: read
       packages: write
 
+    env:
+      IMAGE: ""
+
     steps:
       - uses: actions/checkout@v4
 

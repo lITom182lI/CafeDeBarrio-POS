@@ -74,8 +74,7 @@ export function CierreCaja({ turno, onRefresh }: Props) {
               <input type="number" min="0" step="0.01" placeholder="Monto físico contado (S/)"
                 value={fisico} onChange={e => setFisico(e.target.value)} />
               <textarea 
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-slate-400"
-                style={{ resize: "none" }}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-slate-400 resize-none"
                 placeholder="Observaciones (opcional)"
                 value={obs} onChange={e => setObs(e.target.value)} />
               {err && <span className="text-danger text-sm">{err}</span>}
