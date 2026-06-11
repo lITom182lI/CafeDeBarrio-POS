@@ -1,4 +1,5 @@
 using CafeBarrio.Application.Features.Productos.Commands.CreateProducto;
+using Microsoft.AspNetCore.RateLimiting;
 using CafeBarrio.Application.Features.Productos.Commands.UpdateProducto;
 using CafeBarrio.Application.Features.Productos.Queries.GetProductosPaged;
 using MediatR;
@@ -30,6 +31,7 @@ public class ProductosController : ControllerBase
     }
 
     [HttpPost]
+    [EnableRateLimiting("api-write-policy")]
     [ProducesResponseType<int>(201)]
     [ProducesResponseType(400)]
     public async Task<IActionResult> Create(
