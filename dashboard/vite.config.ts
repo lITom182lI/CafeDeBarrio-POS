@@ -14,7 +14,6 @@ export default defineConfig(({ mode }) => {
       environment: 'jsdom',
       globals: true,
       setupFiles: './src/test/setup.ts',
-      // @ts-expect-error Vite test environment define
       define: {
         'import.meta.env.VITE_SENTRY_DSN': JSON.stringify(''),
       },
