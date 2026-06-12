@@ -1,8 +1,7 @@
+using CafeBarrio.Application.Common.Exceptions;
 using CafeBarrio.Application.Common.Interfaces;
-using CafeBarrio.Domain.Entities;
 using MediatR;
 using MUIS_CORE.Wrappers;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,10 +21,8 @@ public class DeleteProductoHandler : IRequestHandler<DeleteProductoCommand, Resu
     public async Task<Result> Handle(DeleteProductoCommand request, CancellationToken cancellationToken)
     {
         var producto = await _productos.GetByIdAsync(request.ProductoId, cancellationToken);
-        if (producto == null)
-        {
+        if (producto is null)
             return Result.Failure(new Error("Producto.NoEncontrado", "El producto no existe."));
-        }
 
         try
         {
@@ -33,13 +30,14 @@ public class DeleteProductoHandler : IRequestHandler<DeleteProductoCommand, Resu
             await _uow.SaveChangesAsync(cancellationToken);
             return Result.Success();
         }
-        catch (Exception)
+        catch (CafeBarrio.Application.Common.Exceptions.PersistenceException)
         {
-            // If it fails (e.g. FK constraint), we do a soft delete fallback
+            // FK violation: producto tiene transacciones asociadas → soft delete
             producto.Activo = false;
             await _productos.UpdateAsync(producto, cancellationToken);
             await _uow.SaveChangesAsync(cancellationToken);
             return Result.Success();
         }
+        // Cualquier otra excepción: relanzar para que el middleware la capture y logee
     }
 }

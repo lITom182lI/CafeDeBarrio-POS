@@ -19,6 +19,7 @@ public class CreateAnulacionHandlerTests
     private readonly IProductoRepository _productos;
     private readonly IUnitOfWork _uow;
     private readonly IPublisher _publisher;
+    private readonly ICurrentUserService _currentUser;
     private readonly CreateAnulacionHandler _sut;
 
     public CreateAnulacionHandlerTests()
@@ -29,6 +30,7 @@ public class CreateAnulacionHandlerTests
         _productos     = Substitute.For<IProductoRepository>();
         _uow           = Substitute.For<IUnitOfWork>();
         _publisher     = Substitute.For<IPublisher>();
+        _currentUser   = Substitute.For<ICurrentUserService>();
 
         _sut = new CreateAnulacionHandler(
             _transacciones,
@@ -36,13 +38,14 @@ public class CreateAnulacionHandlerTests
             _operadores,
             _productos,
             _uow,
-            _publisher);
+            _publisher,
+            _currentUser);
     }
 
     [Fact]
     public async Task Handle_TransaccionNotFound_ReturnsFailure()
     {
-        var command = new CreateAnulacionCommand(1, "Total", "Error", 100, null, 1, 2, true);
+        var command = new CreateAnulacionCommand(1, "Total", "Error", 100, null, 1, true);
         _transacciones.GetWithDetallesAndAnulacionAsync(1, Arg.Any<CancellationToken>())
             .Returns((Transaccion?)null);
 
@@ -55,7 +58,7 @@ public class CreateAnulacionHandlerTests
     [Fact]
     public async Task Handle_YaAnulada_ReturnsFailure()
     {
-        var command = new CreateAnulacionCommand(1, "Total", "Error", 100, null, 1, 2, true);
+        var command = new CreateAnulacionCommand(1, "Total", "Error", 100, null, 1, true);
         var transaccion = new Transaccion { TransaccionId = 1, Total = 100, Anulacion = new Anulacion() };
         _transacciones.GetWithDetallesAndAnulacionAsync(1, Arg.Any<CancellationToken>())
             .Returns(transaccion);
@@ -69,12 +72,13 @@ public class CreateAnulacionHandlerTests
     [Fact]
     public async Task Handle_MontoInvalido_ReturnsFailure()
     {
-        var command = new CreateAnulacionCommand(1, "Parcial", "Error", 150, null, 1, 2, true);
+        var command = new CreateAnulacionCommand(1, "Parcial", "Error", 150, null, 1, true);
         var transaccion = new Transaccion { TransaccionId = 1, Total = 100 };
         _transacciones.GetWithDetallesAndAnulacionAsync(1, Arg.Any<CancellationToken>())
             .Returns(transaccion);
+        _currentUser.UserId.Returns(1);
+        _operadores.GetOperadorIdByUsuarioIdAsync(1, Arg.Any<CancellationToken>()).Returns(2);
         _operadores.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(new Operador());
-        _operadores.GetByIdAsync(2, Arg.Any<CancellationToken>()).Returns(new Operador());
 
         var result = await _sut.Handle(command, CancellationToken.None);
 
@@ -85,7 +89,7 @@ public class CreateAnulacionHandlerTests
     [Fact]
     public async Task Handle_OperadorNotFound_ReturnsFailure()
     {
-        var command = new CreateAnulacionCommand(1, "Total", "Error", 100, null, 1, 2, true);
+        var command = new CreateAnulacionCommand(1, "Total", "Error", 100, null, 1, true);
         var transaccion = new Transaccion { TransaccionId = 1, Total = 100 };
         _transacciones.GetWithDetallesAndAnulacionAsync(1, Arg.Any<CancellationToken>())
             .Returns(transaccion);
@@ -100,15 +104,17 @@ public class CreateAnulacionHandlerTests
     [Fact]
     public async Task Handle_ValidRequest_ReturnsSuccess()
     {
-        var command = new CreateAnulacionCommand(1, "Total", "Error", 100, null, 1, 2, false);
+        var command = new CreateAnulacionCommand(1, "Total", "Error", 100, null, 1, false);
         var transaccion = new Transaccion { TransaccionId = 1, Total = 100 };
         var operador    = new Operador { OperadorId = 1, Nombre = "Juan" };
         var autorizador = new Operador { OperadorId = 2, Nombre = "Jefe" };
 
+        _currentUser.UserId.Returns(1);
+        _operadores.GetOperadorIdByUsuarioIdAsync(1, Arg.Any<CancellationToken>()).Returns(2);
+
         _transacciones.GetWithDetallesAndAnulacionAsync(1, Arg.Any<CancellationToken>())
             .Returns(transaccion);
         _operadores.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(operador);
-        _operadores.GetByIdAsync(2, Arg.Any<CancellationToken>()).Returns(autorizador);
         _anulaciones.AddAsync(Arg.Any<Anulacion>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<int>.Success(99)));
         _uow.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);

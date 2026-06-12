@@ -14,9 +14,10 @@ public class AbrirTurnoHandlerTests
 {
     private readonly ITurnoRepository _turnos = Substitute.For<ITurnoRepository>();
     private readonly IUnitOfWork _uow         = Substitute.For<IUnitOfWork>();
+    private readonly ICurrentUserService _currentUser = Substitute.For<ICurrentUserService>();
     private readonly AbrirTurnoHandler _sut;
 
-    public AbrirTurnoHandlerTests() => _sut = new AbrirTurnoHandler(_turnos, _uow);
+    public AbrirTurnoHandlerTests() => _sut = new AbrirTurnoHandler(_turnos, _uow, _currentUser);
 
     [Fact]
     public async Task Handle_TurnoYaAbierto_ReturnsFailure()

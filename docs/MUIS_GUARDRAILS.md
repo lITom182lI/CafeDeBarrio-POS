@@ -25,6 +25,16 @@ Cargado en cada sesión de IA vía SESSION_BUNDLE_A. No contiene detalles — ap
 | [G-DEV-002](guardrails/G-DEV-002-docker-tag-lowercase.md) | anti-pattern | devops | Docker, tag, imagen, uppercase, ghcr | MUIS-CORE |
 | [G-DEV-003](guardrails/G-DEV-003-dockerfile-restore-csproj-not-sln.md) | anti-pattern | devops | Dockerfile, dotnet restore, .sln, build context | TIPO-2 |
 | [G-DEV-004](guardrails/G-DEV-004-appsettings-dev-template-pattern.md) | validated-decision | devops | appsettings.Development, gitignore, template, onboarding | TIPO-2 |
+| [G-ARCH-001](guardrails/G-ARCH-001-persistenceexception-efcore-isolation.md) | validated-decision | backend | DbUpdateException, Application, catch, EF Core, PersistenceException | TIPO-2 |
+| [G-SEC-002](guardrails/G-SEC-002-jwt-key-never-in-appsettings.md) | validated-decision | security | Jwt:Key, appsettings.json, JWT, secreto, knownPlaceholders | TIPO-2 |
+| [G-SEC-003](guardrails/G-SEC-003-operador-pin-lockout.md) | validated-decision | security | ValidarPin, PIN, lockout, FailedPinAttempts, fuerza bruta | TIPO-2 |
+| [G-SEC-004](guardrails/G-SEC-004-seed-dev-only-pin-hashed.md) | validated-decision | security | CatalogDataSeeder, seed, PinHash, IsDevelopment, test data | TIPO-2 |
+| [G-SEC-005](guardrails/G-SEC-005-operador-security-stamp.md) | validated-decision | security | GenerateOperadorToken, SecurityStamp, token revocado, cambio de PIN | TIPO-2 |
+| [G-SEC-006](guardrails/G-SEC-006-sede-id-from-jwt.md) | validated-decision | security | SedeId, IDOR, ICurrentUserService, sede_id, handler | TIPO-2 |
+| [G-DB-002](guardrails/G-DB-002-efcore-retry-timeout.md) | validated-decision | infrastructure | UseSqlServer, EnableRetryOnFailure, CommandTimeout, resiliencia | TIPO-2 |
+| [G-DB-003](guardrails/G-DB-003-movimientocaja-restrict-cascade.md) | validated-decision | infrastructure | MovimientoCaja, DeleteBehavior, Cascade, Restrict, auditoría financiera | TIPO-2 |
+| [G-DB-004](guardrails/G-DB-004-createdAt-interceptor-only.md) | validated-decision | infrastructure | CreatedAt, HasDefaultValueSql, GETUTCDATE, AuditInterceptor, IAuditable | TIPO-2 |
+| [G-FIN-001](guardrails/G-FIN-001-moneyrounding-awayfromzero.md) | validated-decision | backend | Math.Round, redondeo, IGV, MoneyRounding, SUNAT, fiscal | TIPO-2 |
 
 ## Registro de Decisiones (ADR)
 

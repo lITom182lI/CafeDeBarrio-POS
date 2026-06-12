@@ -8,10 +8,20 @@ namespace CafeBarrio.Application.Features.Turnos.Queries.GetTurnoActivo;
 public class GetTurnoActivoHandler : IRequestHandler<GetTurnoActivoQuery, Result<TurnoActivoDto?>>
 {
     private readonly ITurnoRepository _turnos;
-    public GetTurnoActivoHandler(ITurnoRepository turnos) => _turnos = turnos;
+    private readonly ICurrentUserService _currentUser;
+
+    public GetTurnoActivoHandler(ITurnoRepository turnos, ICurrentUserService currentUser)
+    {
+        _turnos = turnos;
+        _currentUser = currentUser;
+    }
 
     public async Task<Result<TurnoActivoDto?>> Handle(GetTurnoActivoQuery request, CancellationToken ct)
     {
+        if (_currentUser.SedeId is not null && _currentUser.SedeId != request.SedeId)
+            return Result<TurnoActivoDto?>.Failure(new Error("Auth.ForbiddenSede",
+                "No tienes acceso a esta sede."));
+
         var turno = await _turnos.GetActivoBySedeAsync(request.SedeId, ct);
         if (turno is null) return Result<TurnoActivoDto?>.Success(null);
 

@@ -27,15 +27,16 @@ public class JwtService : IJwtService
         return BuildToken(claims, hoursOverride: adminHours);
     }
 
-    public string GenerateOperadorToken(int operadorId, string nombre)
+    public string GenerateOperadorToken(int operadorId, string nombre, string securityStamp, int sedeId)
     {
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, operadorId.ToString()),
             new Claim(ClaimTypes.Name, nombre),
             new Claim(ClaimTypes.Role, "Operador"),
+            new Claim("security_stamp", securityStamp),
+            new Claim("sede_id", sedeId.ToString()),
         };
-        // Operador JWT: 12 horas (1 turno completo). Configurable via Jwt:OperadorExpiryHours
         var opHours = int.TryParse(_config["Jwt:OperadorExpiryHours"], out var oh) ? oh : 12;
         return BuildToken(claims, hoursOverride: opHours);
     }

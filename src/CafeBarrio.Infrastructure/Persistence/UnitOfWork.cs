@@ -20,6 +20,10 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable, IDisposable
         {
             throw new CafeBarrio.Application.Common.Exceptions.ConcurrencyException();
         }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+        {
+            throw new CafeBarrio.Application.Common.Exceptions.PersistenceException();
+        }
     }
 
     public async Task BeginTransactionAsync(CancellationToken ct = default)

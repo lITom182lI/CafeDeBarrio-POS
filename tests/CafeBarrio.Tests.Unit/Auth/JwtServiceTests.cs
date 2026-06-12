@@ -44,7 +44,7 @@ public class JwtServiceTests
     {
         var sut   = BuildSut();
 
-        var token = sut.GenerateOperadorToken(operadorId: 10, nombre: "Carlos");
+        var token = sut.GenerateOperadorToken(operadorId: 10, nombre: "Carlos", securityStamp: "stamp123", sedeId: 1);
         var jwt   = new JwtSecurityTokenHandler().ReadJwtToken(token);
 
         jwt.Claims.Should().Contain(c => c.Type == ClaimTypes.Name && c.Value == "Carlos");

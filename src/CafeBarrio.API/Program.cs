@@ -69,6 +69,7 @@ if (!builder.Environment.IsDevelopment())
 {
     RequireConfig(builder.Configuration, "ConnectionStrings:DefaultConnection");
     RequireConfig(builder.Configuration, "Cors:AllowedOrigin");
+    RequireConfig(builder.Configuration, "Jwt:Key");
 }
 builder.Host.UseSerilog();
 
@@ -100,18 +101,29 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             OnTokenValidated = async context =>
             {
                 var stampClaim = context.Principal?.FindFirst("security_stamp")?.Value;
-                if (stampClaim is null) return; // token de Operador — no tiene stamp
+                var idClaim    = context.Principal?.FindFirst(
+                    System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var roleClaim  = context.Principal?.FindFirst(
+                    System.Security.Claims.ClaimTypes.Role)?.Value;
+
+                if (stampClaim is null || idClaim is null) return;
+                if (!int.TryParse(idClaim, out var id)) { context.Fail("Invalid token"); return; }
 
                 var db = context.HttpContext.RequestServices
                     .GetRequiredService<CafeBarrioDbContext>();
 
-                var idClaim = context.Principal?.FindFirst(
-                    System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                if (!int.TryParse(idClaim, out var userId)) { context.Fail("Invalid token"); return; }
-
-                var usuario = await db.Usuarios.FindAsync(userId);
-                if (usuario is null || usuario.SecurityStamp != stampClaim)
-                    context.Fail("Token revocado. Inicia sesión nuevamente.");
+                if (roleClaim == "Operador")
+                {
+                    var operador = await db.Operadores.FindAsync(id);
+                    if (operador is null || operador.SecurityStamp != stampClaim)
+                        context.Fail("Token revocado. Vuelve a iniciar sesión.");
+                }
+                else
+                {
+                    var usuario = await db.Usuarios.FindAsync(id);
+                    if (usuario is null || usuario.SecurityStamp != stampClaim)
+                        context.Fail("Token revocado. Inicia sesión nuevamente.");
+                }
             }
         };
     });

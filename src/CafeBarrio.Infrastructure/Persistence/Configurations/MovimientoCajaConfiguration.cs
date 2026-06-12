@@ -18,7 +18,7 @@ public class MovimientoCajaConfiguration : IEntityTypeConfiguration<MovimientoCa
         builder.HasOne(m => m.Turno)
                .WithMany(t => t.Movimientos)
                .HasForeignKey(m => m.TurnoId)
-               .OnDelete(DeleteBehavior.Cascade);
+               .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(m => m.TurnoId);
     }

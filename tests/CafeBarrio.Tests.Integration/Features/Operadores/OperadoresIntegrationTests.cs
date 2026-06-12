@@ -38,7 +38,7 @@ public class OperadoresIntegrationTests : IntegrationTestBase
             }).Build();
         var jwtService = new JwtService(config);
 
-        _validarPin    = new ValidarPinHandler(operadoresRepo, _hasher, jwtService);
+        _validarPin    = new ValidarPinHandler(operadoresRepo, _hasher, jwtService, uow);
         _createOperador = new CreateOperadorHandler(operadoresRepo, sedesRepo, uow, _hasher);
     }
 

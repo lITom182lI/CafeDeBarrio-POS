@@ -1,4 +1,5 @@
 using CafeBarrio.Application.Events;
+using CafeBarrio.Application.Common.Helpers;
 using CafeBarrio.Application.Common.Interfaces;
 using CafeBarrio.Domain.Entities;
 using MediatR;
@@ -14,6 +15,7 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
     private readonly IUnitOfWork _uow;
     private readonly IPublisher _publisher;
     private readonly IIdempotencyRecordRepository _idempotencyRecords;
+    private readonly ICurrentUserService _currentUser;
 
     public CreateTransaccionHandler(
         ITransaccionRepository transacciones,
@@ -21,7 +23,8 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
         IConfiguracionNegocioRepository configuracion,
         IUnitOfWork uow,
         IPublisher publisher,
-        IIdempotencyRecordRepository idempotencyRecords)
+        IIdempotencyRecordRepository idempotencyRecords,
+        ICurrentUserService currentUser)
     {
         _transacciones = transacciones;
         _productos     = productos;
@@ -29,6 +32,7 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
         _uow           = uow;
         _publisher     = publisher;
         _idempotencyRecords = idempotencyRecords;
+        _currentUser   = currentUser;
     }
 
     public async Task<Result<int>> Handle(CreateTransaccionCommand request, CancellationToken ct)
@@ -42,6 +46,10 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
         var config  = await _configuracion.GetActivaBySedeAsync(request.SedeId, ct);
         if (config is null)
             return Result<int>.Failure(new Error("Configuracion.NotFound", "No se encontró configuración activa para la sede."));
+
+        if (_currentUser.SedeId is not null && _currentUser.SedeId != request.SedeId)
+            return Result<int>.Failure(new Error("Auth.ForbiddenSede",
+                "No tienes acceso a esta sede."));
 
         var tasaIgv = config.TasaIGV + config.TasaIPM;
         var detalles = new List<DetalleTransaccion>();
@@ -86,7 +94,7 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
                 subtotal += linea.SubtotalLinea;
             }
 
-            var impuesto = Math.Round(subtotal * tasaIgv, 2);
+            var impuesto = MoneyRounding.Round(subtotal * tasaIgv);
 
             var transaccion = new Transaccion
             {
@@ -114,22 +122,27 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
 
             await _transacciones.AddAsync(transaccion, ct);
 
-            await _idempotencyRecords.AddAsync(new IdempotencyRecord
-            {
-                IdempotencyKey = request.IdempotencyKey,
-                TransaccionId  = transaccion.TransaccionId,
-                CreatedAtUtc   = DateTime.UtcNow
-            }, ct);
-
+            // Primera save: genera IDENTITY en transaccion.TransaccionId
             try
             {
                 await _uow.SaveChangesAsync(ct);
             }
             catch (CafeBarrio.Application.Common.Exceptions.ConcurrencyException)
             {
-                return Result<int>.Failure(new Error("Stock.ConcurrencyConflict", "Conflicto de inventario. Reintenta la venta."));
+                await _uow.RollbackAsync(ct);
+                return Result<int>.Failure(new Error("Stock.ConcurrencyConflict",
+                    "Conflicto de inventario. Reintenta la venta."));
             }
 
+            await _idempotencyRecords.AddAsync(new IdempotencyRecord
+            {
+                IdempotencyKey = request.IdempotencyKey,
+                TransaccionId  = transaccion.TransaccionId,   // ahora es el valor real
+                CreatedAtUtc   = DateTime.UtcNow
+            }, ct);
+
+            // Segunda save: persiste el registro de idempotencia
+            await _uow.SaveChangesAsync(ct);
             await _uow.CommitAsync(ct);
 
             await _publisher.Publish(new TransaccionCreadaEvent(

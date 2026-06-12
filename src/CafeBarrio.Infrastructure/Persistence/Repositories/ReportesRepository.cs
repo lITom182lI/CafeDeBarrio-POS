@@ -1,4 +1,5 @@
 using CafeBarrio.Application.Common.Interfaces;
+using CafeBarrio.Application.Common.Helpers;
 using CafeBarrio.Application.Features.Reportes.Dtos;
 using CafeBarrio.Application.Features.Transacciones.Dtos;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +16,7 @@ public class ReportesRepository : IReportesRepository
         var q = _context.Transacciones.Where(t => t.SedeId == sedeId && t.Fecha >= desde && t.Fecha <= hasta && t.Anulacion == null);
         var total = await q.SumAsync(t => (decimal?)t.Total, ct) ?? 0;
         var count = await q.CountAsync(ct);
-        return new VentasResumenDto(total, count, count > 0 ? Math.Round(total / count, 2) : 0, desde, hasta);
+        return new VentasResumenDto(total, count, count > 0 ? MoneyRounding.Round(total / count) : 0, desde, hasta);
     }
 
     public async Task<IReadOnlyList<VentasPorMetodoPagoDto>> GetVentasPorMetodoPagoAsync(int sedeId, DateTime desde, DateTime hasta, CancellationToken ct)

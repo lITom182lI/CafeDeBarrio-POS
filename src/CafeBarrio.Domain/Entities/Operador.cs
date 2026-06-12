@@ -12,6 +12,11 @@ public class Operador : IAuditable, IAggregateRoot
     public bool Eliminado { get; set; } = false;
     public int? UsuarioId { get; set; }
 
+    public int     FailedPinAttempts { get; set; } = 0;
+    public bool    IsLockedOut       { get; set; } = false;
+    public DateTime? LockedUntilUtc  { get; set; }
+    public string SecurityStamp { get; set; } = Guid.NewGuid().ToString("N");
+
     public Sede Sede { get; set; } = null!;
     public Usuario? Usuario { get; set; }
     public ICollection<Turno> Turnos { get; set; } = [];

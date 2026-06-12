@@ -14,6 +14,5 @@ public class CreateAnulacionCommandValidator : AbstractValidator<CreateAnulacion
         RuleFor(x => x.Motivo).NotEmpty().MaximumLength(500);
         RuleFor(x => x.MontoDevuelto).GreaterThan(0);
         RuleFor(x => x.OperadorSolicitanteId).GreaterThan(0);
-        RuleFor(x => x.AutorizadorId).GreaterThan(0);
     }
 }

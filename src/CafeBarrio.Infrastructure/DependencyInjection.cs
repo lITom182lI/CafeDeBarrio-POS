@@ -22,7 +22,16 @@ public static class DependencyInjection
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<AuditInterceptor>();
         services.AddDbContext<CafeBarrioDbContext>((sp, options) =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"))
+            options.UseSqlServer(
+                       configuration.GetConnectionString("DefaultConnection"),
+                       sql =>
+                       {
+                           sql.EnableRetryOnFailure(
+                               maxRetryCount:     5,
+                               maxRetryDelay:     TimeSpan.FromSeconds(10),
+                               errorNumbersToAdd: null);
+                           sql.CommandTimeout(30);
+                       })
                    .AddInterceptors(sp.GetRequiredService<AuditInterceptor>()));
 
         services.AddScoped<IProductoRepository, ProductoRepository>();
