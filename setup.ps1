@@ -37,11 +37,12 @@ if ($composeOk) { Write-Ok "Docker Compose disponible" }
 Write-Step "Generando credenciales seguras"
 
 function New-SecurePass([int]$len) {
-    $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^*'
+    # Excluye $ para evitar interpolación en archivos .env de Docker Compose
+    $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#%^&*'
     do {
         $p = -join ((1..$len) | ForEach-Object { $chars[(Get-Random -Max $chars.Length)] })
     } while (-not ($p -cmatch '[A-Z]' -and $p -cmatch '[a-z]' -and
-                   $p -match '[0-9]' -and $p -match '[!@#$%^&*]'))
+                   $p -match '[0-9]' -and $p -match '[!@#%^&*]'))
     return $p
 }
 
