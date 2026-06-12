@@ -74,6 +74,7 @@ export default function SalesModule({ session, onLogout }: Props) {
   const [ticket, setTicket] = useState<TicketData | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [showCierreModal, setShowCierreModal] = useState(false)
+  const [showForcedCloseModal, setShowForcedCloseModal] = useState(false)
 
   // ── Sync & Line monitoring ────────────────────────────────────────────────
   const { pendingCount, isOnline, refreshCount } = useSync()
@@ -125,10 +126,9 @@ export default function SalesModule({ session, onLogout }: Props) {
         const turno = await getTurnoActivo()
         // Si la API responde exitosamente pero no hay turno (null), el administrador forzó el cierre
         if (!turno) {
-          alert("Su sesión ha finalizado automáticamente debido a un Cierre Forzado de caja desde el Dashboard.");
-          onLogout()
+          setShowForcedCloseModal(true)
         }
-      } catch (err) {
+      } catch {
         // Si hay error de red o similar, simplemente ignoramos y seguimos intentando después
       }
     }, 10000) // Verificar cada 10 segundos
@@ -483,6 +483,33 @@ export default function SalesModule({ session, onLogout }: Props) {
             onLogout()
           }}
         />
+      )}
+
+      {showForcedCloseModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="bg-amber-50 dark:bg-amber-900/30 w-full max-w-md rounded-2xl shadow-xl overflow-hidden flex flex-col transition-colors border border-amber-200 dark:border-amber-800/50 p-6 relative">
+            <div className="absolute top-0 right-0 p-4 opacity-10">
+              <LogOut size={100} />
+            </div>
+            <div className="flex gap-4 relative z-10">
+              <div className="bg-white dark:bg-amber-800/40 p-3 rounded-xl shadow-sm text-amber-600 dark:text-amber-400 h-fit">
+                <LogOut size={24} />
+              </div>
+              <div>
+                <h3 className="text-amber-900 dark:text-amber-200 font-bold mb-1 transition-colors text-lg">Sesión Finalizada</h3>
+                <p className="text-amber-800 dark:text-amber-200/80 text-sm font-medium transition-colors mb-6">
+                  Su sesión ha finalizado automáticamente debido a un Cierre Forzado de caja desde el Dashboard.
+                </p>
+                <button 
+                  onClick={onLogout}
+                  className="w-full py-3 bg-[#f97316] hover:bg-[#ea580c] text-white rounded-xl font-bold tracking-wide transition-colors"
+                >
+                  Salir al Login
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
     </div>
