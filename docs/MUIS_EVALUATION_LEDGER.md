@@ -68,6 +68,23 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 |---|---|---|---|---|
 | UI-01 | Frontend | **Tipado Débil (any):** Uso explícito de `any` en componentes clave como `TerminalVentasView.tsx` y `ReportesYGraficos.tsx`, violando la regla MUIS de tipado estricto. | Medio | PASSED |
 
+### Verificación de Auditoría — 2026-06-12 (post-merge `fix/auditoria-p0-p1-seguridad`)
+
+| ID | Capa | Hallazgo | Riesgo | Estado |
+|---|---|---|---|---|
+| V2-01 | PWA / Tests | Suite Vitest en rojo: `config.ts:6` leía `localStorage` a nivel de módulo — fallaba la inicialización en jsdom y cascadeaba a todos los tests. Corregido con guard `typeof localStorage !== 'undefined'`. | P0 | PASSED |
+| V2-02 | DevOps / CI | `docker-publish` solo depende de `build-and-test` — una imagen puede publicarse a ghcr.io con `integration-tests` en rojo. | P0 | PASSED |
+| V2-03 | Infrastructure / DB | Arqueo (`GetResumenEfectivoAsync`): suma `t.Total` completo en pagos divididos (debe ser solo la porción efectivo), ignora `Anulacion.MontoDevuelto` en devoluciones parciales, y asigna anulaciones al turno de la venta en lugar del turno de la devolución. | P0 | PASSED |
+| V2-04 | Infrastructure / Seed | `CatalogDataSeeder` siembra `TasaIGV=0.18 + TasaIPM=0.02` = **20% impuesto** (handler suma ambas; correcto es 0.16+0.02); `MetodosPago` sin `EsEfectivo=true`. El seed inline de `Program.cs` (valores correctos) corre primero y enmascara el error hoy. | P1 | PASSED |
+| V2-05 | Application | Idempotencia TOCTOU: check-then-insert sin capturar violación del índice único `UX_IdempotencyRecords_Key` — requests paralelos con la misma key retornan 500 en vez de respuesta idempotente. Columna muerta `Transacciones.idempotency_key`. | P1 | PASSED |
+| V2-06 | Application / Security | `AnularTransaccionHandler` paralelo a `CreateAnulacionHandler`: credenciales Admin en el body del request (bypasea lockout/SecurityStamp), `MetodoDevolucion = MetodoPagoId.ToString()` (guarda "3" en vez de "Efectivo"), sin transacción DB, sin chequeo de `SunatEstado`. | P1 | PASSED |
+| V2-07 | Application | Venta POS no valida turno abierto (`TurnoId` del request sin verificar estado); pago dividido sin validar (`MontoMetodoPrimario` puede exceder el total). | P1 | PASSED |
+| V2-08 | Domain / DB | `Turno` sin `RowVersion` (cierre concurrente puede pisar el arqueo); `Operador.Eliminado` sin `HasQueryFilter` global (aparecen en queries que olviden filtrar). | P1 | PASSED |
+| V2-09 | Infrastructure / API | SUNAT: respuesta no-2xx del OSE → estado terminal `NoEmitida` al primer intento, sin retry diferenciado (5xx vs 4xx). Sin endpoints admin para reprocesar `DeadLetter`. RBAC: Admin no puede vender; Operador no puede registrar sus movimientos de caja. | P1 | PASSED |
+| V2-10 | Frontend / Reportes | Paginación `while(true)` sin `MAX_PAGES`; reportes sin límite de rango de fechas; `GetVentasPorDiaAsync` agrupa por fecha UTC — ventas 19:00-23:59 Perú caen en el día siguiente. | P2 | PASSED |
+| V2-11 | Repo / Higiene | `pos-pwa/dev-dist/` (archivos generados por el service worker) versionados en git. | P2 | PASSED |
+| V2-12 | QA / Tests | `IntegrationTestBase` usa `EnsureCreated()` en lugar de `Database.Migrate()` — las migraciones nunca se validan contra BD real; puerto fallback 1434 no coincide con `docker-compose.dev.yml` (14333). Sin tests end-to-end del flujo de dinero. | P1 | PASSED |
+
 ---
 
 ## 🟡 Hallazgos Diferidos (DEFERRED)
