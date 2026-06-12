@@ -72,6 +72,7 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
                     $"Stock insuficiente para {producto.Nombre}."));
 
             productosDict[item.ProductoId] = producto;
+            subtotal += producto.Precio * item.Cantidad;
         }
 
         // Validar turno activo (si se especifica TurnoId)
@@ -116,7 +117,6 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
                     SubtotalLinea  = producto.Precio * item.Cantidad
                 };
                 detalles.Add(linea);
-                subtotal += linea.SubtotalLinea;
             }
 
             var impuesto = MoneyRounding.Round(subtotal * tasaIgv);
