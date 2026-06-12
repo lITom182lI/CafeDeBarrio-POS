@@ -15,7 +15,7 @@ window.addEventListener('unhandledrejection', (e) => {
   captureError(e.reason, { type: 'unhandledrejection' })
 })
 
-function PrivateRoute({ children }: { children: ReactNode }) {
+export function PrivateRoute({ children }: { children: ReactNode }) {
   const { token } = useAuth()
   return token ? <>{children}</> : <Navigate to="/login" replace />
 }

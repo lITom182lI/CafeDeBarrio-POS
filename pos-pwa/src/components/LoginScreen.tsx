@@ -35,17 +35,10 @@ export default function LoginScreen({ onLogin }: Props) {
   const [offline, setOffline] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [validating, setValidating] = useState(false)
-  const [isDark, setIsDark] = useState(false)
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"))
   const pinRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    // Check initial dark mode state
-    if (document.documentElement.classList.contains("dark")) {
-      setIsDark(true)
-    } else {
-      setIsDark(false)
-    }
-
     getOperadores()
       .then(ops => {
         setOperadores(ops)

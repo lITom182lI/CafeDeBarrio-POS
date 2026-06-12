@@ -6,11 +6,7 @@ import { setOperadorToken } from './api'
 import { loadRemoteConfig } from './config'
 
 export default function App() {
-  const [session, setSession] = useState<OperadorSession | null>(null)
-
-  // Auto resume session logic for high-end local POS systems
-  useEffect(() => {
-    void loadRemoteConfig()
+  const [session, setSession] = useState<OperadorSession | null>(() => {
     try {
       const storedToken = localStorage.getItem('pos_auth_token')
       const storedNombre = localStorage.getItem('CDB_SESSION_NAME')
@@ -18,15 +14,21 @@ export default function App() {
 
       if (storedToken && storedNombre && storedId) {
         setOperadorToken(storedToken)
-        setSession({
+        return {
           operadorId: parseInt(storedId),
           nombre: storedNombre,
           token: storedToken
-        })
+        }
       }
     } catch (err) {
       console.warn('Unable to restore previous Cajero session:', err)
     }
+    return null;
+  })
+
+  // Auto resume session logic for high-end local POS systems
+  useEffect(() => {
+    void loadRemoteConfig()
   }, [])
 
   const handleLogin = (newSession: OperadorSession | null) => {

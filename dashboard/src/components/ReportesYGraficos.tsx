@@ -1,4 +1,4 @@
-import { useState, useEffect, startTransition } from "react";
+import { useState, useEffect, startTransition, useCallback } from "react";
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from "recharts";
 import { RefreshCw, AlertCircle } from "lucide-react";
 import { api } from "../api/client";
@@ -15,7 +15,7 @@ export function ReportesYGraficos() {
 
 
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -34,13 +34,13 @@ export function ReportesYGraficos() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [periodo]);
 
   useEffect(() => {
     startTransition(() => {
       void loadData();
     });
-  }, [periodo]);
+  }, [loadData]);
 
 
 
