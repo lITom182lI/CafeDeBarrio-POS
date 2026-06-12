@@ -28,5 +28,18 @@ public class CreateTransaccionCommandValidator : AbstractValidator<CreateTransac
         RuleFor(x => x.IdempotencyKey)
             .NotEmpty()
             .MaximumLength(64);
+
+        // Pago dividido: el método secundario no puede ser igual al primario
+        RuleFor(x => x.MetodoPagoSecundarioId)
+            .NotEqual(x => (int?)x.MetodoPagoId)
+            .When(x => x.MetodoPagoSecundarioId.HasValue)
+            .WithMessage("El método de pago secundario no puede ser igual al método primario.");
+
+        // Pago dividido: MontoMetodoPrimario es obligatorio y debe ser positivo
+        RuleFor(x => x.MontoMetodoPrimario)
+            .NotNull()
+            .GreaterThan(0m)
+            .When(x => x.MetodoPagoSecundarioId.HasValue)
+            .WithMessage("Se requiere el monto del método primario para un pago dividido.");
     }
 }

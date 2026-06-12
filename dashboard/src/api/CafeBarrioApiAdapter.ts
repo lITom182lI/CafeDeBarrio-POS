@@ -95,7 +95,8 @@ export class CafeBarrioApiAdapter {
     let allProducts: ProductoDto[] = []
     let currentPage = 1
     const pageSize = 100
-    while (true) {
+    const MAX_PAGES = 50
+    while (currentPage <= MAX_PAGES) {
       const r = await this._get<PaginatedResult<ProductoDto> | ProductoDto[]>(`/api/productos?pageNumber=${currentPage}&pageSize=${pageSize}`)
       const items = Array.isArray(r) ? r : (r as PaginatedResult<ProductoDto>)?.items ?? []
       allProducts = allProducts.concat(items)

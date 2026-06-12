@@ -31,4 +31,5 @@ public sealed record OseEmisionResult(
     bool    Aceptada,
     string? NumeroSerie,
     string? Mensaje,
-    string? Error);
+    string? Error,
+    bool    Retryable = false);

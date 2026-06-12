@@ -54,8 +54,9 @@ public class TransaccionesIntegrationTests : IntegrationTestBase
         var pub = new DummyPublisher();
         var idemp = new DummyIdempotencyRepo();
         var currentUser = new DummyCurrentUserService();
+        var turnosRepo = new TurnoRepository(Db);
 
-        _handler = new CreateTransaccionHandler(transaccionesRepo, productosRepo, configRepo, uow, pub, idemp, currentUser);
+        _handler = new CreateTransaccionHandler(transaccionesRepo, productosRepo, configRepo, uow, pub, idemp, currentUser, turnosRepo);
     }
 
     [Fact]
@@ -131,7 +132,8 @@ public class TransaccionesIntegrationTests : IntegrationTestBase
             new UnitOfWork(Db),
             new DummyPublisher(),
             idempRepo,
-            new DummyCurrentUserService());
+            new DummyCurrentUserService(),
+            new TurnoRepository(Db));
 
         var sede     = new Sede { Nombre = "Sede Idemp", Direccion = "D", Distrito = "D", Ciudad = "C", Activa = true };
         var cat      = new CategoriaCafe { Codigo = "CI", Nombre = "Cafe", Activa = true };

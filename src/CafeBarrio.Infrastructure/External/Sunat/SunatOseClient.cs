@@ -30,13 +30,13 @@ public class SunatOseClient : ISunatService
                 "Credenciales SUNAT no configuradas.", "Ruc o OseToken vacíos");
         }
 
-        var tipoDoc     = MapTipoDocumento(req.TipoDocumento);
-        var numDoc      = string.IsNullOrWhiteSpace(req.NumeroDocumento) ? "00000000" : req.NumeroDocumento;
+        var tipoDoc      = MapTipoDocumento(req.TipoDocumento);
+        var numDoc       = string.IsNullOrWhiteSpace(req.NumeroDocumento) ? "00000000" : req.NumeroDocumento;
         var denominacion = string.IsNullOrWhiteSpace(req.RazonSocial) ? "CLIENTE VARIOS" : req.RazonSocial;
 
         var items = req.Items.Select(i =>
         {
-            var igvLinea = MoneyRounding.Round(i.SubtotalLinea * _options.PorcentajeIgv / 100);
+            var igvLinea   = MoneyRounding.Round(i.SubtotalLinea * _options.PorcentajeIgv / 100);
             var totalLinea = i.SubtotalLinea + igvLinea;
             return new OseBoletaItem(
                 Codigo:         i.Nombre,
@@ -71,7 +71,9 @@ public class SunatOseClient : ISunatService
             _log.LogWarning("[SUNAT] Boleta rechazada transaccion {Id}: {Error}",
                 req.TransaccionId, result.Error ?? result.Mensaje);
             return new EmitirBoletaResult(false, null,
-                result.Mensaje ?? "Boleta no aceptada por el OSE", result.Error);
+                result.Mensaje ?? "Boleta no aceptada por el OSE",
+                result.Error,
+                result.Retryable);
         }
 
         _log.LogInformation("[SUNAT] Boleta aceptada: {NumeroSerie}", result.NumeroSerie);

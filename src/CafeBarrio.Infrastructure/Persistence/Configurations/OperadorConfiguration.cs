@@ -19,5 +19,7 @@ public class OperadorConfiguration : IEntityTypeConfiguration<Operador>
                .WithMany()
                .HasForeignKey(o => o.SedeId)
                .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasQueryFilter(o => !o.Eliminado);
     }
 }

@@ -58,7 +58,7 @@ public class CatalogDataSeeder : ICatalogDataSeeder
             _context.ConfiguracionesNegocio.Add(new ConfiguracionNegocio
             {
                 SedeId = sede.SedeId,
-                TasaIGV = 0.18m,
+                TasaIGV = 0.16m,
                 TasaIPM = 0.02m,
                 FechaVigencia = new DateTime(2026, 1, 1),
                 Activo = true
@@ -124,10 +124,10 @@ public class CatalogDataSeeder : ICatalogDataSeeder
         if (!metodosExisten)
         {
             _context.MetodosPago.AddRange(
-                new MetodoPago { Nombre = "Efectivo", Activo = true },
-                new MetodoPago { Nombre = "Yape", Activo = true },
-                new MetodoPago { Nombre = "Plin", Activo = true },
-                new MetodoPago { Nombre = "Tarjeta", Activo = true }
+                new MetodoPago { Nombre = "Efectivo", Activo = true, EsEfectivo = true  },
+                new MetodoPago { Nombre = "Yape",     Activo = true, EsEfectivo = false },
+                new MetodoPago { Nombre = "Plin",     Activo = true, EsEfectivo = false },
+                new MetodoPago { Nombre = "Tarjeta",  Activo = true, EsEfectivo = false }
             );
             await _context.SaveChangesAsync(ct);
         }

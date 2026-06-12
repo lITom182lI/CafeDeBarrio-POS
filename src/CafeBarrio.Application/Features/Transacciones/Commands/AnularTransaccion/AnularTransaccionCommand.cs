@@ -7,6 +7,5 @@ public record AnularTransaccionCommand(
     int TransaccionId,
     string Motivo,
     int OperadorSolicitanteId,
-    string AdminEmail,
-    string AdminPassword
+    string? MetodoDevolucion    // nombre del método: "Efectivo", "Yape", "Tarjeta", "Plin"
 ) : IRequest<Result>;

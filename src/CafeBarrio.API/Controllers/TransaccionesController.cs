@@ -21,7 +21,7 @@ public class TransaccionesController : ControllerBase
     public TransaccionesController(IMediator mediator) => _mediator = mediator;
 
     [HttpPost]
-    [Authorize(Roles = Roles.Operador)]
+    [Authorize(Roles = Roles.AdminOrOperador)]
     [EnableRateLimiting("api-write-policy")]
     [ProducesResponseType<int>(201)]
     [ProducesResponseType(400)]

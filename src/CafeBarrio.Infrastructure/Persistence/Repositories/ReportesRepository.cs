@@ -9,6 +9,10 @@ namespace CafeBarrio.Infrastructure.Persistence.Repositories;
 public class ReportesRepository : IReportesRepository
 {
     private readonly CafeBarrioDbContext _context;
+
+    private static readonly TimeZoneInfo LimaZone = TimeZoneInfo.FindSystemTimeZoneById(
+        OperatingSystem.IsWindows() ? "SA Pacific Standard Time" : "America/Lima");
+
     public ReportesRepository(CafeBarrioDbContext context) => _context = context;
 
     public async Task<VentasResumenDto> GetVentasResumenAsync(int sedeId, DateTime desde, DateTime hasta, CancellationToken ct)
@@ -127,7 +131,7 @@ public class ReportesRepository : IReportesRepository
             .ToListAsync(ct);
 
         return rows
-            .GroupBy(t => t.Fecha.Date)
+            .GroupBy(t => TimeZoneInfo.ConvertTimeFromUtc(t.Fecha, LimaZone).Date)
             .Select(g => new VentasPorDiaDto(g.Key, g.Sum(t => t.Total), g.Count()))
             .OrderBy(x => x.Fecha)
             .ToList();

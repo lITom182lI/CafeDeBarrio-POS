@@ -16,6 +16,7 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
     private readonly IPublisher _publisher;
     private readonly IIdempotencyRecordRepository _idempotencyRecords;
     private readonly ICurrentUserService _currentUser;
+    private readonly ITurnoRepository _turnos;
 
     public CreateTransaccionHandler(
         ITransaccionRepository transacciones,
@@ -24,15 +25,17 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
         IUnitOfWork uow,
         IPublisher publisher,
         IIdempotencyRecordRepository idempotencyRecords,
-        ICurrentUserService currentUser)
+        ICurrentUserService currentUser,
+        ITurnoRepository turnos)
     {
-        _transacciones = transacciones;
-        _productos     = productos;
-        _configuracion = configuracion;
-        _uow           = uow;
-        _publisher     = publisher;
+        _transacciones      = transacciones;
+        _productos          = productos;
+        _configuracion      = configuracion;
+        _uow                = uow;
+        _publisher          = publisher;
         _idempotencyRecords = idempotencyRecords;
-        _currentUser   = currentUser;
+        _currentUser        = currentUser;
+        _turnos             = turnos;
     }
 
     public async Task<Result<int>> Handle(CreateTransaccionCommand request, CancellationToken ct)
@@ -69,6 +72,28 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
                     $"Stock insuficiente para {producto.Nombre}."));
 
             productosDict[item.ProductoId] = producto;
+        }
+
+        // Validar turno activo (si se especifica TurnoId)
+        if (request.TurnoId is not null)
+        {
+            var turnoActivo = await _turnos.GetActivoBySedeAsync(request.SedeId, ct);
+            if (turnoActivo is null)
+                return Result<int>.Failure(new Error("Turno.SinTurnoAbierto",
+                    "No hay un turno abierto para esta sede."));
+            if (turnoActivo.TurnoId != request.TurnoId.Value)
+                return Result<int>.Failure(new Error("Turno.TurnoInactivo",
+                    "El turno especificado no es el turno activo para esta sede."));
+        }
+
+        // Validar monto de pago dividido (el primario no puede cubrir el total completo)
+        if (request.MetodoPagoSecundarioId is not null && request.MontoMetodoPrimario is not null)
+        {
+            var impuestoEstimado = MoneyRounding.Round(subtotal * tasaIgv);
+            var totalEstimado    = subtotal + impuestoEstimado;
+            if (request.MontoMetodoPrimario.Value >= totalEstimado)
+                return Result<int>.Failure(new Error("Pago.MontoMetodoPrimarioExcedido",
+                    "El monto del método primario cubre o excede el total. Use un solo método de pago."));
         }
 
         // 2. Transacción de Base de Datos
@@ -142,8 +167,21 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
             }, ct);
 
             // Segunda save: persiste el registro de idempotencia
-            await _uow.SaveChangesAsync(ct);
-            await _uow.CommitAsync(ct);
+            // Si dos requests paralelos llegan con la misma key, el segundo golpea UX_IdempotencyRecords_Key.
+            // En ese caso, UnitOfWork lanza PersistenceException; devolvemos el TransaccionId ya persistido.
+            try
+            {
+                await _uow.SaveChangesAsync(ct);
+                await _uow.CommitAsync(ct);
+            }
+            catch (CafeBarrio.Application.Common.Exceptions.PersistenceException)
+            {
+                await _uow.RollbackAsync(ct);
+                var race = await _idempotencyRecords.GetByKeyAsync(request.IdempotencyKey, ct);
+                if (race is not null)
+                    return Result<int>.Success(race.TransaccionId);
+                throw;
+            }
 
             await _publisher.Publish(new TransaccionCreadaEvent(
                 transaccion.TransaccionId, transaccion.SedeId,

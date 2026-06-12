@@ -37,8 +37,11 @@ public class NubefactOseApiClient : ISunatOseApiClient
 
         if (!response.IsSuccessStatusCode)
         {
-            _log.LogWarning("[NUBEFACT] HTTP {Status} — {Body}", (int)response.StatusCode, body);
-            return new OseEmisionResult(false, null, null, $"HTTP {(int)response.StatusCode}: {body}");
+            var statusCode = (int)response.StatusCode;
+            _log.LogWarning("[NUBEFACT] HTTP {Status} — {Body}", statusCode, body);
+            bool retryable = statusCode >= 500;
+            return new OseEmisionResult(false, null, null,
+                $"HTTP {statusCode}: {body}", retryable);
         }
 
         return ParseResponse(body);

@@ -29,5 +29,6 @@ public record EmitirBoletaResult(
     bool Emitida,
     string? NumeroSerie,
     string Mensaje,
-    string? Error = null
+    string? Error = null,
+    bool Retryable = false
 );

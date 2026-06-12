@@ -29,7 +29,6 @@ public sealed class SunatEmisionService : BackgroundService
             }
             catch (OperationCanceledException)
             {
-                // Cierre normal del host — no loggear como error
                 break;
             }
             catch (Exception ex)
@@ -72,12 +71,37 @@ public sealed class SunatEmisionService : BackgroundService
                     items, tx.Subtotal, tx.Impuesto, tx.Total,
                     tx.Canal, tx.TipoDocumento, tx.NumeroDocumento, tx.RazonSocial), ct);
 
-                tx.SunatEstado      = resultado.Emitida ? "Emitida" : "NoEmitida";
-                tx.SunatNumeroSerie = resultado.NumeroSerie;
-                tx.SunatError       = resultado.Emitida ? null : resultado.Error;
-
-                _log.LogInformation("[SUNAT-BG] Tx {Id}: {Estado} (intento {N})",
-                    tx.TransaccionId, tx.SunatEstado, tx.SunatIntentos);
+                if (resultado.Emitida)
+                {
+                    tx.SunatEstado      = "Emitida";
+                    tx.SunatNumeroSerie = resultado.NumeroSerie;
+                    tx.SunatError       = null;
+                    _log.LogInformation("[SUNAT-BG] Tx {Id}: Emitida — {NumeroSerie}",
+                        tx.TransaccionId, resultado.NumeroSerie);
+                }
+                else if (resultado.Retryable && tx.SunatIntentos < MaxRetries)
+                {
+                    // HTTP 5xx transitorio: dejar Pendiente para próximo ciclo
+                    tx.SunatError = resultado.Error;
+                    _log.LogWarning("[SUNAT-BG] Tx {Id} HTTP-5xx transitorio intento {N}/{Max} — reintentará",
+                        tx.TransaccionId, tx.SunatIntentos, MaxRetries);
+                }
+                else if (resultado.Retryable)
+                {
+                    // Agotó reintentos tras HTTP 5xx persistente
+                    tx.SunatEstado = "DeadLetter";
+                    tx.SunatError  = resultado.Error;
+                    _log.LogError("[SUNAT-BG] Tx {Id} → DeadLetter tras {N} intentos (5xx): {Error}",
+                        tx.TransaccionId, tx.SunatIntentos, resultado.Error);
+                }
+                else
+                {
+                    // HTTP 4xx: falla permanente, sin retry
+                    tx.SunatEstado = "NoEmitida";
+                    tx.SunatError  = resultado.Error;
+                    _log.LogWarning("[SUNAT-BG] Tx {Id} → NoEmitida (4xx permanente): {Error}",
+                        tx.TransaccionId, resultado.Error);
+                }
             }
             catch (Exception ex)
             {

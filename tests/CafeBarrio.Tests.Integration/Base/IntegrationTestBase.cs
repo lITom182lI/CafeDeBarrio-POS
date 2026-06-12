@@ -15,7 +15,7 @@ public abstract class IntegrationTestBase : IDisposable
 
     protected IntegrationTestBase()
     {
-        var localFallback = "Server=localhost,1434;Database=CafeDeBarrioTest;Integrated Security=True;TrustServerCertificate=True;";
+        var localFallback = "Server=localhost,14333;Database=CafeDeBarrioTest;Integrated Security=True;TrustServerCertificate=True;";
 
         var options = new DbContextOptionsBuilder<CafeBarrioDbContext>()
             .UseSqlServer(
@@ -28,8 +28,8 @@ public abstract class IntegrationTestBase : IDisposable
         {
             if (!_dbInitialized)
             {
-                Db.Database.EnsureDeleted(); // Para limpiar el estado sucio del test fallido anterior
-                Db.Database.EnsureCreated();
+                Db.Database.EnsureDeleted();
+                Db.Database.Migrate();
                 _dbInitialized = true;
             }
         }

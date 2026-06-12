@@ -11,7 +11,7 @@ namespace CafeBarrio.API.Controllers;
 
 [ApiController]
 [Route("api/movimientos-caja")]
-[Authorize(Roles = Roles.Admin)]
+[Authorize]
 [Produces("application/json")]
 public class MovimientosCajaController : ControllerBase
 {
@@ -19,6 +19,7 @@ public class MovimientosCajaController : ControllerBase
     public MovimientosCajaController(IMediator mediator) => _mediator = mediator;
 
     [HttpPost]
+    [Authorize(Roles = Roles.AdminOrOperador)]
     [ProducesResponseType<int>(201)]
     [ProducesResponseType(400)]
     public async Task<IActionResult> Create(
@@ -31,6 +32,7 @@ public class MovimientosCajaController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = Roles.Admin)]
     [ProducesResponseType<IReadOnlyList<MovimientoCajaDto>>(200)]
     public async Task<IActionResult> GetByTurno([FromQuery] int turnoId, CancellationToken ct = default)
     {

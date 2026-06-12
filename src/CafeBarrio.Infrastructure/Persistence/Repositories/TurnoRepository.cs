@@ -31,26 +31,49 @@ public class TurnoRepository : BaseRepository<Turno>, ITurnoRepository
         var turno = await Context.Turnos
             .FirstAsync(t => t.TurnoId == turnoId, ct);
 
-        // We use EsEfectivo through joining with MetodosPago since the MetodoPago on Transaccion is a string
-        var ventasEfectivo = await Context.Set<Transaccion>()
+        // Ventas efectivo — porción primaria (pago simple: MontoMetodoPrimario es null → usar Total)
+        var ventasEfectivoPrimario = await Context.Set<Transaccion>()
             .Where(t => t.TurnoId == turnoId && t.Anulacion == null)
-            .Join(Context.Set<MetodoPago>(), t => t.MetodoPagoId, m => m.MetodoPagoId, (t, m) => new { t, m })
+            .Join(Context.Set<MetodoPago>(),
+                  t => t.MetodoPagoId,
+                  m => m.MetodoPagoId,
+                  (t, m) => new { t, m })
             .Where(x => x.m.EsEfectivo)
-            .SumAsync(x => (decimal?)x.t.Total ?? 0, ct);
+            .SumAsync(x => (decimal?)(x.t.MontoMetodoPrimario ?? x.t.Total), ct) ?? 0m;
 
-        var anulacionesEfectivo = await Context.Set<Transaccion>()
-            .Where(t => t.TurnoId == turnoId && t.Anulacion != null)
-            .Join(Context.Set<MetodoPago>(), t => t.MetodoPagoId, m => m.MetodoPagoId, (t, m) => new { t, m })
+        // Ventas efectivo — porción secundaria (pago dividido donde el segundo método es efectivo)
+        var ventasEfectivoSecundario = await Context.Set<Transaccion>()
+            .Where(t => t.TurnoId == turnoId
+                     && t.Anulacion == null
+                     && t.MetodoPagoSecundarioId != null
+                     && t.MontoMetodoPrimario != null)
+            .Join(Context.Set<MetodoPago>(),
+                  t => t.MetodoPagoSecundarioId!.Value,
+                  m => m.MetodoPagoId,
+                  (t, m) => new { t, m })
             .Where(x => x.m.EsEfectivo)
-            .SumAsync(x => (decimal?)x.t.Total ?? 0, ct);
+            .SumAsync(x => (decimal?)(x.t.Total - x.t.MontoMetodoPrimario!.Value), ct) ?? 0m;
+
+        var ventasEfectivo = ventasEfectivoPrimario + ventasEfectivoSecundario;
+
+        // Anulaciones con devolución en efectivo ocurridas durante este turno
+        // Se filtra por FechaHora (no por TurnoId de la venta) para capturar correctamente
+        // las devoluciones cross-turno: el dinero sale de la caja del turno donde se devolvió,
+        // no del turno donde se realizó la venta original.
+        var anulacionesEfectivo = await Context.Set<Anulacion>()
+            .Where(a => a.Transaccion.SedeId == turno.SedeId
+                     && a.FechaHora >= turno.FechaApertura
+                     && (turno.FechaCierre == null || a.FechaHora <= turno.FechaCierre)
+                     && a.MetodoDevolucion == "Efectivo")
+            .SumAsync(a => (decimal?)a.MontoDevuelto, ct) ?? 0m;
 
         var entradas = await Context.Set<MovimientoCaja>()
             .Where(m => m.TurnoId == turnoId && m.TipoMovimiento == TipoMovimiento.Entrada)
-            .SumAsync(m => (decimal?)m.Monto ?? 0, ct);
+            .SumAsync(m => (decimal?)m.Monto, ct) ?? 0m;
 
         var salidas = await Context.Set<MovimientoCaja>()
             .Where(m => m.TurnoId == turnoId && m.TipoMovimiento == TipoMovimiento.Salida)
-            .SumAsync(m => (decimal?)m.Monto ?? 0, ct);
+            .SumAsync(m => (decimal?)m.Monto, ct) ?? 0m;
 
         return new ResumenEfectivoDto(
             turno.MontoApertura,

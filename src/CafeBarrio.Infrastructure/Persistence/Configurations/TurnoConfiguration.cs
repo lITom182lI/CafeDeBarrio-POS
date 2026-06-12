@@ -16,6 +16,7 @@ public class TurnoConfiguration : IEntityTypeConfiguration<Turno>
         builder.Property(t => t.TotalEfectivoSistema).HasPrecision(10, 2);
         builder.Property(t => t.FechaApertura).IsRequired();
         builder.Property(t => t.Observaciones).HasMaxLength(500);
+        builder.Property(t => t.RowVersion).IsRowVersion();
 
         builder.HasOne(t => t.Sede)
                .WithMany()

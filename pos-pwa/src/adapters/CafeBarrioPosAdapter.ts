@@ -64,7 +64,8 @@ export class CafeBarrioPosAdapter {
     let allProducts: ProductoDto[] = []
     let currentPage = 1
     const pageSize = 100
-    while (true) {
+    const MAX_PAGES = 50
+    while (currentPage <= MAX_PAGES) {
       const r = await this.apiFetch<PaginatedResult<ProductoDto> | ProductoDto[]>(
         `/api/productos?pageNumber=${currentPage}&pageSize=${pageSize}`
       )
