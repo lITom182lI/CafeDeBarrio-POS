@@ -19,11 +19,12 @@ public class CreateTransaccionHandlerTests
     private readonly IUnitOfWork _uow                       = Substitute.For<IUnitOfWork>();
     private readonly IPublisher _publisher                  = Substitute.For<IPublisher>();
     private readonly IIdempotencyRecordRepository _idemp    = Substitute.For<IIdempotencyRecordRepository>();
+    private readonly ICurrentUserService _currentUser       = Substitute.For<ICurrentUserService>();
     private readonly CreateTransaccionHandler _sut;
 
     public CreateTransaccionHandlerTests()
     {
-        _sut = new CreateTransaccionHandler(_transacciones, _productos, _conf, _uow, _publisher, _idemp);
+        _sut = new CreateTransaccionHandler(_transacciones, _productos, _conf, _uow, _publisher, _idemp, _currentUser);
     }
 
     private static CreateTransaccionCommand BuildCommand(int productoId = 1, int cantidad = 2)

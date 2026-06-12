@@ -1,4 +1,5 @@
 using CafeBarrio.Application.Common.Interfaces;
+using CafeBarrio.Application.Common.Helpers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -35,14 +36,14 @@ public class SunatOseClient : ISunatService
 
         var items = req.Items.Select(i =>
         {
-            var igvLinea = Math.Round(i.SubtotalLinea * _options.PorcentajeIgv / 100, 2);
+            var igvLinea = MoneyRounding.Round(i.SubtotalLinea * _options.PorcentajeIgv / 100);
             var totalLinea = i.SubtotalLinea + igvLinea;
             return new OseBoletaItem(
                 Codigo:         i.Nombre,
                 Descripcion:    i.Nombre,
                 Cantidad:       i.Cantidad,
                 ValorUnitario:  i.PrecioUnitario,
-                PrecioUnitario: Math.Round(i.PrecioUnitario * (1 + _options.PorcentajeIgv / 100), 2),
+                PrecioUnitario: MoneyRounding.Round(i.PrecioUnitario * (1 + _options.PorcentajeIgv / 100)),
                 Subtotal:       i.SubtotalLinea,
                 Igv:            igvLinea,
                 Total:          totalLinea);

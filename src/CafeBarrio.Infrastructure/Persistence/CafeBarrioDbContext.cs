@@ -50,22 +50,14 @@ public class CafeBarrioDbContext : DbContext
 
         modelBuilder.Entity<Transaccion>(e =>
         {
-            e.Property(t => t.CreatedAt)
-             .HasColumnName("created_at")
-             .HasDefaultValueSql("GETUTCDATE()");
-            e.Property(t => t.UpdatedAt)
-             .HasColumnName("updated_at")
-             .IsRequired(false);
+            e.Property(t => t.CreatedAt).HasColumnName("created_at");
+            e.Property(t => t.UpdatedAt).HasColumnName("updated_at").IsRequired(false);
         });
 
         modelBuilder.Entity<Producto>(e =>
         {
-            e.Property(p => p.CreatedAt)
-             .HasColumnName("created_at")
-             .HasDefaultValueSql("GETUTCDATE()");
-            e.Property(p => p.UpdatedAt)
-             .HasColumnName("updated_at")
-             .IsRequired(false);
+            e.Property(p => p.CreatedAt).HasColumnName("created_at");
+            e.Property(p => p.UpdatedAt).HasColumnName("updated_at").IsRequired(false);
         });
 
         // Índices — MUIS Backend Ref-07 §4

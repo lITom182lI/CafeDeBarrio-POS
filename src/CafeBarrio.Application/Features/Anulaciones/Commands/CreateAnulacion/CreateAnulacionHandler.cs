@@ -14,6 +14,7 @@ public class CreateAnulacionHandler : IRequestHandler<CreateAnulacionCommand, Re
     private readonly IProductoRepository _productos;
     private readonly IUnitOfWork _uow;
     private readonly IPublisher _publisher;
+    private readonly ICurrentUserService _currentUser;
 
     public CreateAnulacionHandler(
         ITransaccionRepository transacciones,
@@ -21,7 +22,8 @@ public class CreateAnulacionHandler : IRequestHandler<CreateAnulacionCommand, Re
         IOperadorRepository operadores,
         IProductoRepository productos,
         IUnitOfWork uow,
-        IPublisher publisher)
+        IPublisher publisher,
+        ICurrentUserService currentUser)
     {
         _transacciones = transacciones;
         _anulaciones   = anulaciones;
@@ -29,6 +31,7 @@ public class CreateAnulacionHandler : IRequestHandler<CreateAnulacionCommand, Re
         _productos     = productos;
         _uow           = uow;
         _publisher     = publisher;
+        _currentUser   = currentUser;
     }
 
     public async Task<Result<int>> Handle(CreateAnulacionCommand request, CancellationToken ct)
@@ -47,45 +50,72 @@ public class CreateAnulacionHandler : IRequestHandler<CreateAnulacionCommand, Re
             return Result<int>.Failure(new Error("Anulacion.OperadorNotFound",
                 $"Operador solicitante {request.OperadorSolicitanteId} no encontrado."));
 
-        var autorizador = await _operadores.GetByIdAsync(request.AutorizadorId, ct);
-        if (autorizador is null)
-            return Result<int>.Failure(new Error("Anulacion.AutorizadorNotFound",
-                $"Operador autorizador {request.AutorizadorId} no encontrado."));
+        // Autorizador derivado del JWT — Admin debe tener Operador vinculado
+        if (_currentUser.UserId is null)
+            return Result<int>.Failure(new Error("Auth.Unauthenticated",
+                "No se pudo determinar la identidad del autorizador."));
+
+        var autorizadorId = await _operadores.GetOperadorIdByUsuarioIdAsync(_currentUser.UserId.Value, ct);
+        if (autorizadorId is null)
+            return Result<int>.Failure(new Error("Anulacion.AutorizadorSinOperador",
+                "El usuario Admin no tiene un Operador vinculado. Vincúlalo para autorizar anulaciones."));
 
         if (request.MontoDevuelto > transaccion.Total)
             return Result<int>.Failure(new Error("Anulacion.MontoInvalido",
                 "El monto devuelto no puede superar el total de la transacción."));
 
-        if (request.ImpactoInventario)
+        await _uow.BeginTransactionAsync(ct);
+        try
         {
-            foreach (var detalle in transaccion.Detalles)
+            if (request.ImpactoInventario)
             {
-                var producto = await _productos.GetByIdAsync(detalle.ProductoId, ct);
-                if (producto is not null && producto.SeguimientoInventario)
-                    producto.CantidadDisponible += detalle.Cantidad;
+                foreach (var detalle in transaccion.Detalles)
+                {
+                    var producto = await _productos.GetByIdAsync(detalle.ProductoId, ct);
+                    if (producto is not null && producto.SeguimientoInventario)
+                        producto.CantidadDisponible += detalle.Cantidad;
+                }
             }
+
+            var anulacion = new Anulacion
+            {
+                TransaccionId         = request.TransaccionId,
+                TipoAnulacion         = request.TipoAnulacion,
+                Motivo                = request.Motivo,
+                MontoOriginal         = transaccion.Total,
+                MontoDevuelto         = request.MontoDevuelto,
+                MetodoDevolucion      = request.MetodoDevolucion,
+                OperadorSolicitanteId = request.OperadorSolicitanteId,
+                AutorizadorId         = autorizadorId.Value,
+                FechaHora             = DateTime.UtcNow,
+                ImpactoInventario     = request.ImpactoInventario
+            };
+
+            await _anulaciones.AddAsync(anulacion, ct);
+
+            try
+            {
+                await _uow.SaveChangesAsync(ct);
+            }
+            catch (CafeBarrio.Application.Common.Exceptions.ConcurrencyException)
+            {
+                await _uow.RollbackAsync(ct);
+                return Result<int>.Failure(new Error("Anulacion.ConcurrencyConflict",
+                    "Conflicto de inventario al anular. Reintenta."));
+            }
+
+            await _uow.CommitAsync(ct);
+
+            await _publisher.Publish(new AnulacionAprobadaEvent(
+                anulacion.AnulacionId, anulacion.TransaccionId,
+                anulacion.MontoDevuelto, anulacion.TipoAnulacion), ct);
+
+            return Result<int>.Success(anulacion.AnulacionId);
         }
-
-        var anulacion = new Anulacion
+        catch
         {
-            TransaccionId          = request.TransaccionId,
-            TipoAnulacion          = request.TipoAnulacion,
-            Motivo                 = request.Motivo,
-            MontoOriginal          = transaccion.Total,
-            MontoDevuelto          = request.MontoDevuelto,
-            MetodoDevolucion       = request.MetodoDevolucion,
-            OperadorSolicitanteId  = request.OperadorSolicitanteId,
-            AutorizadorId          = request.AutorizadorId,
-            FechaHora              = DateTime.UtcNow,
-            ImpactoInventario      = request.ImpactoInventario
-        };
-
-        await _anulaciones.AddAsync(anulacion, ct);
-
-        await _uow.SaveChangesAsync(ct);
-        await _publisher.Publish(new AnulacionAprobadaEvent(
-            anulacion.AnulacionId, anulacion.TransaccionId,
-            anulacion.MontoDevuelto, anulacion.TipoAnulacion), ct);
-        return Result<int>.Success(anulacion.AnulacionId);
+            await _uow.RollbackAsync(ct);
+            throw;
+        }
     }
 }

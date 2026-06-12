@@ -15,11 +15,19 @@ public class TurnosIntegrationTests : IntegrationTestBase
     private readonly AbrirTurnoHandler _abrirTurno;
     private readonly CerrarTurnoHandler _cerrarTurno;
 
+    private class DummyCurrentUserService : CafeBarrio.Application.Common.Interfaces.ICurrentUserService
+    {
+        public string? Email => "test@test.com";
+        public int? SedeId => null;
+        public int? UserId => 1;
+    }
+
     public TurnosIntegrationTests() : base()
     {
         var turnosRepo  = new TurnoRepository(Db);
         var uow         = new CafeBarrio.Infrastructure.Persistence.UnitOfWork(Db);
-        _abrirTurno  = new AbrirTurnoHandler(turnosRepo, uow);
+        var currentUser = new DummyCurrentUserService();
+        _abrirTurno  = new AbrirTurnoHandler(turnosRepo, uow, currentUser);
         _cerrarTurno = new CerrarTurnoHandler(turnosRepo, uow);
     }
 

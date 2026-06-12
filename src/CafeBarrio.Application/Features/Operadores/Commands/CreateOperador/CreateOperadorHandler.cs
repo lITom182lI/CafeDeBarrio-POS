@@ -30,10 +30,11 @@ public class CreateOperadorHandler : IRequestHandler<CreateOperadorCommand, Resu
 
         var operador = new Operador
         {
-            SedeId  = defaultSedeId > 0 ? defaultSedeId : 1,
-            Nombre  = r.Nombre.Trim(),
-            PinHash = _hasher.Hash(r.Pin),
-            Activo  = true
+            SedeId        = defaultSedeId > 0 ? defaultSedeId : 1,
+            Nombre        = r.Nombre.Trim(),
+            PinHash       = _hasher.Hash(r.Pin),
+            Activo        = true,
+            SecurityStamp = Guid.NewGuid().ToString("N"),
         };
         
         await _operadores.AddAsync(operador, ct);

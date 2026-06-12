@@ -30,7 +30,8 @@ public class UpdateOperadorHandler : IRequestHandler<UpdateOperadorCommand, Resu
             if (r.NuevoPin.Length < 4 || r.NuevoPin.Length > 8 || !r.NuevoPin.All(char.IsDigit))
                 return Result.Failure(new Error("Operador.PinInvalido",
                     "El PIN debe tener entre 4 y 8 dígitos numéricos."));
-            operador.PinHash = _hasher.Hash(r.NuevoPin);
+            operador.PinHash       = _hasher.Hash(r.NuevoPin);
+            operador.SecurityStamp = Guid.NewGuid().ToString("N");
         }
 
         operador.Nombre = r.Nombre.Trim();

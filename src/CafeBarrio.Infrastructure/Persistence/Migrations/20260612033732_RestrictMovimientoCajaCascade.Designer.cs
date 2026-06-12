@@ -4,6 +4,7 @@ using CafeBarrio.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CafeBarrio.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CafeBarrioDbContext))]
-    partial class CafeBarrioDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260612033732_RestrictMovimientoCajaCascade")]
+    partial class RestrictMovimientoCajaCascade
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -490,10 +493,6 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<string>("SecurityStamp")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("SedeId")
                         .HasColumnType("int");
 
@@ -552,8 +551,10 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                         .HasColumnName("costo");
 
                     b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
@@ -734,8 +735,10 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                         .HasColumnName("costo_envio");
 
                     b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");

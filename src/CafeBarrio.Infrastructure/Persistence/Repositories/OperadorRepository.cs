@@ -25,4 +25,10 @@ public class OperadorRepository : BaseRepository<Operador>, IOperadorRepository
     public async Task<Operador?> GetActivoByIdAsync(int id, CancellationToken ct = default)
         => await Context.Set<Operador>()
             .FirstOrDefaultAsync(o => o.OperadorId == id && o.Activo && !o.Eliminado, ct);
+
+    public async Task<int?> GetOperadorIdByUsuarioIdAsync(int usuarioId, CancellationToken ct = default)
+        => await Context.Set<Operador>()
+                        .Where(o => o.UsuarioId == usuarioId && !o.Eliminado)
+                        .Select(o => (int?)o.OperadorId)
+                        .FirstOrDefaultAsync(ct);
 }

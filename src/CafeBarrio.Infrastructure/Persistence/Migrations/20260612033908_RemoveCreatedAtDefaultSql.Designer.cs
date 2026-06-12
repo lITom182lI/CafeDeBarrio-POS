@@ -4,6 +4,7 @@ using CafeBarrio.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CafeBarrio.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CafeBarrioDbContext))]
-    partial class CafeBarrioDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260612033908_RemoveCreatedAtDefaultSql")]
+    partial class RemoveCreatedAtDefaultSql
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -489,10 +492,6 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("SecurityStamp")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("SedeId")
                         .HasColumnType("int");

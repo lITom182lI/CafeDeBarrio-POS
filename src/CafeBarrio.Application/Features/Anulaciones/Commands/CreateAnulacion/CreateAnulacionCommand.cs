@@ -10,6 +10,5 @@ public record CreateAnulacionCommand(
     decimal MontoDevuelto,
     string? MetodoDevolucion,
     int OperadorSolicitanteId,
-    int AutorizadorId,
     bool ImpactoInventario = true
 ) : IRequest<Result<int>>;

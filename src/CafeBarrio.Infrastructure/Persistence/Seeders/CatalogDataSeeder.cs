@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CafeBarrio.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 
 namespace CafeBarrio.Infrastructure.Persistence.Seeders;
 
@@ -15,10 +16,17 @@ public interface ICatalogDataSeeder
 public class CatalogDataSeeder : ICatalogDataSeeder
 {
     private readonly CafeBarrioDbContext _context;
+    private readonly CafeBarrio.Application.Common.Interfaces.IPasswordHasher _hasher;
+    private readonly Microsoft.Extensions.Hosting.IHostEnvironment _env;
 
-    public CatalogDataSeeder(CafeBarrioDbContext context)
+    public CatalogDataSeeder(
+        CafeBarrioDbContext context,
+        CafeBarrio.Application.Common.Interfaces.IPasswordHasher hasher,
+        Microsoft.Extensions.Hosting.IHostEnvironment env)
     {
         _context = context;
+        _hasher  = hasher;
+        _env     = env;
     }
 
     public async Task SeedAsync(CancellationToken ct = default)
@@ -127,10 +135,12 @@ public class CatalogDataSeeder : ICatalogDataSeeder
         var metodoEfec = await _context.MetodosPago.FirstOrDefaultAsync(m => m.Nombre == "Efectivo", ct);
         var metodoYape = await _context.MetodosPago.FirstOrDefaultAsync(m => m.Nombre == "Yape", ct);
 
-        // 6. Test Data Simulation (Operadores, Turnos, Transacciones, Anulaciones)
-        bool hasTestData = await _context.Operadores.CountAsync(ct) >= 10;
-        if (!hasTestData)
+        // 6. Test Data Simulation — SOLO en Development
+        if (_env.IsDevelopment())
         {
+            bool hasTestData = await _context.Operadores.CountAsync(ct) >= 10;
+            if (!hasTestData)
+            {
             // Generar 10 operadores
             var ops = new List<Operador>();
             for(int i = 1; i <= 10; i++)
@@ -138,7 +148,7 @@ public class CatalogDataSeeder : ICatalogDataSeeder
                 ops.Add(new Operador { 
                     SedeId = sede.SedeId, 
                     Nombre = $"Test Operador {i}", 
-                    PinHash = "123456", 
+                    PinHash = _hasher.Hash("123456"), 
                     Activo = true, 
                     CreatedAt = DateTime.UtcNow 
                 });
@@ -249,6 +259,7 @@ public class CatalogDataSeeder : ICatalogDataSeeder
                 _context.Anulaciones.AddRange(anulaciones);
                 await _context.SaveChangesAsync(ct);
             }
+        }
         }
     }
 }

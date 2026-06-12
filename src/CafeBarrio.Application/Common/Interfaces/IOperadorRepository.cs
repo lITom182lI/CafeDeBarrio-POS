@@ -8,4 +8,5 @@ public interface IOperadorRepository : IRepository<Operador>
     Task<IReadOnlyList<Operador>> GetAllAsync(CancellationToken ct = default);
     Task<IReadOnlyList<Operador>> GetAllActivosAsync(CancellationToken ct = default);
     Task<Operador?> GetActivoByIdAsync(int id, CancellationToken ct = default);
+    Task<int?> GetOperadorIdByUsuarioIdAsync(int usuarioId, CancellationToken ct = default);
 }

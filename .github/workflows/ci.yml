@@ -79,9 +79,22 @@ jobs:
             --health-timeout=5s \
             --health-retries=15 \
             -d mcr.microsoft.com/mssql/server:2022-latest
-            
+
           echo "Waiting for SQL Server to be healthy..."
-          while [ "$(docker inspect -f '{{.State.Health.Status}}' sqlserver)" != "healthy" ]; do
+          ATTEMPTS=0
+          MAX_ATTEMPTS=60
+          while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+            STATUS=$(docker inspect -f '{{.State.Health.Status}}' sqlserver 2>/dev/null)
+            if [ "$STATUS" = "healthy" ]; then
+              echo "SQL Server is healthy after $((ATTEMPTS * 2))s"
+              break
+            fi
+            ATTEMPTS=$((ATTEMPTS + 1))
+            if [ $ATTEMPTS -eq $MAX_ATTEMPTS ]; then
+              echo "SQL Server failed to become healthy in 120s"
+              docker logs sqlserver
+              exit 1
+            fi
             sleep 2
           done
 
@@ -137,7 +150,7 @@ jobs:
         run: dotnet tool install --global CycloneDX
 
       - name: Generate SBOM
-        run: dotnet CycloneDX src/CafeBarrio.sln -o . --json
+        run: dotnet-CycloneDX src/CafeBarrio.sln -o . --json
 
       - name: Upload SBOM
         uses: actions/upload-artifact@v4
