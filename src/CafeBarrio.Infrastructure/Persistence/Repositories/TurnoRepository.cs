@@ -63,7 +63,7 @@ public class TurnoRepository : BaseRepository<Turno>, ITurnoRepository
         var anulacionesEfectivo = await Context.Set<Anulacion>()
             .Where(a => a.Transaccion.SedeId == turno.SedeId
                      && a.FechaHora >= turno.FechaApertura
-                     && (turno.FechaCierre == null || a.FechaHora <= turno.FechaCierre)
+                     && (turno.FechaCierre == null || a.FechaHora < turno.FechaCierre)
                      && a.MetodoDevolucion == "Efectivo")
             .SumAsync(a => (decimal?)a.MontoDevuelto, ct) ?? 0m;
 
