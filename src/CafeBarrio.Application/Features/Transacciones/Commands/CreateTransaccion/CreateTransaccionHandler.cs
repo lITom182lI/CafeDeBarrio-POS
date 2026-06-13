@@ -109,15 +109,15 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
 
                 if (request.MetodoPagoSecundarioId is not null && request.MontoMetodoPrimario is not null)
                 {
-                    var impuestoEstimado = MoneyRounding.Round(subtotal * tasaIgv);
-                    var totalEstimado    = subtotal + impuestoEstimado;
-                    if (request.MontoMetodoPrimario.Value >= totalEstimado)
+                    if (request.MontoMetodoPrimario.Value >= subtotal)
                         throw new BusinessFailureException(
                             Result<int>.Failure(new Error("Pago.MontoMetodoPrimarioExcedido",
                                 "El monto del método primario cubre o excede el total. Use un solo método de pago.")));
                 }
 
-                var impuesto = MoneyRounding.Round(subtotal * tasaIgv);
+                var tasaCalculo = 1m + tasaIgv;
+                var baseImponible = MoneyRounding.Round(subtotal / tasaCalculo);
+                var impuesto = MoneyRounding.Round(subtotal - baseImponible);
 
                 var transaccion = new Transaccion
                 {
@@ -132,11 +132,11 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
                     Canal                   = request.Canal,
                     EsMayorista             = false,
                     Fecha                   = DateTime.UtcNow,
-                    Subtotal                = subtotal,
+                    Subtotal                = baseImponible,
                     Impuesto                = impuesto,
                     RecargoPropina          = 0m,
                     CostoEnvio              = 0m,
-                    Total                   = subtotal + impuesto,
+                    Total                   = subtotal,
                     Detalles                = detalles,
                     TipoDocumento           = request.TipoDocumento,
                     NumeroDocumento         = request.NumeroDocumento,
