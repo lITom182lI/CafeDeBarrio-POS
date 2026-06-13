@@ -18,7 +18,10 @@ services:
     restart: unless-stopped
 
   api:
-    image: ghcr.io/litom182li/cafebarrio-api:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # image: ghcr.io/litom182li/cafebarrio-api:latest
     ports:
       - "8080:8080"
     environment:
@@ -31,6 +34,7 @@ services:
       Jwt__Audience: CafeDeBarrioClients
       Cors__AllowedOrigin: ${CORS_ORIGIN}
       Seed__AdminPassword: ${ADMIN_PASSWORD}
+      SEED_DEMO_DATA: "true"
       Sunat__Enabled: ${SUNAT_ENABLED:-false}
       Sunat__Ruc: ${SUNAT_RUC:-}
       Sunat__OseToken: ${SUNAT_OSE_TOKEN:-}
