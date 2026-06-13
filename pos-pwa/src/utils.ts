@@ -2,9 +2,10 @@ import type { CartItem, Totales } from './types'
 import { config } from './config'
 
 export function calcularTotales(cart: CartItem[]): Totales {
-  const subtotal = cart.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
-  const igv      = Math.round(subtotal * config.tasaIgv * 100) / 100
-  const total    = subtotal + igv
+  const total = cart.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
+  const tasaCalculo = 1 + config.tasaIgv
+  const subtotal = Math.round((total / tasaCalculo) * 100) / 100
+  const igv = Math.round((total - subtotal) * 100) / 100
   return { subtotal, igv, total }
 }
 

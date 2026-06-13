@@ -13,8 +13,15 @@ describe('calcularTotales', () => {
   it('calcula correctamente un ítem', () => {
     const cart = [{ productoId: 1, nombre: 'Café', precio: 5, cantidad: 2 }]
     const result = calcularTotales(cart)
-    expect(result.subtotal).toBe(10)
-    expect(result.igv).toBe(Math.round(10 * config.tasaIgv * 100) / 100)
+    const expectedTotal = 10
+    const tasaCalculo = 1 + config.tasaIgv
+    const expectedSubtotal = Math.round((expectedTotal / tasaCalculo) * 100) / 100
+    const expectedIgv = Math.round((expectedTotal - expectedSubtotal) * 100) / 100
+
+    expect(result.total).toBe(expectedTotal)
+    expect(result.subtotal).toBe(expectedSubtotal)
+    expect(result.igv).toBe(expectedIgv)
+    // El total debe ser igual a subtotal + igv (la discrepancia por redondeo se asume absorbida en la lógica)
     expect(result.total).toBe(result.subtotal + result.igv)
   })
 
@@ -24,7 +31,15 @@ describe('calcularTotales', () => {
       { productoId: 2, nombre: 'Torta', precio: 8, cantidad: 3 },
     ]
     const result = calcularTotales(cart)
-    expect(result.subtotal).toBe(29)
+    const expectedTotal = 29
+    const tasaCalculo = 1 + config.tasaIgv
+    const expectedSubtotal = Math.round((expectedTotal / tasaCalculo) * 100) / 100
+    const expectedIgv = Math.round((expectedTotal - expectedSubtotal) * 100) / 100
+
+    expect(result.total).toBe(expectedTotal)
+    expect(result.subtotal).toBe(expectedSubtotal)
+    expect(result.igv).toBe(expectedIgv)
+    expect(result.total).toBe(result.subtotal + result.igv)
   })
 })
 

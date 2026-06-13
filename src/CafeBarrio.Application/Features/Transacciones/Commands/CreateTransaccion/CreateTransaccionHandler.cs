@@ -56,7 +56,7 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
 
         var tasaIgv = config.TasaIGV + config.TasaIPM;
         var detalles = new List<DetalleTransaccion>();
-        decimal subtotal = 0;
+        decimal totalBruto = 0;
         var productosDict = new Dictionary<int, Producto>();
 
         // 1. Validar stock para todos los ítems antes de hacer cambios
@@ -72,7 +72,7 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
                     $"Stock insuficiente para {producto.Nombre}."));
 
             productosDict[item.ProductoId] = producto;
-            subtotal += producto.Precio * item.Cantidad;
+            totalBruto += producto.Precio * item.Cantidad;
         }
 
         // Validar turno activo (si se especifica TurnoId)
@@ -90,8 +90,7 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
         // Validar monto de pago dividido (el primario no puede cubrir el total completo)
         if (request.MetodoPagoSecundarioId is not null && request.MontoMetodoPrimario is not null)
         {
-            var impuestoEstimado = MoneyRounding.Round(subtotal * tasaIgv);
-            var totalEstimado    = subtotal + impuestoEstimado;
+            var totalEstimado = totalBruto; // ya es IGV-inclusivo
             if (request.MontoMetodoPrimario.Value >= totalEstimado)
                 return Result<int>.Failure(new Error("Pago.MontoMetodoPrimarioExcedido",
                     "El monto del método primario cubre o excede el total. Use un solo método de pago."));
@@ -119,7 +118,9 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
                 detalles.Add(linea);
             }
 
-            var impuesto = MoneyRounding.Round(subtotal * tasaIgv);
+            var divisor       = 1 + tasaIgv;
+            var baseImponible = MoneyRounding.Round(totalBruto / divisor);
+            var impuesto      = MoneyRounding.Round(totalBruto - baseImponible);
 
             var transaccion = new Transaccion
             {
@@ -134,11 +135,11 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
                 Canal          = request.Canal,
                 EsMayorista    = false,
                 Fecha          = DateTime.UtcNow,
-                Subtotal       = subtotal,
+                Subtotal       = baseImponible,
                 Impuesto       = impuesto,
                 RecargoPropina = 0m,
                 CostoEnvio     = 0m,
-                Total          = subtotal + impuesto,
+                Total          = totalBruto,
                 Detalles       = detalles,
                 TipoDocumento  = request.TipoDocumento,
                 NumeroDocumento = request.NumeroDocumento,
