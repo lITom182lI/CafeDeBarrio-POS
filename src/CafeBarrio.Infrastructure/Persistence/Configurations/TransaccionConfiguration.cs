@@ -72,7 +72,14 @@ public class TransaccionConfiguration : IEntityTypeConfiguration<Transaccion>
         builder.HasIndex(x => x.Fecha);
         builder.HasIndex(x => x.TurnoId);
         builder.HasIndex(x => new { x.SedeId, x.Fecha }).HasDatabaseName("IX_Transaccion_SedeId_Fecha");
-        
 
+        // V3-03: concurrency token — protege anulación + actualización SUNAT simultáneas
+        builder.Property(x => x.RowVersion).IsRowVersion();
+
+        // V3-04: invariantes monetarias a nivel SQL
+        builder.HasCheckConstraint("CK_Transaccion_Subtotal_Positivo", "[subtotal] >= 0");
+        builder.HasCheckConstraint("CK_Transaccion_Total_Positivo",    "[total] >= 0");
+        builder.HasCheckConstraint("CK_Transaccion_Total_Coherente",
+            "[total] >= [subtotal] + [impuesto]");
     }
 }
