@@ -33,7 +33,7 @@ public class TurnoRepository : BaseRepository<Turno>, ITurnoRepository
 
         // Ventas efectivo — porción primaria (pago simple: MontoMetodoPrimario es null → usar Total)
         var ventasEfectivoPrimario = await Context.Set<Transaccion>()
-            .Where(t => t.TurnoId == turnoId && t.Anulacion == null)
+            .Where(t => t.TurnoId == turnoId)
             .Join(Context.Set<MetodoPago>(),
                   t => t.MetodoPagoId,
                   m => m.MetodoPagoId,
@@ -44,7 +44,6 @@ public class TurnoRepository : BaseRepository<Turno>, ITurnoRepository
         // Ventas efectivo — porción secundaria (pago dividido donde el segundo método es efectivo)
         var ventasEfectivoSecundario = await Context.Set<Transaccion>()
             .Where(t => t.TurnoId == turnoId
-                     && t.Anulacion == null
                      && t.MetodoPagoSecundarioId != null
                      && t.MontoMetodoPrimario != null)
             .Join(Context.Set<MetodoPago>(),
@@ -63,7 +62,7 @@ public class TurnoRepository : BaseRepository<Turno>, ITurnoRepository
         var anulacionesEfectivo = await Context.Set<Anulacion>()
             .Where(a => a.Transaccion.SedeId == turno.SedeId
                      && a.FechaHora >= turno.FechaApertura
-                     && (turno.FechaCierre == null || a.FechaHora <= turno.FechaCierre)
+                     && (turno.FechaCierre == null || a.FechaHora < turno.FechaCierre)
                      && a.MetodoDevolucion == "Efectivo")
             .SumAsync(a => (decimal?)a.MontoDevuelto, ct) ?? 0m;
 

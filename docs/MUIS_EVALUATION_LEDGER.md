@@ -68,7 +68,42 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 | V3-04 | DB | Sin CHECK constraints en columnas monetarias. Agregados: `CK_Transaccion_Subtotal_Positivo`, `CK_Transaccion_Total_Positivo`, `CK_Transaccion_Total_Coherente`, `CK_Producto_Precio_Positivo`, `CK_Producto_Costo_Positivo`. | PASSED |
 | V3-05 | Domain / DB | `Cliente.Email` sin índice único — riesgo de duplicados. Agregado `UX_Cliente_Email` via `HasIndex(...).IsUnique()`. | PASSED |
 
+### Sprint V4 — Auditoría MUIS Full-Stack — 2026-06-12
+
+| ID | Capa | Descripción | Estado |
+|---|---|---|---|
+| AUD-01 | Application / Domain | `CreateTransaccionHandler` rama `feat/v3` tenía modelo IGV **aditivo** (subtotal × 0.18) revirtiendo PR#24 — sobrecobro al cliente + base imponible SUNAT incorrecta. Alineado con `origin/main`: IGV **inclusivo** (`baseImponible = totalBruto/(1+tasa)`, `impuesto = totalBruto − baseImponible`). | PASSED |
+| AUD-04 | Infrastructure / DB | `ConfiguracionNegocio` sin unicidad garantizada en esquema — dos configs activas por sede generarían tasa no determinista. Añadido `UX_ConfiguracionNegocio_SedeId_Activa` (único filtrado `[Activo]=1`). Migración `AUD04_UniqueActiveConfigPerSede`. | PASSED |
+| AUD-09 | Repo / Higiene | `test_script.cs` en raíz del repo — debris con `tasaIgv=0.18` fantasma. Eliminado. | PASSED |
+| AUD-12 | Infrastructure / DevOps | `db.Database.Migrate()` en arranque — race condition al escalar réplicas (Tipo 2). Reemplazado por guard `GetPendingMigrations()` + step `dotnet ef database update` en CI/CD. | PASSED |
+| AUD-03 | Infrastructure / Seed | Lógica de seeding dispersa entre `Program.cs` y `CatalogDataSeeder`. Consolidado en `CatalogDataSeeder` único con `SeedAsync()`. `Program.cs` solo invoca el seeder. | PASSED |
+| AUD-07 | Application | N+1 en `CreateAnulacionHandler`: `GetByIdAsync` dentro de `foreach`. Corregido con `GetByIdsAsync(ids)` + diccionario en memoria. | PASSED |
+| G-INF-005 | Infrastructure / DevOps | Guardrail `G-INF-005-migrations-runtime.md` creado: prohíbe `db.Database.Migrate()` en runtime no-Development. Documentado en `docs/guardrails/`. | PASSED |
+
+
 ---
+
+### Sprint V5 — Seguridad y resiliencia P1-P2 — 2026-06-13
+
+| ID | Capa | Descripción | Estado |
+|---|---|---|---|
+| AUD-05 | Tests / DevOps | Integration test harness: `Microsoft.EntityFrameworkCore.Sqlite` huérfano eliminado, puerto fallback corregido `14333 → 1433`, `[Trait("Category","Integration")]` añadido a `IntegrationTestBase` para que CI `--filter` no retorne vacío. | PASSED |
+| AUD-06 | Infrastructure / Security | Sin login SQL de mínimo privilegio ni plantilla de producción. Creados: `scripts/sql/create-app-login.sql` (`app_cafebarrio` con `db_datareader/writer + EXECUTE`), `appsettings.Production.json` con `Encrypt=True` sin `TrustServerCertificate`, y guard en `Program.cs` que crashea en startup si detecta `TrustServerCertificate=True` en non-Development. | PASSED |
+| AUD-10 | API / Observability | `/health` mezclaba DB (readiness) y SUNAT externo (informacional) en un solo endpoint. Segregados: `/health/live` (ping puro), `/health/ready` (solo DB), `/health/detail` (todos), `/health` (alias de ready). SUNAT con `failureStatus: Degraded`. | PASSED |
+
+### Sprint V6 — Calidad de tests y fail-fast en config — 2026-06-13
+
+| ID | Capa | Descripción | Estado |
+|---|---|---|---|
+| AUD-14 | Tests | `ArqueoIntegrationTests` tenía assertions con modelo IGV aditivo (revertido por AUD-01). Corregidas 4 assertions (`5.90m → 5.00m`, `175.90m → 175.00m`, etc.). Nuevo `MoneyFlowE2ETests`: ciclo completo — abrir turno → venta simple + pago dividido → cerrar → anulación cross-turno → nuevo turno → cerrar → assert arqueo + IGV inclusivo. | PASSED |
+| AUD-08 | Infrastructure / Security | `JwtService` leía `IConfiguration["Jwt:Key"]` directamente — valores ausentes fallaban en runtime. Refactorizado a `IOptions<JwtOptions>` con `[Required]`, `[MinLength(32)]` y `ValidateOnStart()`. Fail-fast en startup. Tests unit e integración actualizados a `Options.Create`. | PASSED |
+
+### Sprint V7 — Consolidación técnica y observabilidad — 2026-06-13
+
+| ID | Capa | Descripción | Estado |
+|---|---|---|---|
+| AUD-11 | Infrastructure / DB | 29 migraciones acumuladas (5–13 jun) consolidadas en un único `InitialCreate_Baseline`. BD de desarrollo recreada desde cero. CI usa DB efímera — sin impacto. | PASSED |
+| AUD-15 | Infrastructure / Observability | OpenTelemetry integrado: trazas ASP.NET Core + HTTP saliente + SQL Server; métricas ASP.NET Core + HTTP. Exporter a consola (Development) y OTLP condicional (`OTEL_EXPORTER_OTLP_ENDPOINT`). Zero-config en prod hasta definir backend. | PASSED |
 
 ## 🔴 Hallazgos Pendientes (PENDING)
 
@@ -101,8 +136,9 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 
 | ID | Capa | Descripción | Estado | Fecha Límite / Sprint |
 |---|---|---|---|---|
-| F-10 | Infrastructure | `JwtService` inyecta `IConfiguration` directo. Funciona en Tipo 1, pero se refactorizará a `IOptions<JwtOptions>`. | DEFERRED | Sprint V2 |
+| F-10 | Infrastructure | `JwtService` inyecta `IConfiguration` directo. Funciona en Tipo 1, pero se refactorizará a `IOptions<JwtOptions>`. | ✅ PASSED — resuelto en AUD-08 (Sprint V6) | — |
 | WARN-04 | Frontend / Observability | `VITE_SENTRY_DSN` vacío en `pos-pwa/.env.production`. Requiere cuenta Sentry externa — diferido hasta provisionar DSN. | DEFERRED | Cuando se configure Sentry |
+| WARN-OTL-01 | Infrastructure / Security | `OpenTelemetry.Exporter.OpenTelemetryProtocol` 1.10.0 — NU1902 (vulnerabilidad moderada upstream, presente en 1.9.x y 1.10.0). Riesgo actual bajo: exporter opt-in, `OTEL_EXPORTER_OTLP_ENDPOINT` vacío por defecto. Acción: actualizar a 1.11.x+ cuando el CVE esté resuelto upstream. | DEFERRED | Sprint V8 / cuando haya fix upstream |
 
 ---
 

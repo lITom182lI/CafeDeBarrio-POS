@@ -12,15 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CafeBarrio.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CafeBarrioDbContext))]
-    [Migration("20260607224159_AddPerformanceIndexes")]
-    partial class AddPerformanceIndexes
+    [Migration("20260613043151_InitialCreate_Baseline")]
+    partial class InitialCreate_Baseline
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.16")
+                .HasAnnotation("ProductVersion", "9.0.17")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -35,6 +35,12 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("AutorizadorId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("FechaHora")
                         .HasColumnType("datetime2");
@@ -71,6 +77,12 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("TransaccionId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("AnulacionId");
 
@@ -209,6 +221,10 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CategoriaPrefId");
 
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Cliente_Email");
+
                     b.HasIndex("TipoClienteId");
 
                     b.HasIndex("UbicacionId");
@@ -245,7 +261,13 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
 
                     b.HasKey("ConfiguracionNegocioId");
 
-                    b.HasIndex("SedeId", "Activo");
+                    b.HasIndex("SedeId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_ConfiguracionNegocio_SedeId_Activa")
+                        .HasFilter("[Activo] = 1");
+
+                    b.HasIndex("SedeId", "Activo")
+                        .HasDatabaseName("IX_ConfiguracionNegocio_SedeId_Activo");
 
                     b.ToTable("ConfiguracionNegocio", (string)null);
                 });
@@ -262,6 +284,12 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                     b.Property<int>("Cantidad")
                         .HasColumnType("int")
                         .HasColumnName("cantidad");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("PrecioUnitario")
                         .HasPrecision(18, 2)
@@ -281,6 +309,12 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                         .HasColumnType("int")
                         .HasColumnName("transaccion_id");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("DetalleId");
 
                     b.HasIndex("ProductoId");
@@ -288,6 +322,34 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                     b.HasIndex("TransaccionId");
 
                     b.ToTable("DetalleTransaccion", (string)null);
+                });
+
+            modelBuilder.Entity("CafeBarrio.Domain.Entities.IdempotencyRecord", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<int>("TransaccionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdempotencyKey")
+                        .IsUnique()
+                        .HasDatabaseName("UX_IdempotencyRecords_Key");
+
+                    b.ToTable("IdempotencyRecords");
                 });
 
             modelBuilder.Entity("CafeBarrio.Domain.Entities.MetodoPago", b =>
@@ -302,6 +364,9 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                     b.Property<bool>("Activo")
                         .HasColumnType("bit")
                         .HasColumnName("activo");
+
+                    b.Property<bool>("EsEfectivo")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -322,6 +387,12 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MovimientoCajaId"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("FechaHora")
                         .HasColumnType("datetime2");
 
@@ -341,6 +412,12 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("TurnoId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("MovimientoCajaId");
 
@@ -396,6 +473,26 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Eliminado")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("FailedPinAttempts")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsLockedOut")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LockedUntilUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -406,12 +503,31 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<string>("SecurityStamp")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("SedeId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("UsuarioId")
                         .HasColumnType("int");
 
                     b.HasKey("OperadorId");
 
+                    b.HasIndex("Activo")
+                        .HasDatabaseName("IX_Operadores_Activo");
+
                     b.HasIndex("SedeId");
+
+                    b.HasIndex("UsuarioId")
+                        .HasDatabaseName("IX_Operador_UsuarioId");
 
                     b.ToTable("Operador", (string)null);
                 });
@@ -449,10 +565,11 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                         .HasColumnName("costo");
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Descripcion")
                         .HasColumnType("nvarchar(max)")
@@ -461,14 +578,6 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                     b.Property<bool>("EsMayorista")
                         .HasColumnType("bit")
                         .HasColumnName("es_mayorista");
-
-                    b.Property<DateTime>("FechaActualizacion")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("fecha_actualizacion");
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("fecha_creacion");
 
                     b.Property<string>("ImagenUrl")
                         .HasMaxLength(500)
@@ -485,6 +594,12 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("precio");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<bool>("SeguimientoInventario")
                         .ValueGeneratedOnAdd()
@@ -511,14 +626,23 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("updated_at");
 
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("ProductoId");
 
                     b.HasIndex("Activo")
-                        .HasDatabaseName("IX_Producto_Activo");
+                        .HasDatabaseName("IX_Productos_Activo");
 
-                    b.HasIndex("CategoriaId");
+                    b.HasIndex("CategoriaId")
+                        .HasDatabaseName("IX_Productos_CategoriaId");
 
-                    b.ToTable("Producto", (string)null);
+                    b.ToTable("Producto", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Producto_Costo_Positivo", "[costo] >= 0");
+
+                            t.HasCheckConstraint("CK_Producto_Precio_Positivo", "[precio] >= 0");
+                        });
                 });
 
             modelBuilder.Entity("CafeBarrio.Domain.Entities.Sede", b =>
@@ -628,10 +752,11 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                         .HasColumnName("costo_envio");
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("EsMayorista")
                         .HasColumnType("bit")
@@ -688,6 +813,12 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(0m)
                         .HasColumnName("recargo_propina");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<int>("SedeId")
                         .HasColumnType("int")
                         .HasColumnName("sede_id");
@@ -696,6 +827,19 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("subtotal");
+
+                    b.Property<string>("SunatError")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SunatEstado")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SunatIntentos")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SunatNumeroSerie")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TipoDocumento")
                         .HasMaxLength(20)
@@ -715,11 +859,15 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("updated_at");
 
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("TransaccionId");
 
                     b.HasIndex("ClienteId");
 
-                    b.HasIndex("Fecha");
+                    b.HasIndex("Fecha")
+                        .HasDatabaseName("IX_Transacciones_Fecha");
 
                     b.HasIndex("MetodoPagoId");
 
@@ -727,14 +875,26 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("OpcionEnvioId");
 
-                    b.HasIndex("OperadorId");
+                    b.HasIndex("OperadorId")
+                        .HasDatabaseName("IX_Transacciones_OperadorId");
 
-                    b.HasIndex("TurnoId");
+                    b.HasIndex("TurnoId")
+                        .HasDatabaseName("IX_Transacciones_TurnoId");
+
+                    b.HasIndex("Fecha", "OperadorId")
+                        .HasDatabaseName("IX_Transacciones_Fecha_OperadorId");
 
                     b.HasIndex("SedeId", "Fecha")
                         .HasDatabaseName("IX_Transaccion_SedeId_Fecha");
 
-                    b.ToTable("Transaccion", (string)null);
+                    b.ToTable("Transaccion", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Transaccion_Subtotal_Positivo", "[subtotal] >= 0");
+
+                            t.HasCheckConstraint("CK_Transaccion_Total_Coherente", "[total] >= [subtotal] + [impuesto]");
+
+                            t.HasCheckConstraint("CK_Transaccion_Total_Positivo", "[total] >= 0");
+                        });
                 });
 
             modelBuilder.Entity("CafeBarrio.Domain.Entities.TransaccionMayorista", b =>
@@ -823,6 +983,15 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TurnoId"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("Diferencia")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("Estado")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -851,20 +1020,52 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                     b.Property<int>("OperadorId")
                         .HasColumnType("int");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<decimal>("SaldoEsperado")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("SedeId")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("TotalAnulacionesEfectivo")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("TotalEfectivoSistema")
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
 
+                    b.Property<decimal>("TotalMovimientosEntrada")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalMovimientosSalida")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalVentasEfectivo")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("TurnoId");
 
-                    b.HasIndex("FechaApertura");
+                    b.HasIndex("FechaApertura")
+                        .HasDatabaseName("IX_Turnos_FechaApertura");
 
-                    b.HasIndex("OperadorId");
+                    b.HasIndex("OperadorId")
+                        .HasDatabaseName("IX_Turnos_OperadorId");
 
-                    b.HasIndex("SedeId");
+                    b.HasIndex("SedeId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Turnos_SedeId_Abierto")
+                        .HasFilter("[Estado] = 'Abierto'");
 
                     b.ToTable("Turno", (string)null);
                 });
@@ -910,6 +1111,15 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int>("FailedLoginAttempts")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsLocked")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LockedUntil")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -919,6 +1129,10 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("SecurityStamp")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("UsuarioId");
 
@@ -1013,7 +1227,7 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                     b.HasOne("CafeBarrio.Domain.Entities.Turno", "Turno")
                         .WithMany("Movimientos")
                         .HasForeignKey("TurnoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Turno");
@@ -1027,7 +1241,14 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CafeBarrio.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Sede");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("CafeBarrio.Domain.Entities.Producto", b =>

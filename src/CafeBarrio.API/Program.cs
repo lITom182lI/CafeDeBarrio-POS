@@ -13,6 +13,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.HttpOverrides;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
@@ -70,6 +73,12 @@ if (!builder.Environment.IsDevelopment())
     RequireConfig(builder.Configuration, "ConnectionStrings:DefaultConnection");
     RequireConfig(builder.Configuration, "Cors:AllowedOrigin");
     RequireConfig(builder.Configuration, "Jwt:Key");
+
+    var connStr = builder.Configuration["ConnectionStrings:DefaultConnection"] ?? "";
+    if (connStr.Contains("TrustServerCertificate=True", StringComparison.OrdinalIgnoreCase))
+        throw new InvalidOperationException(
+            "TrustServerCertificate=True está prohibido en producción. " +
+            "Configura un certificado TLS válido en el servidor SQL Server.");
 }
 builder.Host.UseSerilog();
 
@@ -200,10 +209,47 @@ builder.Services.AddOpenApi();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// ── OpenTelemetry ─────────────────────────────────────────────────────
+var otelEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(r => r
+        .AddService(
+            serviceName:    "CafeBarrio.API",
+            serviceVersion: typeof(Program).Assembly.GetName().Version?.ToString() ?? "0.0.0"))
+    .WithTracing(tracing =>
+    {
+        tracing
+            .AddAspNetCoreInstrumentation(o => o.RecordException = true)
+            .AddHttpClientInstrumentation()
+            .AddSqlClientInstrumentation();
+
+        if (builder.Environment.IsDevelopment())
+            tracing.AddConsoleExporter();
+
+        if (!string.IsNullOrWhiteSpace(otelEndpoint))
+            tracing.AddOtlpExporter(o => o.Endpoint = new Uri(otelEndpoint));
+    })
+    .WithMetrics(metrics =>
+    {
+        metrics
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation();
+
+        if (builder.Environment.IsDevelopment())
+            metrics.AddConsoleExporter();
+
+        if (!string.IsNullOrWhiteSpace(otelEndpoint))
+            metrics.AddOtlpExporter(o => o.Endpoint = new Uri(otelEndpoint));
+    });
+
 builder.Services.AddHttpClient();
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<CafeBarrioDbContext>("database")
-    .AddCheck<CafeBarrio.Infrastructure.HealthChecks.SunatHealthCheck>("sunat-ose");
+    .AddDbContextCheck<CafeBarrioDbContext>("database", tags: new[] { "ready" })
+    .AddCheck<CafeBarrio.Infrastructure.HealthChecks.SunatHealthCheck>(
+        "sunat-ose",
+        failureStatus: Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Degraded,
+        tags: new[] { "detail" });
 
 var app = builder.Build();
 
@@ -216,135 +262,21 @@ using (var scope = app.Services.CreateScope())
     var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
 
     // Aplicar migraciones pendientes
-    db.Database.Migrate();
-
-    // ── Sede ─────────────────────────────────────────────────────────────
-    if (!db.Sedes.Any())
+    if (app.Environment.IsDevelopment())
     {
-        db.Sedes.Add(new Sede
-        {
-            Nombre      = "Café de Barrio",
-            Direccion   = "Jr. Principal 123",
-            Distrito    = "Lima",
-            Ciudad      = "Lima",
-            EsPrincipal = true,
-            Activa      = true
-        });
-        db.SaveChanges();
+        db.Database.Migrate();
+    }
+    else
+    {
+        var pending = db.Database.GetPendingMigrations().ToList();
+        if (pending.Count > 0)
+            throw new InvalidOperationException(
+                $"Hay {pending.Count} migración(es) pendiente(s): " +
+                string.Join(", ", pending) +
+                ". Ejecuta 'dotnet ef database update' antes de arrancar.");
     }
 
-    // ── Datos de referencia independientes ───────────────────────────────
-    if (!db.TiposCliente.Any())
-        db.TiposCliente.Add(new TipoCliente { Nombre = "Regular" });
 
-    if (!db.MetodosPago.Any())
-    {
-        db.MetodosPago.AddRange(
-            new MetodoPago { Nombre = "Efectivo", Activo = true, EsEfectivo = true  },
-            new MetodoPago { Nombre = "Tarjeta",  Activo = true, EsEfectivo = false },
-            new MetodoPago { Nombre = "Yape",     Activo = true, EsEfectivo = false },
-            new MetodoPago { Nombre = "Plin",     Activo = true, EsEfectivo = false }
-        );
-    }
-
-    if (!db.CategoriasCafe.Any())
-    {
-        db.CategoriasCafe.AddRange(
-            new CategoriaCafe { Codigo = "CAF", Nombre = "Cafes",   Activa = true },
-            new CategoriaCafe { Codigo = "BEB", Nombre = "Bebidas", Activa = true },
-            new CategoriaCafe { Codigo = "COM", Nombre = "Comida",  Activa = true }
-        );
-    }
-
-    db.SaveChanges();
-
-    // ── Cliente "Mostrador" (para ventas sin cliente identificado) ────────
-    if (!db.Clientes.Any())
-    {
-        var tipoId = db.TiposCliente.First().TipoClienteId;
-        db.Clientes.Add(new Cliente
-        {
-            TipoClienteId = tipoId,
-            Nombre        = "Mostrador",
-            Apellido      = string.Empty,
-            Email         = "mostrador@cafedebarrio.local",
-            FechaRegistro = DateOnly.FromDateTime(DateTime.UtcNow),
-            Activo        = true
-        });
-        db.SaveChanges();
-    }
-
-    // ── ConfiguracionNegocio (IGV régimen general: 16% + IPM 2% = 18%) ──
-    if (!db.ConfiguracionesNegocio.Any())
-    {
-        var sedeId = db.Sedes.First().SedeId;
-        db.ConfiguracionesNegocio.Add(new ConfiguracionNegocio
-        {
-            SedeId        = sedeId,
-            TasaIGV       = 0.16m,
-            TasaIPM       = 0.02m,
-            FechaVigencia = DateTime.UtcNow,
-            Activo        = true
-        });
-        db.SaveChanges();
-    }
-
-    // ── Usuario admin y su Operador ──────────────────────────────────────
-    if (!db.Usuarios.Any())
-    {
-        if (!app.Environment.IsDevelopment())
-        {
-            RequireConfig(builder.Configuration, "Seed:AdminPassword");
-        }
-
-        var adminUser = new Usuario
-        {
-            Email        = "admin@cafedebarrio.com",
-            PasswordHash = hasher.Hash(
-                builder.Configuration["Seed:AdminPassword"]
-                ?? throw new InvalidOperationException("Seed:AdminPassword no configurado.")),
-            Rol          = "Admin",
-            Activo       = true
-        };
-        
-        db.Usuarios.Add(adminUser);
-        db.SaveChanges();
-
-        // Vincular un Operador por defecto al Admin para que pueda usar el POS y autorizar
-        var sedeId = db.Sedes.First().SedeId;
-        db.Operadores.Add(new Operador
-        {
-            SedeId    = sedeId,
-            Nombre    = "Admin",
-            UsuarioId = adminUser.UsuarioId,
-            PinHash   = hasher.Hash("1234"), // PIN por defecto: 1234
-            Activo    = true,
-            CreatedAt = DateTime.UtcNow
-        });
-        db.SaveChanges();
-    }
-
-    // ── Fix: Crear operador para admin si no existe ──────────────────────
-    var adminUsuario = db.Usuarios.FirstOrDefault(u => u.Email == "admin@cafedebarrio.com");
-    if (adminUsuario != null)
-    {
-        var adminOperador = db.Operadores.FirstOrDefault(o => o.UsuarioId == adminUsuario.UsuarioId);
-        if (adminOperador == null)
-        {
-            var sedeId = db.Sedes.First().SedeId;
-            db.Operadores.Add(new Operador
-            {
-                SedeId    = sedeId,
-                Nombre    = "Admin",
-                UsuarioId = adminUsuario.UsuarioId,
-                PinHash   = hasher.Hash("1234"), // PIN por defecto: 1234
-                Activo    = true,
-                CreatedAt = DateTime.UtcNow
-            });
-            db.SaveChanges();
-            Console.WriteLine("FIX APLICADO: Operador Admin creado y vinculado en BD existente.");
-        }
-    }
 }
 
 if (app.Environment.IsDevelopment())
@@ -401,5 +333,27 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.MapControllers();
-app.MapHealthChecks("/health");
+// Liveness: el proceso está vivo — sin checks, siempre 200 si el proceso responde.
+app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = _ => false
+});
+
+// Readiness: solo DB — bloquea tráfico si la BD no responde.
+app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = hc => hc.Tags.Contains("ready")
+});
+
+// Detail: todos los checks incluyendo SUNAT (informacional).
+app.MapHealthChecks("/health/detail", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = _ => true
+});
+
+// Alias de compatibilidad — redirige a readiness.
+app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = hc => hc.Tags.Contains("ready")
+});
 app.Run();

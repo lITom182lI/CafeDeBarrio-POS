@@ -258,7 +258,13 @@ namespace CafeBarrio.Infrastructure.Persistence.Migrations
 
                     b.HasKey("ConfiguracionNegocioId");
 
-                    b.HasIndex("SedeId", "Activo");
+                    b.HasIndex("SedeId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_ConfiguracionNegocio_SedeId_Activa")
+                        .HasFilter("[Activo] = 1");
+
+                    b.HasIndex("SedeId", "Activo")
+                        .HasDatabaseName("IX_ConfiguracionNegocio_SedeId_Activo");
 
                     b.ToTable("ConfiguracionNegocio", (string)null);
                 });

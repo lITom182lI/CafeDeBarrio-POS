@@ -8,6 +8,7 @@
 | G-INF-002 | `AddHttpClient()` siempre incondicional en `Program.cs` antes de cualquier registro condicional de clientes HTTP | anti-pattern |
 | G-INF-003 | No usar `HasData()` para datos de catálogo/negocio — usar `CatalogDataSeeder` idempotente | validated-decision |
 | G-INF-004 | Toda constraint CHECK debe declararse dentro de `ToTable()` en EF Core 9 (obsoleto CS0618) | anti-pattern |
+| G-INF-005 | `db.Database.Migrate()` prohibido en runtime non-Development; usar step de deploy dedicado | anti-pattern |
 | G-DB-002 | `UseSqlServer` requiere `EnableRetryOnFailure` (5, 10s) + `CommandTimeout(30)` | validated-decision |
 | G-DB-003 | `MovimientoCaja` y registros de auditoría financiera: `DeleteBehavior.Restrict`, nunca `Cascade` | validated-decision |
 | G-DB-004 | `CreatedAt` lo gestiona `AuditInterceptor` exclusivamente — nunca `HasDefaultValueSql` en entidades `IAuditable` | validated-decision |

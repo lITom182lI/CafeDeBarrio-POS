@@ -97,7 +97,7 @@ public class ArqueoIntegrationTests : IntegrationTestBase
         Db.Turnos.Add(turno);
         await Db.SaveChangesAsync();
 
-        // Precio = 5m (IGV-inclusivo) → Total = 5.00
+        // Precio = 5m (IGV-inclusivo): Total = 5.00, base = Round(5/1.18) = 4.24, igv = 0.76
         var producto = new Producto
         {
             Nombre = "Espresso", Costo = 2m, Precio = 5m,
@@ -165,7 +165,7 @@ public class ArqueoIntegrationTests : IntegrationTestBase
         resumen.SaldoEsperado.Should().Be(200m + 5.00m);  // 205.00
     }
 
-    // Apertura = 150, 1 venta efectivo (5.00) + entrada S/50 + salida S/30
+    // Apertura = 150, 1 venta efectivo (Total=5.00) + entrada S/50 + salida S/30
     // → SaldoEsperado = 150 + 5.00 + 50 - 30 = 175.00
     [Fact]
     public async Task Arqueo_ConMovimientosCaja_SaldoEsperadoIncluye()

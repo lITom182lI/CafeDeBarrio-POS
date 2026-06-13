@@ -53,6 +53,10 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<CafeBarrio.Infrastructure.Persistence.Seeders.ICatalogDataSeeder, CafeBarrio.Infrastructure.Persistence.Seeders.CatalogDataSeeder>();
         services.Configure<SunatOptions>(configuration.GetSection(SunatOptions.Section));
+        services.AddOptions<JwtOptions>()
+            .BindConfiguration(JwtOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
         var sunatEnabled = configuration.GetValue<bool>($"{SunatOptions.Section}:Enabled");
         if (sunatEnabled)
         {
