@@ -20,6 +20,14 @@ public class ConfiguracionNegocioConfiguration : IEntityTypeConfiguration<Config
                .HasForeignKey(c => c.SedeId)
                .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasIndex(c => new { c.SedeId, c.Activo });
+        // Índice de búsqueda rápida por sede+activo
+        builder.HasIndex(c => new { c.SedeId, c.Activo })
+               .HasDatabaseName("IX_ConfiguracionNegocio_SedeId_Activo");
+
+        // Garantía de esquema: solo una configuración activa por sede
+        builder.HasIndex(c => c.SedeId)
+               .HasFilter("[Activo] = 1")
+               .IsUnique()
+               .HasDatabaseName("UX_ConfiguracionNegocio_SedeId_Activa");
     }
 }

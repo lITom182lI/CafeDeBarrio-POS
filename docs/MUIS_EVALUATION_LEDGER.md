@@ -68,6 +68,14 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 | V3-04 | DB | Sin CHECK constraints en columnas monetarias. Agregados: `CK_Transaccion_Subtotal_Positivo`, `CK_Transaccion_Total_Positivo`, `CK_Transaccion_Total_Coherente`, `CK_Producto_Precio_Positivo`, `CK_Producto_Costo_Positivo`. | PASSED |
 | V3-05 | Domain / DB | `Cliente.Email` sin índice único — riesgo de duplicados. Agregado `UX_Cliente_Email` via `HasIndex(...).IsUnique()`. | PASSED |
 
+### Sprint V4 — Auditoría MUIS Full-Stack — 2026-06-12
+
+| ID | Capa | Descripción | Estado |
+|---|---|---|---|
+| AUD-01 | Application / Domain | `CreateTransaccionHandler` rama `feat/v3` tenía modelo IGV **aditivo** (subtotal × 0.18) revirtiendo PR#24 — sobrecobro al cliente + base imponible SUNAT incorrecta. Alineado con `origin/main`: IGV **inclusivo** (`baseImponible = totalBruto/(1+tasa)`, `impuesto = totalBruto − baseImponible`). | PASSED |
+| AUD-04 | Infrastructure / DB | `ConfiguracionNegocio` sin unicidad garantizada en esquema — dos configs activas por sede generarían tasa no determinista. Añadido `UX_ConfiguracionNegocio_SedeId_Activa` (único filtrado `[Activo]=1`). Migración `AUD04_UniqueActiveConfigPerSede`. | PASSED |
+| AUD-09 | Repo / Higiene | `test_script.cs` en raíz del repo — debris con `tasaIgv=0.18` fantasma. Eliminado. | PASSED |
+
 ---
 
 ## 🔴 Hallazgos Pendientes (PENDING)
