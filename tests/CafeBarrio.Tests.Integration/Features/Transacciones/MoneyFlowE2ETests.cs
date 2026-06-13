@@ -74,10 +74,17 @@ public class MoneyFlowE2ETests : IntegrationTestBase
     public async Task MoneyFlow_AbrirVentaAnularCerrar_CorrectoArqueoIGV()
     {
         // ── Seed ─────────────────────────────────────────────────────────────
-        const int autorizadorUsuarioId = 9001;
-
         var sede = new Sede { Nombre = "E2E", Direccion = "D", Distrito = "D", Ciudad = "C", Activa = true };
         Db.Sedes.Add(sede);
+
+        var autorizadorUsuario = new Usuario
+        {
+            Email        = "autorizador-e2e@test.com",
+            PasswordHash = "h",
+            Rol          = "Administrador",
+            Activo       = true
+        };
+        Db.Usuarios.Add(autorizadorUsuario);
         await Db.SaveChangesAsync();
 
         var operador = new Operador
@@ -86,7 +93,7 @@ public class MoneyFlowE2ETests : IntegrationTestBase
             Nombre    = "OpE2E",
             PinHash   = "h",
             Activo    = true,
-            UsuarioId = autorizadorUsuarioId
+            UsuarioId = autorizadorUsuario.UsuarioId
         };
         Db.Operadores.Add(operador);
 
@@ -142,7 +149,7 @@ public class MoneyFlowE2ETests : IntegrationTestBase
             new OperadorRepository(Db),
             new ProductoRepository(Db),
             uow, publisher,
-            new CurrentUserWithId(autorizadorUsuarioId));
+            new CurrentUserWithId(autorizadorUsuario.UsuarioId));
 
         // ── 1. Abrir Turno 1 (apertura = S/100) ──────────────────────────────
         var abrir1 = await abrirHandler.Handle(
