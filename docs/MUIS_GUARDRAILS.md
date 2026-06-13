@@ -20,6 +20,7 @@ Cargado en cada sesión de IA vía SESSION_BUNDLE_A. No contiene detalles — ap
 | [G-INF-001](guardrails/G-INF-001-ef-core-groupby-memory.md) | anti-pattern | infrastructure | EF Core, GroupBy, fecha, Date | PROYECTO |
 | [G-INF-002](guardrails/G-INF-002-ihttpclientfactory-unconditional.md) | anti-pattern | infrastructure | IHttpClientFactory, AddHttpClient, condicional | PROYECTO |
 | [G-INF-003](guardrails/G-INF-003-seeder-over-hasdata.md) | validated-decision | infrastructure | HasData, seed, catálogo, productos | TIPO-2 |
+| [G-INF-004](guardrails/G-INF-004-check-constraints-efcore9.md) | anti-pattern | infrastructure | CHECK, constraints, ToTable, EF Core 9, HasCheckConstraint | PROYECTO |
 | [G-SEC-001](guardrails/G-SEC-001-cors-explicit-methods-headers.md) | validated-decision | security | CORS, AllowAny, headers, methods | MUIS-CORE |
 | [G-DEV-001](guardrails/G-DEV-001-antigravity-append-sobreescribir.md) | anti-pattern | devops | Antigravity, reemplazar, archivo, append | MUIS-CORE |
 | [G-DEV-002](guardrails/G-DEV-002-docker-tag-lowercase.md) | anti-pattern | devops | Docker, tag, imagen, uppercase, ghcr | MUIS-CORE |

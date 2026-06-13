@@ -47,4 +47,6 @@ public class Transaccion : IAuditable, IAggregateRoot
     public string? SunatError  { get; set; }
     public string? SunatNumeroSerie { get; set; }
     public int SunatIntentos { get; set; }
+
+    public byte[] RowVersion { get; set; } = [];
 }

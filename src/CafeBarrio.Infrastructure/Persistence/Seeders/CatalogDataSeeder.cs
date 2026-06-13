@@ -135,14 +135,16 @@ public class CatalogDataSeeder : ICatalogDataSeeder
         var metodoEfec = await _context.MetodosPago.FirstOrDefaultAsync(m => m.Nombre == "Efectivo", ct);
         var metodoYape = await _context.MetodosPago.FirstOrDefaultAsync(m => m.Nombre == "Yape", ct);
 
-        // 6. Test Data Simulation — SOLO en Development
-        if (_env.IsDevelopment())
+        // 6. Test Data Simulation — Protegido por entorno (MUIS Best Practice)
+        bool isDemo = _env.IsDevelopment() || Environment.GetEnvironmentVariable("SEED_DEMO_DATA") == "true";
+        if (!isDemo) return;
+
+        bool hasOps = await _context.Operadores.CountAsync(ct) >= 10;
+        List<Operador> ops = hasOps ? await _context.Operadores.ToListAsync(ct) : new List<Operador>();
+        
+        if (!hasOps)
         {
-            bool hasTestData = await _context.Operadores.CountAsync(ct) >= 10;
-            if (!hasTestData)
-            {
             // Generar 10 operadores
-            var ops = new List<Operador>();
             for(int i = 1; i <= 10; i++)
             {
                 ops.Add(new Operador { 
@@ -155,18 +157,23 @@ public class CatalogDataSeeder : ICatalogDataSeeder
             }
             _context.Operadores.AddRange(ops);
             await _context.SaveChangesAsync(ct);
+        }
 
-            // Generar 10 turnos (9 cerrados, 1 abierto)
-            var turnos = new List<Turno>();
+        bool tieneAbierto = await _context.Turnos.AnyAsync(t => t.SedeId == sede.SedeId && t.Estado == "Abierto", ct);
+        bool hasTurnos = tieneAbierto || await _context.Turnos.CountAsync(ct) >= 10;
+        List<Turno> turnos = hasTurnos ? await _context.Turnos.ToListAsync(ct) : new List<Turno>();
+        if (!hasTurnos)
+        {
+            // Generar 10 turnos
             for(int i = 0; i < 10; i++)
             {
                 var t = new Turno {
                     OperadorId = ops[i].OperadorId,
                     SedeId = sede.SedeId,
-                    FechaApertura = DateTime.UtcNow.AddDays(-10 + i),
+                    FechaApertura = DateTime.UtcNow.AddDays(-30 + i * 3),
                     MontoApertura = 100m,
                     Estado = i == 9 ? "Abierto" : "Cerrado",
-                    FechaCierre = i == 9 ? null : DateTime.UtcNow.AddDays(-10 + i).AddHours(8),
+                    FechaCierre = i == 9 ? null : DateTime.UtcNow.AddDays(-30 + i * 3).AddHours(8),
                     MontoEfectivoCierto = i == 9 ? null : 500m,
                     TotalEfectivoSistema = i == 9 ? null : 500m
                 };
@@ -174,32 +181,46 @@ public class CatalogDataSeeder : ICatalogDataSeeder
             }
             _context.Turnos.AddRange(turnos);
             await _context.SaveChangesAsync(ct);
+        }
 
-            var allProds = await _context.Productos.ToListAsync(ct);
-            if (allProds.Any() && metodoEfec != null && metodoYape != null)
+        var allProds = await _context.Productos.ToListAsync(ct);
+        if (allProds.Any() && metodoEfec != null && metodoYape != null && turnos.Any())
+        {
+            bool hasVentas = await _context.Transacciones.CountAsync(ct) >= 100;
+            if (!hasVentas)
             {
-                // Generar 10 Ventas Completadas
+                // Generar 100 Ventas Ficticias distribuidas en los últimos 30 días
+                var random = new Random(42);
                 var ventas = new List<Transaccion>();
-                for(int i = 0; i < 10; i++)
+                for(int i = 0; i < 100; i++)
                 {
+                    var prodIndex = random.Next(allProds.Count);
+                    var prod = allProds[prodIndex];
+                    var qty = random.Next(1, 5); // 1 a 4 productos
+                    var method = random.Next(2) == 0 ? metodoEfec.MetodoPagoId : metodoYape.MetodoPagoId;
+                    
+                    var diasAtras = random.Next(0, 30);
+                    var horasAtras = random.Next(8, 20); // Entre 8am y 8pm
+                    var fechaVenta = DateTime.UtcNow.AddDays(-diasAtras).Date.AddHours(horasAtras).AddMinutes(random.Next(0, 60));
+
                     var v = new Transaccion {
                         SedeId = sede.SedeId,
-                        TurnoId = turnos[0].TurnoId,
-                        OperadorId = ops[0].OperadorId,
-                        MetodoPagoId = i % 2 == 0 ? metodoEfec.MetodoPagoId : metodoYape.MetodoPagoId,
-                        Fecha = DateTime.UtcNow.AddDays(-5).AddHours(i),
-                        Subtotal = 10m,
-                        Impuesto = 1.8m,
-                        Total = 11.8m,
+                        TurnoId = turnos[random.Next(turnos.Count)].TurnoId,
+                        OperadorId = ops[random.Next(ops.Count)].OperadorId,
+                        MetodoPagoId = method,
+                        Fecha = fechaVenta,
+                        Subtotal = prod.Precio * qty * 0.82m,
+                        Impuesto = prod.Precio * qty * 0.18m,
+                        Total = prod.Precio * qty,
                         Canal = "Local",
-                        CreatedAt = DateTime.UtcNow,
+                        CreatedAt = fechaVenta,
                         SunatEstado = "Aceptado",
                         Detalles = new List<DetalleTransaccion> {
                             new DetalleTransaccion {
-                                ProductoId = allProds[0].ProductoId,
-                                Cantidad = 1,
-                                PrecioUnitario = 10m,
-                                SubtotalLinea = 10m
+                                ProductoId = prod.ProductoId,
+                                Cantidad = qty,
+                                PrecioUnitario = prod.Precio,
+                                SubtotalLinea = prod.Precio * qty
                             }
                         }
                     };
@@ -207,50 +228,23 @@ public class CatalogDataSeeder : ICatalogDataSeeder
                 }
                 _context.Transacciones.AddRange(ventas);
                 await _context.SaveChangesAsync(ct);
-
-                // Generar 10 Ventas para luego ser Anuladas
-                var ventasParaAnular = new List<Transaccion>();
-                for(int i = 0; i < 10; i++)
-                {
-                    var v = new Transaccion {
-                        SedeId = sede.SedeId,
-                        TurnoId = turnos[1].TurnoId,
-                        OperadorId = ops[1].OperadorId,
-                        MetodoPagoId = metodoEfec.MetodoPagoId,
-                        Fecha = DateTime.UtcNow.AddDays(-2).AddHours(i),
-                        Subtotal = 20m,
-                        Impuesto = 3.6m,
-                        Total = 23.6m,
-                        Canal = "Local",
-                        CreatedAt = DateTime.UtcNow,
-                        SunatEstado = "Anulado",
-                        Detalles = new List<DetalleTransaccion> {
-                            new DetalleTransaccion {
-                                ProductoId = allProds[1].ProductoId,
-                                Cantidad = 2,
-                                PrecioUnitario = 10m,
-                                SubtotalLinea = 20m
-                            }
-                        }
-                    };
-                    ventasParaAnular.Add(v);
-                }
-                _context.Transacciones.AddRange(ventasParaAnular);
-                await _context.SaveChangesAsync(ct);
-
-                // Crear las 10 Anulaciones
+                
+                // Generar 10 Anulaciones (marcamos 10 transacciones recientes como anuladas)
                 var anulaciones = new List<Anulacion>();
                 for(int i = 0; i < 10; i++)
                 {
+                    var v = ventas[i];
+                    v.SunatEstado = "Anulado"; // Actualizamos estado de la transacción
+                    
                     anulaciones.Add(new Anulacion {
-                        TransaccionId = ventasParaAnular[i].TransaccionId,
+                        TransaccionId = v.TransaccionId,
                         OperadorSolicitanteId = ops[2].OperadorId,
                         AutorizadorId = ops[0].OperadorId,
-                        FechaHora = ventasParaAnular[i].Fecha.AddMinutes(30),
+                        FechaHora = v.Fecha.AddMinutes(30),
                         TipoAnulacion = "DevolucionTotal",
                         Motivo = "Error en el pedido de prueba",
-                        MontoOriginal = ventasParaAnular[i].Total,
-                        MontoDevuelto = ventasParaAnular[i].Total,
+                        MontoOriginal = v.Total,
+                        MontoDevuelto = v.Total,
                         MetodoDevolucion = "Efectivo",
                         ImpactoInventario = true,
                         CreatedAt = DateTime.UtcNow
@@ -259,7 +253,6 @@ public class CatalogDataSeeder : ICatalogDataSeeder
                 _context.Anulaciones.AddRange(anulaciones);
                 await _context.SaveChangesAsync(ct);
             }
-        }
         }
     }
 }

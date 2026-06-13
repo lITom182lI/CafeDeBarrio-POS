@@ -8,7 +8,12 @@ public class TransaccionConfiguration : IEntityTypeConfiguration<Transaccion>
 {
     public void Configure(EntityTypeBuilder<Transaccion> builder)
     {
-        builder.ToTable("Transaccion");
+        builder.ToTable("Transaccion", t =>
+        {
+            t.HasCheckConstraint("CK_Transaccion_Subtotal_Positivo", "[subtotal] >= 0");
+            t.HasCheckConstraint("CK_Transaccion_Total_Positivo",    "[total] >= 0");
+            t.HasCheckConstraint("CK_Transaccion_Total_Coherente",   "[total] >= [subtotal] + [impuesto]");
+        });
         builder.HasKey(x => x.TransaccionId);
         builder.Property(x => x.TransaccionId).HasColumnName("transaccion_id");
         builder.Property(x => x.ClienteId).HasColumnName("cliente_id");
@@ -72,7 +77,9 @@ public class TransaccionConfiguration : IEntityTypeConfiguration<Transaccion>
         builder.HasIndex(x => x.Fecha);
         builder.HasIndex(x => x.TurnoId);
         builder.HasIndex(x => new { x.SedeId, x.Fecha }).HasDatabaseName("IX_Transaccion_SedeId_Fecha");
-        
+
+        // V3-03: concurrency token — protege anulación + actualización SUNAT simultáneas
+        builder.Property(x => x.RowVersion).IsRowVersion();
 
     }
 }
