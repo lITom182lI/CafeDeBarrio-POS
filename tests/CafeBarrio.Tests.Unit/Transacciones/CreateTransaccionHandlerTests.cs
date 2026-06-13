@@ -25,6 +25,11 @@ public class CreateTransaccionHandlerTests
 
     public CreateTransaccionHandlerTests()
     {
+        _uow.ExecuteInTransactionAsync(
+                Arg.Any<Func<CancellationToken, Task<int>>>(),
+                Arg.Any<CancellationToken>())
+            .Returns(ci => ci.Arg<Func<CancellationToken, Task<int>>>()(CancellationToken.None));
+
         _sut = new CreateTransaccionHandler(_transacciones, _productos, _conf, _uow, _publisher, _idemp, _currentUser, _turnos);
     }
 
