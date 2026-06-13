@@ -12,7 +12,8 @@ public class AnularTransaccionHandler : IRequestHandler<AnularTransaccionCommand
     private readonly IOperadorRepository _operadores;
     private readonly IProductoRepository _productos;
     private readonly IUnitOfWork _uow;
-    private readonly ICurrentUserService _currentUser;
+    private readonly IUsuarioRepository _usuarios;
+    private readonly IPasswordHasher _passwordHasher;
 
     public AnularTransaccionHandler(
         ITransaccionRepository transacciones,
@@ -20,14 +21,16 @@ public class AnularTransaccionHandler : IRequestHandler<AnularTransaccionCommand
         IOperadorRepository operadores,
         IProductoRepository productos,
         IUnitOfWork uow,
-        ICurrentUserService currentUser)
+        IUsuarioRepository usuarios,
+        IPasswordHasher passwordHasher)
     {
-        _transacciones = transacciones;
-        _anulaciones   = anulaciones;
-        _operadores    = operadores;
-        _productos     = productos;
-        _uow           = uow;
-        _currentUser   = currentUser;
+        _transacciones  = transacciones;
+        _anulaciones    = anulaciones;
+        _operadores     = operadores;
+        _productos      = productos;
+        _uow            = uow;
+        _usuarios       = usuarios;
+        _passwordHasher = passwordHasher;
     }
 
     public async Task<Result> Handle(AnularTransaccionCommand request, CancellationToken ct)
@@ -50,21 +53,22 @@ public class AnularTransaccionHandler : IRequestHandler<AnularTransaccionCommand
             return Result.Failure(new Error("Anulacion.OperadorNotFound",
                 $"Operador solicitante {request.OperadorSolicitanteId} no encontrado."));
 
-        if (_currentUser.UserId is null)
-            return Result.Failure(new Error("Auth.Unauthenticated",
-                "No se pudo determinar la identidad del autorizador."));
+        var adminUser = await _usuarios.GetByEmailAsync(request.AdminEmail, ct);
+        if (adminUser is null || !_passwordHasher.Verify(request.AdminPassword, adminUser.PasswordHash) || adminUser.Rol != "Admin")
+        {
+            return Result.Failure(new Error("Auth.InvalidCredentials", "Credenciales de administrador inválidas."));
+        }
 
-        var autorizadorId = await _operadores.GetOperadorIdByUsuarioIdAsync(_currentUser.UserId.Value, ct);
+        var autorizadorId = await _operadores.GetOperadorIdByUsuarioIdAsync(adminUser.UsuarioId, ct);
         if (autorizadorId is null)
             return Result.Failure(new Error("Anulacion.AutorizadorSinOperador",
                 "El usuario Admin no tiene un Operador vinculado. Vincúlalo para autorizar anulaciones."));
 
-        await _uow.BeginTransactionAsync(ct);
-        try
+        return await _uow.ExecuteInTransactionAsync(async (cancellationToken) =>
         {
             foreach (var detalle in transaccion.Detalles)
             {
-                var producto = await _productos.GetByIdAsync(detalle.ProductoId, ct);
+                var producto = await _productos.GetByIdAsync(detalle.ProductoId, cancellationToken);
                 if (producto is not null && producto.SeguimientoInventario)
                     producto.CantidadDisponible += detalle.Cantidad;
             }
@@ -83,16 +87,10 @@ public class AnularTransaccionHandler : IRequestHandler<AnularTransaccionCommand
                 ImpactoInventario     = true
             };
 
-            await _anulaciones.AddAsync(anulacion, ct);
-            await _uow.SaveChangesAsync(ct);
-            await _uow.CommitAsync(ct);
+            await _anulaciones.AddAsync(anulacion, cancellationToken);
+            await _uow.SaveChangesAsync(cancellationToken);
 
             return Result.Success();
-        }
-        catch
-        {
-            await _uow.RollbackAsync(ct);
-            throw;
-        }
+        }, ct);
     }
 }

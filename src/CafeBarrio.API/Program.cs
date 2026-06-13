@@ -289,7 +289,7 @@ using (var scope = app.Services.CreateScope())
         db.SaveChanges();
     }
 
-    // ── Usuario admin ────────────────────────────────────────────────────
+    // ── Usuario admin y su Operador ──────────────────────────────────────
     if (!db.Usuarios.Any())
     {
         if (!app.Environment.IsDevelopment())
@@ -297,7 +297,7 @@ using (var scope = app.Services.CreateScope())
             RequireConfig(builder.Configuration, "Seed:AdminPassword");
         }
 
-        db.Usuarios.Add(new Usuario
+        var adminUser = new Usuario
         {
             Email        = "admin@cafedebarrio.com",
             PasswordHash = hasher.Hash(
@@ -305,8 +305,45 @@ using (var scope = app.Services.CreateScope())
                 ?? throw new InvalidOperationException("Seed:AdminPassword no configurado.")),
             Rol          = "Admin",
             Activo       = true
+        };
+        
+        db.Usuarios.Add(adminUser);
+        db.SaveChanges();
+
+        // Vincular un Operador por defecto al Admin para que pueda usar el POS y autorizar
+        var sedeId = db.Sedes.First().SedeId;
+        db.Operadores.Add(new Operador
+        {
+            SedeId    = sedeId,
+            Nombre    = "Admin",
+            UsuarioId = adminUser.UsuarioId,
+            PinHash   = hasher.Hash("1234"), // PIN por defecto: 1234
+            Activo    = true,
+            CreatedAt = DateTime.UtcNow
         });
         db.SaveChanges();
+    }
+
+    // ── Fix: Crear operador para admin si no existe ──────────────────────
+    var adminUsuario = db.Usuarios.FirstOrDefault(u => u.Email == "admin@cafedebarrio.com");
+    if (adminUsuario != null)
+    {
+        var adminOperador = db.Operadores.FirstOrDefault(o => o.UsuarioId == adminUsuario.UsuarioId);
+        if (adminOperador == null)
+        {
+            var sedeId = db.Sedes.First().SedeId;
+            db.Operadores.Add(new Operador
+            {
+                SedeId    = sedeId,
+                Nombre    = "Admin",
+                UsuarioId = adminUsuario.UsuarioId,
+                PinHash   = hasher.Hash("1234"), // PIN por defecto: 1234
+                Activo    = true,
+                CreatedAt = DateTime.UtcNow
+            });
+            db.SaveChanges();
+            Console.WriteLine("FIX APLICADO: Operador Admin creado y vinculado en BD existente.");
+        }
     }
 }
 
