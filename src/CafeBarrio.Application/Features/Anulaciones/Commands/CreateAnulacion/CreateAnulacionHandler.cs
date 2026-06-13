@@ -69,10 +69,14 @@ public class CreateAnulacionHandler : IRequestHandler<CreateAnulacionCommand, Re
         {
             if (request.ImpactoInventario)
             {
+                var ids = transaccion.Detalles.Select(d => d.ProductoId).Distinct();
+                var productos = await _productos.GetByIdsAsync(ids, ct);
+                var productoMap = productos.ToDictionary(p => p.ProductoId);
+
                 foreach (var detalle in transaccion.Detalles)
                 {
-                    var producto = await _productos.GetByIdAsync(detalle.ProductoId, ct);
-                    if (producto is not null && producto.SeguimientoInventario)
+                    if (productoMap.TryGetValue(detalle.ProductoId, out var producto)
+                        && producto.SeguimientoInventario)
                         producto.CantidadDisponible += detalle.Cantidad;
                 }
             }

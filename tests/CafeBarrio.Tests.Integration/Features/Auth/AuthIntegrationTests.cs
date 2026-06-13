@@ -23,15 +23,13 @@ public class AuthIntegrationTests : IntegrationTestBase
     {
         var usuariosRepo = new UsuarioRepository(Db);
         
-        var inMemorySettings = new Dictionary<string, string?> {
-            {"Jwt:Key", "SUPER_SECRET_KEY_FOR_TESTING_PURPOSES_2026!"},
-            {"Jwt:Issuer", "TestIssuer"},
-            {"Jwt:Audience", "TestAudience"},
-            {"Jwt:ExpiryHours", "8"}
-        };
-        var config = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
-        
-        var jwtService = new JwtService(config);
+        var jwtService = new JwtService(Microsoft.Extensions.Options.Options.Create(new JwtOptions
+        {
+            Key = "SUPER_SECRET_KEY_FOR_TESTING_PURPOSES_2026!",
+            Issuer = "TestIssuer",
+            Audience = "TestAudience",
+            ExpiryHours = 8
+        }));
         var hasher = new Argon2PasswordHasher();
         var uow = new UnitOfWork(Db);
         _handler = new LoginCommandHandler(usuariosRepo, jwtService, hasher, uow);

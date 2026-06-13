@@ -29,14 +29,12 @@ public class OperadoresIntegrationTests : IntegrationTestBase
         _hasher            = new Argon2PasswordHasher();
 
         // JwtService solo para ValidarPin — config mínima
-        var config = new Microsoft.Extensions.Configuration.ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                { "Jwt:Key",      "TEST_SECRET_KEY_FOR_INTEGRATION_2026!" },
-                { "Jwt:Issuer",   "TestIssuer" },
-                { "Jwt:Audience", "TestAudience" }
-            }).Build();
-        var jwtService = new JwtService(config);
+        var jwtService = new JwtService(Microsoft.Extensions.Options.Options.Create(new JwtOptions
+        {
+            Key = "TEST_SECRET_KEY_FOR_INTEGRATION_2026!",
+            Issuer = "TestIssuer",
+            Audience = "TestAudience"
+        }));
 
         _validarPin    = new ValidarPinHandler(operadoresRepo, _hasher, jwtService, uow);
         _createOperador = new CreateOperadorHandler(operadoresRepo, sedesRepo, uow, _hasher);

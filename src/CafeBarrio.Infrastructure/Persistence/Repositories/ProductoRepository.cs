@@ -33,4 +33,8 @@ public class ProductoRepository : BaseRepository<Producto>, IProductoRepository
             .Where(p => p.Activo)
             .AsNoTracking()
             .ToListAsync(ct);
+    public async Task<IReadOnlyList<Producto>> GetByIdsAsync(IEnumerable<int> ids, CancellationToken ct = default)
+        => await Context.Set<Producto>()
+               .Where(p => ids.Contains(p.ProductoId))
+               .ToListAsync(ct);
 }

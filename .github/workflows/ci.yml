@@ -173,6 +173,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Apply EF migrations (prod)
+        if: false # TODO: configurar PROD_DB_CONNECTION en GitHub secrets
+        env:
+          MIGRATION_CONNECTION: ${{ secrets.PROD_DB_CONNECTION }}
+        run: |
+          dotnet tool install --global dotnet-ef
+          dotnet ef database update \
+            --project src/CafeBarrio.Infrastructure \
+            --startup-project src/CafeBarrio.API \
+            --connection "$MIGRATION_CONNECTION"
+
       - name: Derive lowercase image name
         run: echo "IMAGE=ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/cafebarrio-api" >> $GITHUB_ENV
 

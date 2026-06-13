@@ -13,17 +13,15 @@ namespace CafeBarrio.Tests.Unit.Auth;
 public class JwtServiceTests
 {
     private static JwtService BuildSut() =>
-        new JwtService(new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["Jwt:Key"]                 = "super-secret-key-minimo-32-caracteres!",
-                ["Jwt:Issuer"]              = "CafeBarrio",
-                ["Jwt:Audience"]            = "CafeBarrioApp",
-                ["Jwt:ExpiryHours"]         = "8",
-                ["Jwt:AdminExpiryHours"]    = "8",
-                ["Jwt:OperadorExpiryHours"] = "16"
-            })
-            .Build());
+        new JwtService(Microsoft.Extensions.Options.Options.Create(new JwtOptions
+        {
+            Key                 = "super-secret-key-minimo-32-caracteres!",
+            Issuer              = "CafeBarrio",
+            Audience            = "CafeBarrioApp",
+            ExpiryHours         = 8,
+            AdminExpiryHours    = 8,
+            OperadorExpiryHours = 16
+        }));
 
     [Fact]
     public void GenerateToken_ReturnsValidJwtWithUserClaims()

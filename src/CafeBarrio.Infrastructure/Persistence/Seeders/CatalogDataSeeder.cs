@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CafeBarrio.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 namespace CafeBarrio.Infrastructure.Persistence.Seeders;
@@ -18,15 +19,18 @@ public class CatalogDataSeeder : ICatalogDataSeeder
     private readonly CafeBarrioDbContext _context;
     private readonly CafeBarrio.Application.Common.Interfaces.IPasswordHasher _hasher;
     private readonly Microsoft.Extensions.Hosting.IHostEnvironment _env;
+    private readonly IConfiguration _config;
 
     public CatalogDataSeeder(
         CafeBarrioDbContext context,
         CafeBarrio.Application.Common.Interfaces.IPasswordHasher hasher,
-        Microsoft.Extensions.Hosting.IHostEnvironment env)
+        Microsoft.Extensions.Hosting.IHostEnvironment env,
+        IConfiguration config)
     {
         _context = context;
         _hasher  = hasher;
         _env     = env;
+        _config  = config;
     }
 
     public async Task SeedAsync(CancellationToken ct = default)
@@ -45,13 +49,63 @@ public class CatalogDataSeeder : ICatalogDataSeeder
                 Activa = true,
                 FechaApertura = new DateOnly(2026, 1, 1)
             };
-            // Forzamos el ID si es necesario o dejamos que IDENTITY asigne 1
-            // Si la tabla está vacía IDENTITY(1,1) le dará 1.
             _context.Sedes.Add(sede);
             await _context.SaveChangesAsync(ct);
         }
 
-        // 2. Sembrar ConfiguraciónNegocio para Sede 1 si no existe
+        // 2. TiposCliente
+        bool tiposExisten = await _context.TiposCliente.AnyAsync(ct);
+        if (!tiposExisten)
+        {
+            _context.TiposCliente.Add(new TipoCliente { Nombre = "Regular" });
+            await _context.SaveChangesAsync(ct);
+        }
+
+        // 3. MetodosPago
+        bool metodosExisten = await _context.MetodosPago.AnyAsync(ct);
+        if (!metodosExisten)
+        {
+            _context.MetodosPago.AddRange(
+                new MetodoPago { Nombre = "Efectivo", Activo = true, EsEfectivo = true  },
+                new MetodoPago { Nombre = "Tarjeta",  Activo = true, EsEfectivo = false },
+                new MetodoPago { Nombre = "Yape",     Activo = true, EsEfectivo = false },
+                new MetodoPago { Nombre = "Plin",     Activo = true, EsEfectivo = false }
+            );
+            await _context.SaveChangesAsync(ct);
+        }
+
+        // 4. CategoriasCafe
+        bool categoriasExisten = await _context.CategoriasCafe.AnyAsync(ct);
+        if (!categoriasExisten)
+        {
+            var categorias = new List<CategoriaCafe>
+            {
+                new CategoriaCafe { Codigo = "CAF", Nombre = "Cafes",   Descripcion = "Cafés especiales y de origen", Activa = true },
+                new CategoriaCafe { Codigo = "BEB", Nombre = "Bebidas", Descripcion = "Cafés calientes y bebidas frías", Activa = true },
+                new CategoriaCafe { Codigo = "COM", Nombre = "Comida",  Descripcion = "Snacks, postres y sandwiches", Activa = true }
+            };
+            _context.CategoriasCafe.AddRange(categorias);
+            await _context.SaveChangesAsync(ct);
+        }
+
+        // 5. Cliente Mostrador
+        bool mostradorExiste = await _context.Clientes.AnyAsync(c => c.Email == "mostrador@cafedebarrio.local", ct);
+        if (!mostradorExiste)
+        {
+            var tipoId = await _context.TiposCliente.Select(t => t.TipoClienteId).FirstOrDefaultAsync(ct);
+            _context.Clientes.Add(new Cliente
+            {
+                TipoClienteId = tipoId > 0 ? tipoId : 1,
+                Nombre        = "Mostrador",
+                Apellido      = string.Empty,
+                Email         = "mostrador@cafedebarrio.local",
+                FechaRegistro = DateOnly.FromDateTime(DateTime.UtcNow),
+                Activo        = true
+            });
+            await _context.SaveChangesAsync(ct);
+        }
+
+        // 6. ConfiguracionNegocio
         var configExiste = await _context.ConfiguracionesNegocio.AnyAsync(c => c.SedeId == sede.SedeId && c.Activo, ct);
         if (!configExiste)
         {
@@ -66,21 +120,32 @@ public class CatalogDataSeeder : ICatalogDataSeeder
             await _context.SaveChangesAsync(ct);
         }
 
-        // 3. Sembrar Categorías si la tabla está vacía
-        bool categoriasExisten = await _context.CategoriasCafe.AnyAsync(ct);
-        if (!categoriasExisten)
+        // 7. Usuario Admin
+        bool adminExiste = await _context.Usuarios.AnyAsync(ct);
+        if (!adminExiste)
         {
-            var categorias = new List<CategoriaCafe>
+            if (!_env.IsDevelopment())
             {
-                new CategoriaCafe { Codigo = "BEB", Nombre = "Bebidas", Descripcion = "Cafés calientes y bebidas frías", Activa = true },
-                new CategoriaCafe { Codigo = "CAF", Nombre = "Cafes", Descripcion = "Cafés especiales y de origen", Activa = true },
-                new CategoriaCafe { Codigo = "COM", Nombre = "Comida", Descripcion = "Snacks, postres y sandwiches", Activa = true }
-            };
-            _context.CategoriasCafe.AddRange(categorias);
+                var pwd = _config["Seed:AdminPassword"];
+                if (string.IsNullOrWhiteSpace(pwd) || pwd.StartsWith("OVERRIDE_VIA_ENV_VAR") || pwd.StartsWith("REEMPLAZAR_"))
+                {
+                    throw new InvalidOperationException("Seed:AdminPassword no configurado.");
+                }
+            }
+
+            _context.Usuarios.Add(new Usuario
+            {
+                Email        = "admin@cafedebarrio.com",
+                PasswordHash = _hasher.Hash(
+                    _config["Seed:AdminPassword"]
+                    ?? throw new InvalidOperationException("Seed:AdminPassword no configurado.")),
+                Rol          = "Admin",
+                Activo       = true
+            });
             await _context.SaveChangesAsync(ct);
         }
 
-        // 4. Sembrar Productos si la tabla está vacía
+        // 8. Productos
         bool productosExisten = await _context.Productos.AnyAsync(ct);
         if (!productosExisten)
         {
@@ -94,24 +159,24 @@ public class CatalogDataSeeder : ICatalogDataSeeder
                 var productos = new List<Producto>
                 {
                     // Bebidas
-                    new Producto { CategoriaId = catBebidas.CategoriaId, Nombre = "Espresso Doble Clásico", Descripcion = "Espresso intenso de doble carga, ideal para los que necesitan energía extra.", Costo = 3.50m, Precio = 7.00m, CantidadDisponible = 80m, StockMinimo = 20m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
-                    new Producto { CategoriaId = catBebidas.CategoriaId, Nombre = "Latte Vainilla de Barrio", Descripcion = "Café latte con jarabe de vainilla y leche vaporizada cremosa.", Costo = 4.00m, Precio = 9.50m, CantidadDisponible = 60m, StockMinimo = 15m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
-                    new Producto { CategoriaId = catBebidas.CategoriaId, Nombre = "Capuccino Canela", Descripcion = "Espresso con leche espumosa, toque de canela y cacao espolvoreado.", Costo = 3.80m, Precio = 8.50m, CantidadDisponible = 70m, StockMinimo = 15m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
-                    new Producto { CategoriaId = catBebidas.CategoriaId, Nombre = "Mocca Chocolate Amargo", Descripcion = "Espresso, leche y salsa de chocolate amargo, coronado con crema batida.", Costo = 4.20m, Precio = 10.00m, CantidadDisponible = 50m, StockMinimo = 10m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
-                    new Producto { CategoriaId = catBebidas.CategoriaId, Nombre = "Americano de la Casa", Descripcion = "Café americano suave, preparado con mezcla de la casa.", Costo = 2.80m, Precio = 6.50m, CantidadDisponible = 90m, StockMinimo = 25m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
-                    new Producto { CategoriaId = catBebidas.CategoriaId, Nombre = "Cold Brew Cítrico", Descripcion = "Cold brew de 12 horas con rodajas de naranja y toque de tónica.", Costo = 4.50m, Precio = 11.00m, CantidadDisponible = 40m, StockMinimo = 10m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
-                    new Producto { CategoriaId = catBebidas.CategoriaId, Nombre = "Frappe Caramelo Salado", Descripcion = "Café frappé con caramelo salado, hielo licuado y crema batida.", Costo = 4.70m, Precio = 11.50m, CantidadDisponible = 35m, StockMinimo = 10m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
-                    new Producto { CategoriaId = catBebidas.CategoriaId, Nombre = "Limonada con Hierbabuena", Descripcion = "Limonada frutada con hojas de hierbabuena fresca.", Costo = 2.50m, Precio = 6.00m, CantidadDisponible = 80m, StockMinimo = 20m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
-                    new Producto { CategoriaId = catBebidas.CategoriaId, Nombre = "Té Helado Durazno", Descripcion = "Té negro frío sabor durazno, ligeramente endulzado.", Costo = 2.40m, Precio = 6.00m, CantidadDisponible = 60m, StockMinimo = 15m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
+                    new Producto { CategoriaId = catBebidas.CategoriaId, Nombre = "Espresso Doble Clásico", Descripcion = "Espresso intenso de doble carga.", Costo = 3.50m, Precio = 7.00m, CantidadDisponible = 80m, StockMinimo = 20m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
+                    new Producto { CategoriaId = catBebidas.CategoriaId, Nombre = "Latte Vainilla de Barrio", Descripcion = "Café latte con jarabe de vainilla.", Costo = 4.00m, Precio = 9.50m, CantidadDisponible = 60m, StockMinimo = 15m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
+                    new Producto { CategoriaId = catBebidas.CategoriaId, Nombre = "Capuccino Canela", Descripcion = "Espresso con leche espumosa.", Costo = 3.80m, Precio = 8.50m, CantidadDisponible = 70m, StockMinimo = 15m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
+                    new Producto { CategoriaId = catBebidas.CategoriaId, Nombre = "Mocca Chocolate Amargo", Descripcion = "Espresso, leche y salsa de chocolate.", Costo = 4.20m, Precio = 10.00m, CantidadDisponible = 50m, StockMinimo = 10m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
+                    new Producto { CategoriaId = catBebidas.CategoriaId, Nombre = "Americano de la Casa", Descripcion = "Café americano suave.", Costo = 2.80m, Precio = 6.50m, CantidadDisponible = 90m, StockMinimo = 25m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
+                    new Producto { CategoriaId = catBebidas.CategoriaId, Nombre = "Cold Brew Cítrico", Descripcion = "Cold brew de 12 horas.", Costo = 4.50m, Precio = 11.00m, CantidadDisponible = 40m, StockMinimo = 10m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
+                    new Producto { CategoriaId = catBebidas.CategoriaId, Nombre = "Frappe Caramelo Salado", Descripcion = "Café frappé con caramelo salado.", Costo = 4.70m, Precio = 11.50m, CantidadDisponible = 35m, StockMinimo = 10m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
+                    new Producto { CategoriaId = catBebidas.CategoriaId, Nombre = "Limonada con Hierbabuena", Descripcion = "Limonada frutada.", Costo = 2.50m, Precio = 6.00m, CantidadDisponible = 80m, StockMinimo = 20m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
+                    new Producto { CategoriaId = catBebidas.CategoriaId, Nombre = "Té Helado Durazno", Descripcion = "Té negro frío sabor durazno.", Costo = 2.40m, Precio = 6.00m, CantidadDisponible = 60m, StockMinimo = 15m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
                     // Cafes
-                    new Producto { CategoriaId = catCafes.CategoriaId, Nombre = "Latte Avellana Rock", Descripcion = "Latte con jarabe de avellana, inspirado en el estilo rock del café de barrio.", Costo = 4.30m, Precio = 10.50m, CantidadDisponible = 45m, StockMinimo = 10m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
-                    new Producto { CategoriaId = catCafes.CategoriaId, Nombre = "Café Nitro Barril", Descripcion = "Café frío infusionado con nitrógeno, servido directo del barril.", Costo = 5.20m, Precio = 12.50m, CantidadDisponible = 30m, StockMinimo = 8m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
-                    new Producto { CategoriaId = catCafes.CategoriaId, Nombre = "Affogato de Vainilla", Descripcion = "Bola de helado de vainilla bañada con espresso caliente.", Costo = 4.80m, Precio = 11.00m, CantidadDisponible = 35m, StockMinimo = 10m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
+                    new Producto { CategoriaId = catCafes.CategoriaId, Nombre = "Latte Avellana Rock", Descripcion = "Latte con jarabe de avellana.", Costo = 4.30m, Precio = 10.50m, CantidadDisponible = 45m, StockMinimo = 10m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
+                    new Producto { CategoriaId = catCafes.CategoriaId, Nombre = "Café Nitro Barril", Descripcion = "Café frío infusionado con nitrógeno.", Costo = 5.20m, Precio = 12.50m, CantidadDisponible = 30m, StockMinimo = 8m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
+                    new Producto { CategoriaId = catCafes.CategoriaId, Nombre = "Affogato de Vainilla", Descripcion = "Bola de helado de vainilla.", Costo = 4.80m, Precio = 11.00m, CantidadDisponible = 35m, StockMinimo = 10m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
                     // Comida
-                    new Producto { CategoriaId = catComida.CategoriaId, Nombre = "Brownie de Chocolate Intenso", Descripcion = "Brownie casero de chocolate 70% cacao.", Costo = 2.80m, Precio = 7.00m, CantidadDisponible = 50m, StockMinimo = 15m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
-                    new Producto { CategoriaId = catComida.CategoriaId, Nombre = "Cheesecake de Maracuyá", Descripcion = "Porción de cheesecake con coulis de maracuyá.", Costo = 3.80m, Precio = 9.50m, CantidadDisponible = 30m, StockMinimo = 10m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
-                    new Producto { CategoriaId = catComida.CategoriaId, Nombre = "Sándwich de Pollo BBQ", Descripcion = "Pan artesanal con pollo deshilachado en salsa BBQ y queso.", Costo = 4.00m, Precio = 10.00m, CantidadDisponible = 40m, StockMinimo = 10m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
-                    new Producto { CategoriaId = catComida.CategoriaId, Nombre = "Croissant de Mantequilla", Descripcion = "Croissant horneado del día, masa hojaldrada y ligera.", Costo = 2.20m, Precio = 5.50m, CantidadDisponible = 60m, StockMinimo = 15m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() }
+                    new Producto { CategoriaId = catComida.CategoriaId, Nombre = "Brownie de Chocolate Intenso", Descripcion = "Brownie casero de chocolate.", Costo = 2.80m, Precio = 7.00m, CantidadDisponible = 50m, StockMinimo = 15m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
+                    new Producto { CategoriaId = catComida.CategoriaId, Nombre = "Cheesecake de Maracuyá", Descripcion = "Porción de cheesecake.", Costo = 3.80m, Precio = 9.50m, CantidadDisponible = 30m, StockMinimo = 10m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
+                    new Producto { CategoriaId = catComida.CategoriaId, Nombre = "Sándwich de Pollo BBQ", Descripcion = "Pan artesanal con pollo.", Costo = 4.00m, Precio = 10.00m, CantidadDisponible = 40m, StockMinimo = 10m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() },
+                    new Producto { CategoriaId = catComida.CategoriaId, Nombre = "Croissant de Mantequilla", Descripcion = "Croissant horneado del día.", Costo = 2.20m, Precio = 5.50m, CantidadDisponible = 60m, StockMinimo = 15m, UnidadMedida = "Unidades", SeguimientoInventario = true, EsMayorista = false, Activo = true, CreatedAt = ahora, RowVersion = Array.Empty<byte>() }
                 };
 
                 _context.Productos.AddRange(productos);
@@ -119,23 +184,10 @@ public class CatalogDataSeeder : ICatalogDataSeeder
             }
         }
 
-        // 5. Metodos de pago (si no existen)
-        bool metodosExisten = await _context.MetodosPago.AnyAsync(ct);
-        if (!metodosExisten)
-        {
-            _context.MetodosPago.AddRange(
-                new MetodoPago { Nombre = "Efectivo", Activo = true, EsEfectivo = true  },
-                new MetodoPago { Nombre = "Yape",     Activo = true, EsEfectivo = false },
-                new MetodoPago { Nombre = "Plin",     Activo = true, EsEfectivo = false },
-                new MetodoPago { Nombre = "Tarjeta",  Activo = true, EsEfectivo = false }
-            );
-            await _context.SaveChangesAsync(ct);
-        }
-
         var metodoEfec = await _context.MetodosPago.FirstOrDefaultAsync(m => m.Nombre == "Efectivo", ct);
         var metodoYape = await _context.MetodosPago.FirstOrDefaultAsync(m => m.Nombre == "Yape", ct);
 
-        // 6. Test Data Simulation — Protegido por entorno (MUIS Best Practice)
+        // 9. Test Data Simulation — Protegido por entorno (MUIS Best Practice)
         bool isDemo = _env.IsDevelopment() || Environment.GetEnvironmentVariable("SEED_DEMO_DATA") == "true";
         if (!isDemo) return;
 
@@ -229,7 +281,7 @@ public class CatalogDataSeeder : ICatalogDataSeeder
                 _context.Transacciones.AddRange(ventas);
                 await _context.SaveChangesAsync(ct);
                 
-                // Generar 10 Anulaciones (marcamos 10 transacciones recientes como anuladas)
+                // Generar 10 Anulaciones
                 var anulaciones = new List<Anulacion>();
                 for(int i = 0; i < 10; i++)
                 {

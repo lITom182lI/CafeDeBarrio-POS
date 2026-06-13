@@ -2,9 +2,11 @@ using CafeBarrio.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Data;
+using Xunit;
 
 namespace CafeBarrio.Tests.Integration.Base;
 
+[Xunit.Trait("Category", "Integration")]
 public abstract class IntegrationTestBase : IDisposable
 {
     protected readonly CafeBarrioDbContext Db;
@@ -15,7 +17,7 @@ public abstract class IntegrationTestBase : IDisposable
 
     protected IntegrationTestBase()
     {
-        var localFallback = "Server=localhost,14333;Database=CafeDeBarrioTest;Integrated Security=True;TrustServerCertificate=True;";
+        var localFallback = "Server=localhost,1433;Database=CafeDeBarrioTest;Integrated Security=True;TrustServerCertificate=True;";
 
         var options = new DbContextOptionsBuilder<CafeBarrioDbContext>()
             .UseSqlServer(
