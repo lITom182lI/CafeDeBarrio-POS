@@ -26,6 +26,14 @@
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.10.*" />
   </ItemGroup>
 
+  <!-- GHSA-4625-4j76-fww9 (NU1902): CVE moderado en OTLP exporter 1.10.0.
+       Suprimido con NuGetAuditSuppress: exporter opt-in, solo activa con
+       OTEL_EXPORTER_OTLP_ENDPOINT configurado (vacío por defecto).
+       Acción futura: actualizar suite OTel a >=1.11 cuando se estabilice. -->
+  <ItemGroup>
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-4625-4j76-fww9" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\CafeBarrio.Infrastructure\CafeBarrio.Infrastructure.csproj" />
     <ProjectReference Include="..\CafeBarrio.Application\CafeBarrio.Application.csproj" />

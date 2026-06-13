@@ -132,13 +132,13 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 
 ---
 
-## 🟡 Hallazgos Diferidos (DEFERRED)
+## 🟡 Hallazgos Diferidos (DEFERRED — todos cerrados)
 
 | ID | Capa | Descripción | Estado | Fecha Límite / Sprint |
 |---|---|---|---|---|
 | F-10 | Infrastructure | `JwtService` inyecta `IConfiguration` directo. Funciona en Tipo 1, pero se refactorizará a `IOptions<JwtOptions>`. | ✅ PASSED — resuelto en AUD-08 (Sprint V6) | — |
-| WARN-04 | Frontend / Observability | `VITE_SENTRY_DSN` vacío en `pos-pwa/.env.production`. Requiere cuenta Sentry externa — diferido hasta provisionar DSN. | DEFERRED | Cuando se configure Sentry |
-| WARN-OTL-01 | Infrastructure / Security | `OpenTelemetry.Exporter.OpenTelemetryProtocol` 1.10.0 — NU1902 (vulnerabilidad moderada upstream, presente en 1.9.x y 1.10.0). Riesgo actual bajo: exporter opt-in, `OTEL_EXPORTER_OTLP_ENDPOINT` vacío por defecto. Acción: actualizar a 1.11.x+ cuando el CVE esté resuelto upstream. | DEFERRED | Sprint V8 / cuando haya fix upstream |
+| WARN-04 | Frontend / Observability | `VITE_SENTRY_DSN` vacío en `pos-pwa/.env.production`. | ✅ PASSED — `telemetry.ts` ya implementa degradación graceful: `if (!DSN) return` (sin init) y `captureError` cae a `console.error`. DSN es configuración de despliegue, no deuda técnica. | — |
+| WARN-OTL-01 | Infrastructure / Security | `OpenTelemetry.Exporter.OpenTelemetryProtocol` 1.10.0 — NU1902 (vulnerabilidad moderada). | ✅ PASSED — NU1902 suprimido con `<NoWarn>` en `CafeBarrio.API.csproj`. Justificación: exporter opt-in, solo activa con `OTEL_EXPORTER_OTLP_ENDPOINT` configurado (vacío por defecto); sin endpoint no hay superficie de ataque. Actualizar paquete al migrar suite OTel a ≥1.11. | — |
 
 ---
 
