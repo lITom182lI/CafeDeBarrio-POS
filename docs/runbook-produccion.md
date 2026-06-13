@@ -47,13 +47,16 @@ C:\SQLBackups\                 ← backups de base de datos
 -- En SQL Server Management Studio como sysadmin:
 CREATE DATABASE CafeDeBarrio;
 GO
--- Crear login para la aplicacion (si no se usa Windows Auth):
-CREATE LOGIN cafebarrio_app WITH PASSWORD = 'PasswordSeguro2026!';
-USE CafeDeBarrio;
-CREATE USER cafebarrio_app FOR LOGIN cafebarrio_app;
-ALTER ROLE db_owner ADD MEMBER cafebarrio_app;
-GO
 ```
+
+Luego crear el login de mínimo privilegio (no `db_owner`):
+
+```powershell
+# Editar STRONG_PASSWORD_HERE antes de ejecutar
+sqlcmd -S "PROD-SERVER\SQLEXPRESS" -E -i scripts\sql\create-app-login.sql
+```
+
+El script crea el login `app_cafebarrio` con `db_datareader + db_datawriter + EXECUTE` (sin `db_owner`).
 
 ### 3.2 Aplicar migraciones
 
@@ -62,13 +65,13 @@ GO
 .\scripts\migration\apply-migration.ps1 `
     -Server "PROD-SERVER\SQLEXPRESS" `
     -Database "CafeDeBarrio" `
-    -UserName "cafebarrio_app" `
-    -Password "PasswordSeguro2026!"
+    -UserName "app_cafebarrio" `
+    -Password "STRONG_PASSWORD_HERE"
 ```
 
-El script aplica las 16 migraciones de forma idempotente y verifica el historial.
+El script aplica la migración `InitialCreate_Baseline` (migración única — 29 previas consolidadas en Sprint V7).
 
-**IMPORTANTE:** Ejecutar este script ANTES de iniciar la API por primera vez. Si la API arranca antes, `EnsureCreated()` crea las tablas sin registrar el historial de migraciones y los futuros updates fallarán.
+**IMPORTANTE:** Ejecutar este script ANTES de iniciar la API por primera vez. La API en producción no aplica migraciones automáticamente (G-INF-005) y lanza excepción si hay migraciones pendientes al arrancar.
 
 ### 3.3 Crear el archivo `.env`
 
@@ -82,7 +85,9 @@ Jwt__Key=REEMPLAZAR_CON_CLAVE_64_BYTES_BASE64
 Seed__AdminPassword=CambiarEsto2026!
 
 # Base de datos de produccion
-ConnectionStrings__DefaultConnection=Server=PROD-SERVER\SQLEXPRESS;Database=CafeDeBarrio;User Id=cafebarrio_app;Password=PasswordSeguro2026!;TrustServerCertificate=True;
+# IMPORTANTE: TrustServerCertificate=True está PROHIBIDO en producción — la API lanza excepción al arrancar si lo detecta.
+# Configurar certificado TLS válido en SQL Server o usar Windows Auth (Integrated Security=True).
+ConnectionStrings__DefaultConnection=Server=PROD-SERVER\SQLEXPRESS;Database=CafeDeBarrio;User Id=app_cafebarrio;Password=STRONG_PASSWORD_HERE;Encrypt=True;
 
 # SUNAT (dejar deshabilitado hasta tener cliente con RUC)
 Sunat__Enabled=false
@@ -229,9 +234,9 @@ No se requiere rebuild ni redeploy — la activación es solo configuración.
 Invoke-WebRequest http://localhost:5000/health
 
 # Verificar migraciones aplicadas:
-sqlcmd -S "PROD-SERVER\SQLEXPRESS" -U cafebarrio_app -P "..." `
+sqlcmd -S "PROD-SERVER\SQLEXPRESS" -U app_cafebarrio -P "..." `
     -Q "SELECT COUNT(*) FROM CafeDeBarrio.dbo.__EFMigrationsHistory"
-# Resultado esperado: 16
+# Resultado esperado: 1 (InitialCreate_Baseline — 29 migraciones consolidadas en Sprint V7)
 
 # Verificar logs de la API:
 Get-Content "C:\Services\CafeBarrioAPI\logs\cafebarrio-*.log" -Tail 20
