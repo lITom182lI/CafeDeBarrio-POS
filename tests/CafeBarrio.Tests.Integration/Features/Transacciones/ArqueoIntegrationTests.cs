@@ -97,7 +97,7 @@ public class ArqueoIntegrationTests : IntegrationTestBase
         Db.Turnos.Add(turno);
         await Db.SaveChangesAsync();
 
-        // Precio = 5m → Total = 5 + Round(5*0.18) = 5 + 0.90 = 5.90
+        // Precio = 5m (IGV-inclusivo) → Total = 5.00
         var producto = new Producto
         {
             Nombre = "Espresso", Costo = 2m, Precio = 5m,
@@ -110,7 +110,7 @@ public class ArqueoIntegrationTests : IntegrationTestBase
         return (sede, turno, efectivo, producto);
     }
 
-    // Apertura = 100, 1 venta efectivo (Total=5.90) → SaldoEsperado = 105.90
+    // Apertura = 100, 1 venta efectivo (Total=5.00) → SaldoEsperado = 105.00
     [Fact]
     public async Task Arqueo_VentaEfectivoSimple_SaldoEsperadoCorrecto()
     {
@@ -129,9 +129,9 @@ public class ArqueoIntegrationTests : IntegrationTestBase
 
         var resumen = await _turnoRepo.GetResumenEfectivoAsync(turno.TurnoId, CancellationToken.None);
 
-        resumen.TotalVentasEfectivo.Should().Be(5.90m);
+        resumen.TotalVentasEfectivo.Should().Be(5.00m);
         resumen.TotalAnulacionesEfectivo.Should().Be(0m);
-        resumen.SaldoEsperado.Should().Be(105.90m);
+        resumen.SaldoEsperado.Should().Be(105.00m);
     }
 
     // Apertura = 200, pago dividido: efectivo=5.00, tarjeta=6.80 (Total=11.80)
@@ -145,7 +145,7 @@ public class ArqueoIntegrationTests : IntegrationTestBase
         Db.MetodosPago.Add(tarjeta);
         await Db.SaveChangesAsync();
 
-        // Cantidad=2: Subtotal=10, IGV=Round(10*0.18)=1.80, Total=11.80
+        // Cantidad=2: Precio=5 (IGV-incl.) × 2 = Total=10.00
         var cmd = new CreateTransaccionCommand(
             sede.SedeId, efectivo.MetodoPagoId,
             new[] { new CreateTransaccionItemDto(producto.ProductoId, 2) })
@@ -165,8 +165,8 @@ public class ArqueoIntegrationTests : IntegrationTestBase
         resumen.SaldoEsperado.Should().Be(200m + 5.00m);  // 205.00
     }
 
-    // Apertura = 150, 1 venta efectivo (5.90) + entrada S/50 + salida S/30
-    // → SaldoEsperado = 150 + 5.90 + 50 - 30 = 175.90
+    // Apertura = 150, 1 venta efectivo (5.00) + entrada S/50 + salida S/30
+    // → SaldoEsperado = 150 + 5.00 + 50 - 30 = 175.00
     [Fact]
     public async Task Arqueo_ConMovimientosCaja_SaldoEsperadoIncluye()
     {
@@ -202,9 +202,9 @@ public class ArqueoIntegrationTests : IntegrationTestBase
 
         var resumen = await _turnoRepo.GetResumenEfectivoAsync(turno.TurnoId, CancellationToken.None);
 
-        resumen.TotalVentasEfectivo.Should().Be(5.90m);
+        resumen.TotalVentasEfectivo.Should().Be(5.00m);
         resumen.TotalEntradasCaja.Should().Be(50m);
         resumen.TotalSalidasCaja.Should().Be(30m);
-        resumen.SaldoEsperado.Should().Be(175.90m);
+        resumen.SaldoEsperado.Should().Be(175.00m);
     }
 }
