@@ -33,5 +33,9 @@ public class ProductoConfiguration : IEntityTypeConfiguration<Producto>
                .HasForeignKey(x => x.CategoriaId);
 
         builder.HasIndex(x => x.Activo).HasDatabaseName("IX_Producto_Activo");
+
+        // V3-04: invariantes de precio a nivel SQL
+        builder.HasCheckConstraint("CK_Producto_Precio_Positivo", "[precio] >= 0");
+        builder.HasCheckConstraint("CK_Producto_Costo_Positivo",  "[costo] >= 0");
     }
 }
