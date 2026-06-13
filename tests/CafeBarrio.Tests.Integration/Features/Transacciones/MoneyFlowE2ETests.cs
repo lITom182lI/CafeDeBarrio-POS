@@ -193,8 +193,8 @@ public class MoneyFlowE2ETests : IntegrationTestBase
             new CerrarTurnoCommand(turnoId1, 109.00m, "Cierre T1"),
             CancellationToken.None);
         cerrar1.IsSuccess.Should().BeTrue();
-        cerrar1.Value.TotalEfectivoSistema.Should().Be(109.00m);
-        cerrar1.Value.Diferencia.Should().Be(0m);
+        cerrar1.Value!.TotalEfectivoSistema.Should().Be(109.00m);
+        cerrar1.Value!.Diferencia.Should().Be(0m);
 
         // ── 5. Abrir Turno 2 (apertura = S/50) ──────────────────────────────
         var abrir2 = await abrirHandler.Handle(
@@ -234,7 +234,7 @@ public class MoneyFlowE2ETests : IntegrationTestBase
             new CerrarTurnoCommand(turnoId2, 45.00m, "Cierre T2 cross-turno"),
             CancellationToken.None);
         cerrar2.IsSuccess.Should().BeTrue();
-        cerrar2.Value.TotalEfectivoSistema.Should().Be(45.00m);
-        cerrar2.Value.Diferencia.Should().Be(0m);
+        cerrar2.Value!.TotalEfectivoSistema.Should().Be(45.00m);
+        cerrar2.Value!.Diferencia.Should().Be(0m);
     }
 }
