@@ -145,7 +145,7 @@ public class ArqueoIntegrationTests : IntegrationTestBase
         Db.MetodosPago.Add(tarjeta);
         await Db.SaveChangesAsync();
 
-        // Cantidad=2: Subtotal=10, IGV=Round(10*0.18)=1.80, Total=11.80
+        // Cantidad=2: Precio=5 (IGV-incl.) × 2 = Total=10.00
         var cmd = new CreateTransaccionCommand(
             sede.SedeId, efectivo.MetodoPagoId,
             new[] { new CreateTransaccionItemDto(producto.ProductoId, 2) })

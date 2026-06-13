@@ -80,6 +80,7 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 | AUD-07 | Application | N+1 en `CreateAnulacionHandler`: `GetByIdAsync` dentro de `foreach`. Corregido con `GetByIdsAsync(ids)` + diccionario en memoria. | PASSED |
 | G-INF-005 | Infrastructure / DevOps | Guardrail `G-INF-005-migrations-runtime.md` creado: prohíbe `db.Database.Migrate()` en runtime no-Development. Documentado en `docs/guardrails/`. | PASSED |
 
+
 ---
 
 ### Sprint V5 — Seguridad y resiliencia P1-P2 — 2026-06-13
