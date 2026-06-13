@@ -118,7 +118,10 @@ export class CafeBarrioPosAdapter {
   crearTransaccion = (request: CreateTransaccionRequest) =>
     this.apiFetch<number>('/api/transacciones', {
       method: 'POST',
-      body: JSON.stringify(request),
+      body: JSON.stringify({
+        ...request,
+        idempotencyKey: request.idempotencyKey ?? crypto.randomUUID(),
+      }),
     })
 
   async checkOnline(): Promise<boolean> {

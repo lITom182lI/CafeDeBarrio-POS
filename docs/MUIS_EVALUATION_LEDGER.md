@@ -58,6 +58,16 @@ Este documento es el registro inmutable de hallazgos arquitectónicos detectados
 | DEVX-02 | DevOps | `setup.ps1` y `.env.example` añadidos. Flujo completo en nueva PC: `git clone → .\setup.ps1 → docker compose up -d`. Auto-migración ya existente en `Program.cs`. | PASSED |
 | DEVX-03 | DevOps / CI | `docker-publish` job no corría por CI rojo. Tests unitarios e integración corregidos (40/40 + 8/8). CI verde, imagen publicada a `ghcr.io`. | PASSED |
 
+### Sprint V3 — Integridad BD — 2026-06-13
+
+| ID | Capa | Descripción | Estado |
+|---|---|---|---|
+| V3-01 | Infrastructure / DB | `CreateTransaccionHandler` usaba `BeginTransactionAsync` directamente — `SqlServerRetryingExecutionStrategy` bloqueaba `SaveChangesAsync` → 500 en cada venta. Corregido con `ExecuteInTransactionAsync<T>` en `IUnitOfWork` que envuelve toda la operación en `CreateExecutionStrategy().ExecuteAsync()`. | PASSED |
+| V3-02 | Infrastructure / Seed | `CatalogDataSeeder` crasheaba en loop si la BD tenía un turno "Abierto" previo (violación `UX_Turnos_SedeId_Abierto`). Guard `tieneAbierto` agregado antes de la condición `count >= 10`. | PASSED |
+| V3-03 | Domain / DB | `Transaccion` sin `RowVersion` — aggregate root de mayor escritura. Agregado `byte[] RowVersion` con `.IsRowVersion()`. Migración `V3_IntegrityConstraints`. | PASSED |
+| V3-04 | DB | Sin CHECK constraints en columnas monetarias. Agregados: `CK_Transaccion_Subtotal_Positivo`, `CK_Transaccion_Total_Positivo`, `CK_Transaccion_Total_Coherente`, `CK_Producto_Precio_Positivo`, `CK_Producto_Costo_Positivo`. | PASSED |
+| V3-05 | Domain / DB | `Cliente.Email` sin índice único — riesgo de duplicados. Agregado `UX_Cliente_Email` via `HasIndex(...).IsUnique()`. | PASSED |
+
 ---
 
 ## 🔴 Hallazgos Pendientes (PENDING)

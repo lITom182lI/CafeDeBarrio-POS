@@ -26,7 +26,11 @@ export default function App() {
     return null;
   })
 
-  // Auto resume session logic for high-end local POS systems
+  // Sincroniza el token al adapter en cada cambio de sesión (cubre HMR y restauración)
+  useEffect(() => {
+    setOperadorToken(session?.token ?? null)
+  }, [session])
+
   useEffect(() => {
     void loadRemoteConfig()
   }, [])

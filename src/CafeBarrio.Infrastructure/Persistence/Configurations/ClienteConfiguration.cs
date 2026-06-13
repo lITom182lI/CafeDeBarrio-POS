@@ -28,6 +28,9 @@ public class ClienteConfiguration : IEntityTypeConfiguration<Cliente>
         builder.Property(x => x.Activo).HasColumnName("activo").IsRequired();
         builder.Property(x => x.Observaciones).HasColumnName("observaciones");
 
+        // V3-05: unicidad de email — previene duplicados en registro paralelo
+        builder.HasIndex(x => x.Email).IsUnique().HasDatabaseName("UX_Cliente_Email");
+
         builder.HasOne(x => x.TipoCliente)
                .WithMany(t => t.Clientes)
                .HasForeignKey(x => x.TipoClienteId);
