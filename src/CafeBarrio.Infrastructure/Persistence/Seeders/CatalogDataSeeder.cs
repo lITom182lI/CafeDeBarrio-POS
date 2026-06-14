@@ -6,6 +6,7 @@ using CafeBarrio.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using CafeBarrio.Application.Common.Helpers;
 
 namespace CafeBarrio.Infrastructure.Persistence.Seeders;
 
@@ -255,15 +256,21 @@ public class CatalogDataSeeder : ICatalogDataSeeder
                     var horasAtras = random.Next(8, 20); // Entre 8am y 8pm
                     var fechaVenta = DateTime.UtcNow.AddDays(-diasAtras).Date.AddHours(horasAtras).AddMinutes(random.Next(0, 60));
 
+                    const decimal divisorSeed = 1.18m;
+                    var totalLinea = MoneyRounding.Round(prod.Precio * qty);
+                    var baseImponible = MoneyRounding.Round(totalLinea / divisorSeed);
+                    var impuestoLinea = MoneyRounding.Round(totalLinea - baseImponible);
+                    var subLineaPreIgv = MoneyRounding.Round((prod.Precio / divisorSeed) * qty);
+
                     var v = new Transaccion {
                         SedeId = sede.SedeId,
                         TurnoId = turnos[random.Next(turnos.Count)].TurnoId,
                         OperadorId = ops[random.Next(ops.Count)].OperadorId,
                         MetodoPagoId = method,
                         Fecha = fechaVenta,
-                        Subtotal = prod.Precio * qty * 0.82m,
-                        Impuesto = prod.Precio * qty * 0.18m,
-                        Total = prod.Precio * qty,
+                        Subtotal = baseImponible,
+                        Impuesto = impuestoLinea,
+                        Total = totalLinea,
                         Canal = "Local",
                         CreatedAt = fechaVenta,
                         SunatEstado = "Aceptado",
@@ -272,7 +279,7 @@ public class CatalogDataSeeder : ICatalogDataSeeder
                                 ProductoId = prod.ProductoId,
                                 Cantidad = qty,
                                 PrecioUnitario = prod.Precio,
-                                SubtotalLinea = prod.Precio * qty
+                                SubtotalLinea = subLineaPreIgv
                             }
                         }
                     };

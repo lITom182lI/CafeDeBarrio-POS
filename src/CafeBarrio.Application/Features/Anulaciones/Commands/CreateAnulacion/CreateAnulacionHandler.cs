@@ -34,6 +34,11 @@ public class CreateAnulacionHandler : IRequestHandler<CreateAnulacionCommand, Re
         _currentUser   = currentUser;
     }
 
+    private sealed class BusinessFailureException(Result<int> result) : Exception
+    {
+        public Result<int> Result { get; } = result;
+    }
+
     public async Task<Result<int>> Handle(CreateAnulacionCommand request, CancellationToken ct)
     {
         var transaccion = await _transacciones.GetWithDetallesAndAnulacionAsync(request.TransaccionId, ct);
@@ -50,7 +55,6 @@ public class CreateAnulacionHandler : IRequestHandler<CreateAnulacionCommand, Re
             return Result<int>.Failure(new Error("Anulacion.OperadorNotFound",
                 $"Operador solicitante {request.OperadorSolicitanteId} no encontrado."));
 
-        // Autorizador derivado del JWT — Admin debe tener Operador vinculado
         if (_currentUser.UserId is null)
             return Result<int>.Failure(new Error("Auth.Unauthenticated",
                 "No se pudo determinar la identidad del autorizador."));
@@ -64,62 +68,63 @@ public class CreateAnulacionHandler : IRequestHandler<CreateAnulacionCommand, Re
             return Result<int>.Failure(new Error("Anulacion.MontoInvalido",
                 "El monto devuelto no puede superar el total de la transacción."));
 
-        await _uow.BeginTransactionAsync(ct);
+        int anulacionId;
         try
         {
-            if (request.ImpactoInventario)
+            anulacionId = await _uow.ExecuteInTransactionAsync(async (token) =>
             {
-                var ids = transaccion.Detalles.Select(d => d.ProductoId).Distinct();
-                var productos = await _productos.GetByIdsAsync(ids, ct);
-                var productoMap = productos.ToDictionary(p => p.ProductoId);
-
-                foreach (var detalle in transaccion.Detalles)
+                if (request.ImpactoInventario)
                 {
-                    if (productoMap.TryGetValue(detalle.ProductoId, out var producto)
-                        && producto.SeguimientoInventario)
-                        producto.CantidadDisponible += detalle.Cantidad;
+                    var ids = transaccion.Detalles.Select(d => d.ProductoId).Distinct();
+                    var productos = await _productos.GetByIdsAsync(ids, token);
+                    var productoMap = productos.ToDictionary(p => p.ProductoId);
+
+                    foreach (var detalle in transaccion.Detalles)
+                    {
+                        if (productoMap.TryGetValue(detalle.ProductoId, out var producto)
+                            && producto.SeguimientoInventario)
+                            producto.CantidadDisponible += detalle.Cantidad;
+                    }
                 }
-            }
 
-            var anulacion = new Anulacion
-            {
-                TransaccionId         = request.TransaccionId,
-                TipoAnulacion         = request.TipoAnulacion,
-                Motivo                = request.Motivo,
-                MontoOriginal         = transaccion.Total,
-                MontoDevuelto         = request.MontoDevuelto,
-                MetodoDevolucion      = request.MetodoDevolucion,
-                OperadorSolicitanteId = request.OperadorSolicitanteId,
-                AutorizadorId         = autorizadorId.Value,
-                FechaHora             = DateTime.UtcNow,
-                ImpactoInventario     = request.ImpactoInventario
-            };
+                var anulacion = new Anulacion
+                {
+                    TransaccionId         = request.TransaccionId,
+                    TipoAnulacion         = request.TipoAnulacion,
+                    Motivo                = request.Motivo,
+                    MontoOriginal         = transaccion.Total,
+                    MontoDevuelto         = request.MontoDevuelto,
+                    MetodoDevolucion      = request.MetodoDevolucion,
+                    OperadorSolicitanteId = request.OperadorSolicitanteId,
+                    AutorizadorId         = autorizadorId.Value,
+                    FechaHora             = DateTime.UtcNow,
+                    ImpactoInventario     = request.ImpactoInventario
+                };
 
-            await _anulaciones.AddAsync(anulacion, ct);
+                await _anulaciones.AddAsync(anulacion, token);
 
-            try
-            {
-                await _uow.SaveChangesAsync(ct);
-            }
-            catch (CafeBarrio.Application.Common.Exceptions.ConcurrencyException)
-            {
-                await _uow.RollbackAsync(ct);
-                return Result<int>.Failure(new Error("Anulacion.ConcurrencyConflict",
-                    "Conflicto de inventario al anular. Reintenta."));
-            }
+                try
+                {
+                    await _uow.SaveChangesAsync(token);
+                }
+                catch (CafeBarrio.Application.Common.Exceptions.ConcurrencyException)
+                {
+                    throw new BusinessFailureException(Result<int>.Failure(new Error("Anulacion.ConcurrencyConflict",
+                        "Conflicto de inventario al anular. Reintenta.")));
+                }
 
-            await _uow.CommitAsync(ct);
-
-            await _publisher.Publish(new AnulacionAprobadaEvent(
-                anulacion.AnulacionId, anulacion.TransaccionId,
-                anulacion.MontoDevuelto, anulacion.TipoAnulacion), ct);
-
-            return Result<int>.Success(anulacion.AnulacionId);
+                return anulacion.AnulacionId;
+            }, ct);
         }
-        catch
+        catch (BusinessFailureException bfe)
         {
-            await _uow.RollbackAsync(ct);
-            throw;
+            return bfe.Result;
         }
+
+        await _publisher.Publish(new AnulacionAprobadaEvent(
+            anulacionId, request.TransaccionId,
+            request.MontoDevuelto, request.TipoAnulacion), ct);
+
+        return Result<int>.Success(anulacionId);
     }
 }
