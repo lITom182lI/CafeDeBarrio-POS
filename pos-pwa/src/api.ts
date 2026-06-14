@@ -17,7 +17,7 @@ export const checkOnline      = ()                              => posAdapter.ch
 export const getTurnoActivo   = ()                              => posAdapter.turnoActivo()
 export const cerrarTurno      = (turnoId: number, monto: number, obs: string) => posAdapter.cerrarTurno(turnoId, monto, obs)
 
-export const apiQueryDocumento = async (tipo: string, numero: string) => {
+export const apiQueryDocumento = async (tipo: string, _numero: string) => {
   // Stub for external API. In production, connect to a real RUC/DNI API.
   await new Promise(r => setTimeout(r, 800));
   return { razonSocial: tipo === 'RUC' ? 'Empresa de Prueba S.A.C.' : 'Juan Perez' };
