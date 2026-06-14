@@ -73,11 +73,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
         external: true
         targetPort: 8080
         transport: 'http'
-        corsPolicy: {
-          allowedOrigins: ['*']   // CORS se gestiona en el código .NET, no aquí
-          allowedHeaders: ['*']
-          allowedMethods: ['*']
-        }
+
       }
       secrets: [
         { name: 'sql-connection', value: 'Server=tcp:${sqlServer.name}.database.windows.net,1433;Database=${sqlDatabase.name};User Id=${sqlAdminLogin};Password=${sqlAdminPassword};Encrypt=True;Connection Timeout=30;' }
