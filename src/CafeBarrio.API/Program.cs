@@ -206,6 +206,7 @@ builder.Services.AddRateLimiter(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddHttpClient();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
@@ -243,7 +244,6 @@ builder.Services.AddOpenTelemetry()
             metrics.AddOtlpExporter(o => o.Endpoint = new Uri(otelEndpoint));
     });
 
-builder.Services.AddHttpClient();
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<CafeBarrioDbContext>("database", tags: new[] { "ready" })
     .AddCheck<CafeBarrio.Infrastructure.HealthChecks.SunatHealthCheck>(

@@ -63,10 +63,12 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
         // Todo el trabajo transaccional envuelto en ExecuteInTransactionAsync para compatibilidad
         // con SqlServerRetryingExecutionStrategy (no permite BeginTransaction manual sin esta envoltura).
         int transaccionId;
+        decimal totalPublicado = 0m;
         try
         {
             transaccionId = await _uow.ExecuteInTransactionAsync(async (token) =>
             {
+                var divisor = 1m + tasaIgv;
                 var detalles = new List<DetalleTransaccion>();
                 decimal subtotal = 0;
 
@@ -91,7 +93,7 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
                         ProductoId     = item.ProductoId,
                         Cantidad       = item.Cantidad,
                         PrecioUnitario = producto.Precio,
-                        SubtotalLinea  = producto.Precio * item.Cantidad
+                        SubtotalLinea  = MoneyRounding.Round((producto.Precio / divisor) * item.Cantidad)
                     });
                     subtotal += producto.Precio * item.Cantidad;
                 }
@@ -115,8 +117,7 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
                                 "El monto del método primario cubre o excede el total. Use un solo método de pago.")));
                 }
 
-                var tasaCalculo = 1m + tasaIgv;
-                var baseImponible = MoneyRounding.Round(subtotal / tasaCalculo);
+                var baseImponible = MoneyRounding.Round(subtotal / divisor);
                 var impuesto = MoneyRounding.Round(subtotal - baseImponible);
 
                 var transaccion = new Transaccion
@@ -174,6 +175,7 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
                     throw;
                 }
 
+                totalPublicado = subtotal;
                 return transaccion.TransaccionId;
             }, ct);
         }
@@ -184,7 +186,7 @@ public class CreateTransaccionHandler : IRequestHandler<CreateTransaccionCommand
 
         await _publisher.Publish(new TransaccionCreadaEvent(
             transaccionId, request.SedeId,
-            0m, DateTime.UtcNow), ct);
+            totalPublicado, DateTime.UtcNow), ct);
 
         return Result<int>.Success(transaccionId);
     }

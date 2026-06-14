@@ -10,7 +10,7 @@ last-reviewed: 2026-06-11
 review-when: Si se modifica la lógica de registro de servicios HTTP en DependencyInjection.cs
 ---
 
-**Regla:** Llamar `builder.Services.AddHttpClient()` de forma incondicional en `Program.cs` antes de cualquier registro condicional de clientes HTTP tipados.
+**Regla:** Llamar `builder.Services.AddHttpClient()` de forma incondicional en `Program.cs` antes de cualquier registro condicional de clientes HTTP tipados. (Nota: El orden fue corregido en TASK-04-BACKEND-httpclient-order).
 
 **Why:** `SunatHealthCheck` requería `IHttpClientFactory`. En `DependencyInjection.cs`, `AddHttpClient<NubefactOseApiClient>()` solo se registraba si `Sunat:Enabled=true`. Con `Sunat:Enabled=false` (estado dev/local), `IHttpClientFactory` nunca se registraba en el contenedor DI. El API lanzaba `InvalidOperationException: Unable to resolve service for type 'IHttpClientFactory'` al arrancar.
 

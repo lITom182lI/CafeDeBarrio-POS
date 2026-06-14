@@ -15,6 +15,9 @@
 
 Agregar `builder.Services.AddHttpClient()` de forma incondicional en `Program.cs`, antes de llamar a `AddInfrastructure()`. Esto garantiza que `IHttpClientFactory` siempre esté disponible en el contenedor DI independientemente del valor de `Sunat:Enabled`.
 
+> [!NOTE]
+> **Corrección de orden:** El orden de registro fue corregido en TASK-04-BACKEND-httpclient-order (2026-06-14) moviendo la línea incondicional `AddHttpClient()` estrictamente antes de `AddInfrastructure()`.
+
 ## Alternativas consideradas
 
 | Alternativa | Razón de descarte |
