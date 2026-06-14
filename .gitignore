@@ -497,6 +497,7 @@ pos-client/App.config
 appsettings.Production.json
 docker-compose.override.yml
 pos-pwa/.env.production
+azure_db_credentials.md
 
 # SQLite databases
 *.db
