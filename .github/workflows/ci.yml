@@ -64,17 +64,17 @@ jobs:
 
     env:
       TEST_DB_CONNECTION: >-
-        Server=localhost,1433;Database=CafeDeBarrioTest;User Id=sa;Password=${{ secrets.MSSQL_CI_SA_PASSWORD }};TrustServerCertificate=True;
+        Server=localhost,1433;Database=CafeDeBarrioTest;User Id=sa;Password=CafeBarrio@Test123;TrustServerCertificate=True;
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Start SQL Server container
         run: |
-          docker run -e ACCEPT_EULA=Y -e MSSQL_SA_PASSWORD="${{ secrets.MSSQL_CI_SA_PASSWORD }}" \
+          docker run -e ACCEPT_EULA=Y -e MSSQL_SA_PASSWORD="CafeBarrio@Test123" \
             -p 1433:1433 \
             --name sqlserver \
-            --health-cmd="/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '${{ secrets.MSSQL_CI_SA_PASSWORD }}' -Q 'SELECT 1' -No -C" \
+            --health-cmd="/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'CafeBarrio@Test123' -Q 'SELECT 1' -No -C" \
             --health-interval=10s \
             --health-timeout=5s \
             --health-retries=15 \
