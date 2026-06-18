@@ -18,6 +18,11 @@ GO
 -- Tipo: Agregación + GROUP BY + rango de fechas
 -- Uso gerencial: monitoreo de recaudación diaria
 -- ============================================================
+-- EXPLICACIÓN DE FUNCIONES:
+-- * COUNT: Función de agregación que cuenta el total de registros (ventas) en cada fecha.
+-- * SUM: Suma todos los montos para calcular la base, el IGV y el total.
+-- * CAST(... AS DATE): Convierte el dato de fecha/hora a solo fecha, eliminando la hora para agrupar por día completo.
+-- * GROUP BY: Agrupa todas las transacciones ocurridas en la misma fecha para poder generar los totales por día.
 SELECT
     CAST(t.fecha AS DATE)       AS Dia,
     COUNT(t.transaccion_id)     AS NumeroVentas,
@@ -36,6 +41,11 @@ GO
 -- Tipo: JOIN + GROUP BY + ORDER BY + TOP
 -- Uso gerencial: decisiones de stock y carta del menú
 -- ============================================================
+-- EXPLICACIÓN DE FUNCIONES:
+-- * TOP 10: Filtra el set de resultados y devuelve únicamente los 10 primeros registros (los más vendidos).
+-- * INNER JOIN múltiple: Vincula la tabla "Detalle" con "Producto", y luego "Producto" con "Categoría" 
+--   para obtener nombres en lugar de puros IDs numéricos.
+-- * Expresión aritmética en SUM: Multiplica la "cantidad" por el "precio" en cada fila antes de sumarlo todo.
 SELECT TOP 10
     p.nombre                    AS Producto,
     cc.nombre                   AS Categoria,
@@ -53,6 +63,10 @@ GO
 -- Tipo: JOIN + GROUP BY + porcentaje calculado
 -- Uso gerencial: proyección de flujo de efectivo vs digital
 -- ============================================================
+-- EXPLICACIÓN DE FUNCIONES:
+-- * Función Ventana OVER(): El comando `SUM(SUM(t.total)) OVER ()` calcula el gran total absoluto de la tabla entera, 
+--   sin romper el agrupamiento actual. Esto permite dividir la venta de cada fila por el total global para sacar porcentajes.
+-- * ROUND(..., 2): Redondea el valor matemático del porcentaje para que solo tenga 2 decimales.
 SELECT
     mp.nombre                   AS MetodoPago,
     mp.EsEfectivo               AS EsEfectivo,
@@ -72,6 +86,11 @@ GO
 -- Tipo: CASE + GROUP BY + conteo
 -- Uso gerencial: dimensionamiento de personal por turno
 -- ============================================================
+-- EXPLICACIÓN DE FUNCIONES:
+-- * CASE ... WHEN: Evalúa cada fila como un IF-THEN-ELSE y clasifica la transacción en un "Turno de nombre de texto" 
+--   basado en el rango de su hora.
+-- * DATEPART(HOUR...): Extrae exactamente el valor de la hora (del 0 al 23) de la fecha registrada.
+-- * GROUP BY con CASE: Realiza la agrupación usando exactamente la misma regla de texto creada en el SELECT.
 SELECT
     CASE
         WHEN DATEPART(HOUR, t.fecha) BETWEEN  6 AND 11 THEN 'Mañana  (06-11h)'
@@ -98,6 +117,10 @@ GO
 -- Tipo: JOIN múltiple + GROUP BY + ORDER BY
 -- Uso gerencial: evaluación de desempeño por cajero
 -- ============================================================
+-- EXPLICACIÓN DE FUNCIONES:
+-- * AVG(t.total): Calcula el "Promedio" (Average) matemático, en este caso nos dice de cuánto dinero es el 
+--   ticket promedio que vende este operador cada vez que atiende a un cliente.
+-- * ORDER BY TotalVendido DESC: Ordena todo el resultado de mayor a menor basándose en la suma de dinero.
 SELECT
     o.Nombre                    AS Operador,
     s.nombre                    AS Sede,
@@ -116,6 +139,12 @@ GO
 -- Tipo: WHERE simple + subconsulta correlacionada
 -- Uso gerencial: alerta de reposición de inventario
 -- ============================================================
+-- EXPLICACIÓN DE FUNCIONES:
+-- * Subconsulta correlacionada: El fragmento `(SELECT COALESCE(...) FROM ... WHERE dt2.producto_id = p.producto_id)` 
+--   es una consulta "viva" que se vuelve a ejecutar dinámicamente por cada producto de la lista, para sumar cuánto 
+--   vendió en el último mes.
+-- * COALESCE: Si la subconsulta detecta que el producto no vendió nada y devuelve NULL, el COALESCE lo convierte a 0.
+-- * DATEADD: Permite hacer matemáticas con fechas (restarle 30 días exactos al día de hoy que devuelve GETDATE).
 SELECT
     p.nombre                    AS Producto,
     cc.nombre                   AS Categoria,
@@ -141,6 +170,10 @@ GO
 -- Tipo: JOIN múltiple (4 tablas)
 -- Uso gerencial: auditoría de reversiones y control de leakage
 -- ============================================================
+-- EXPLICACIÓN DE FUNCIONES:
+-- * JOIN con alias duplicado de tabla: Nota cómo la tabla "Operador" se importa DOS VECES (una bajo el alias "sol" 
+--   y otra como "aut"). Esto se debe a que necesitamos cruzar dos IDs distintos de la anulación con la misma 
+--   tabla para descubrir el nombre del que solicitó y el del que autorizó la reversa.
 SELECT
     a.AnulacionId,
     t.fecha                     AS FechaVenta,
@@ -164,6 +197,9 @@ GO
 -- Tipo: JOIN + SUM agrupado + cálculo de diferencia
 -- Uso gerencial: cuadre de caja al final de cada turno
 -- ============================================================
+-- EXPLICACIÓN DE FUNCIONES:
+-- * COALESCE(tr.Diferencia, 0): Si aún no se ha hecho el cierre de turno y la columna "Diferencia" está vacía (NULL), 
+--   esta función la convierte visualmente en un 0 para mantener limpias las columnas financieras del informe.
 SELECT
     tr.TurnoId,
     o.Nombre                        AS Operador,
@@ -190,6 +226,10 @@ GO
 -- Tipo: JOIN + subconsulta + ORDER BY
 -- Uso gerencial: identificar candidatos a programa de fidelidad
 -- ============================================================
+-- EXPLICACIÓN DE FUNCIONES:
+-- * Concatenación: La expresión `c.nombre + ' ' + c.apellido` toma dos columnas de texto separadas y las une
+--   agregando un espacio en el medio para mostrar el nombre completo.
+-- * MAX(t.fecha): De todo el historial de fechas de compra de un cliente, extrae la más "alta" (es decir, la compra más reciente).
 SELECT
     c.nombre + ' ' + c.apellido AS Cliente,
     tc.nombre                   AS TipoCliente,
@@ -209,6 +249,10 @@ GO
 -- Tipo: AVG + JOIN + GROUP BY
 -- Uso gerencial: benchmark de productividad entre sucursales
 -- ============================================================
+-- EXPLICACIÓN DE FUNCIONES:
+-- * MIN y MAX: Devuelven respectivamente la venta más pequeña y la venta más jugosa que haya logrado el operador.
+-- * HAVING: Es como un "WHERE" pero se aplica DESPUÉS de hacer el agrupamiento (GROUP BY). Asegura que no 
+--   salgan en el reporte aquellos operadores que existan pero tengan "0" cantidad de ventas.
 SELECT
     s.nombre                    AS Sede,
     o.Nombre                    AS Operador,
@@ -229,6 +273,11 @@ GO
 -- Tipo: LEFT JOIN + WHERE IS NULL (anti-join)
 -- Uso gerencial: detectar ítems candidatos a ser retirados del menú
 -- ============================================================
+-- EXPLICACIÓN DE FUNCIONES:
+-- * LEFT JOIN a Subconsulta: Trae absolutamente todos los productos, e intenta conectarlos con una mini-tabla 
+--   "vendidos" que solo contiene productos que sí tuvieron éxito en los últimos 30 días.
+-- * Anti-Join (WHERE IS NULL): Como el LEFT JOIN nos devolvió todos, obligamos a mostrar SOLAMENTE los productos 
+--   que al cruzarse devolvieron "vacío" (NULL). Esto revela exactamente los que fallaron en venderse.
 SELECT
     p.nombre                    AS Producto,
     cc.nombre                   AS Categoria,
@@ -253,6 +302,10 @@ GO
 -- Tipo: CASE + SUM condicional + GROUP BY
 -- Uso gerencial: proyección de liquidez y depósitos bancarios
 -- ============================================================
+-- EXPLICACIÓN DE FUNCIONES:
+-- * SUM(CASE...): Esto permite crear nuevas columnas virtuales ("pivotear" datos). Evalúa si la compra fue en 
+--   efectivo; si lo fue, suma su dinero a la columna "Efectivo", sino le suma un 0. Así logramos separar 
+--   la plata en dos columnas totalmente distintas en un mismo renglón de reporte.
 SELECT
     CAST(t.fecha AS DATE)                        AS Dia,
     SUM(CASE WHEN mp.EsEfectivo = 1
@@ -275,6 +328,10 @@ GO
 -- Tipo: JOIN + ORDER BY + agrupación por tipo
 -- Uso gerencial: trazabilidad de cada centavo que entra/sale de caja
 -- ============================================================
+-- EXPLICACIÓN DE FUNCIONES:
+-- * Función de Ventana OVER(PARTITION BY...): Es un mecanismo avanzado que hace agrupaciones pero sin usar un 
+--   GROUP BY. Permite ir sumando en la memoria "todas las entradas de dinero" y reiniciando el cálculo por 
+--   cada "Partición" (por cada nuevo Turno de cajero) para mostrar el sub-total en pantalla.
 SELECT
     m.MovimientoCajaId,
     tr.TurnoId,
@@ -302,6 +359,10 @@ GO
 -- Tipo: JOIN + expresión aritmética + GROUP BY
 -- Uso gerencial: rentabilidad por línea de producto
 -- ============================================================
+-- EXPLICACIÓN DE FUNCIONES:
+-- * COUNT(DISTINCT...): Cuenta el número de productos únicos asegurando que no se repitan por error.
+-- * NULLIF(..., 0): Si por error humano algún producto tiene su precio base en "0", esto lo cambia a NULL 
+--   para que la división del margen porcentual no explote por "División sobre Cero".
 SELECT
     cc.nombre                       AS Categoria,
     COUNT(DISTINCT p.producto_id)   AS NumeroProductos,
@@ -325,6 +386,10 @@ GO
 -- Tipo: JOIN + COUNT + GROUP BY + ORDER BY
 -- Uso gerencial: optimizar horarios de apertura y refuerzos de personal
 -- ============================================================
+-- EXPLICACIÓN DE FUNCIONES:
+-- * DATEPART(HOUR...): Extrae exactamente la hora en la que se generó la boleta/ticket.
+-- * GROUP BY Múltiple: Agrupa la información simultáneamente por dos columnas (por la Sede y por esa Hora extraída), 
+--   lo que nos permite tener el conteo de ventas de "las 9 AM en la sede de Los Olivos" separado del resto.
 SELECT
     s.nombre                        AS Sede,
     DATEPART(HOUR, t.fecha)         AS Hora,
@@ -342,6 +407,10 @@ GO
 -- Tipo: subconsulta + expresión aritmética
 -- Uso contable: verificación del monto a declarar ante SUNAT
 -- ============================================================
+-- EXPLICACIÓN DE FUNCIONES:
+-- * Cálculos post-agregación: Observe cómo en `ROUND(SUM(t.subtotal) * 1.18, 2)` primero la base de datos es 
+--   instruida a sumar toda la base imponible y, una vez obtenido ese inmenso total, a ese resultado único le 
+--   aplica el multiplicador para hallar el IGV cruzado.
 SELECT
     CAST(t.fecha AS DATE)           AS Dia,
     SUM(t.subtotal)                 AS BaseImponible,

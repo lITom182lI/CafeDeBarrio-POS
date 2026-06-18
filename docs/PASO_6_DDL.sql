@@ -1,41 +1,48 @@
 -- ============================================================
--- PASO 6 — IMPLEMENTACIÓN DDL
+-- PASO 6 — IMPLEMENTACIÓN DDL (Data Definition Language)
 -- Sistema: Café de Barrio POS
 -- Motor:   Microsoft SQL Server (T-SQL)
 -- Alumnos: Pablo Joel Castillo Flores, Justhin Christofher Huisa Valle, Jeremy Geraldo Armas Camones, Geradth Humberto Gaitan Gonzales, Allison Isabel Cordova Diaz
 -- Fecha:   2026-06-15
--- Descripción: Definición de las 14 tablas del dominio de
+-- Descripción: Script DDL encargado de crear la estructura de 
+--              la base de datos y sus tablas.
+--              Definición de las 14 tablas del dominio de
 --              negocio con constraints completos (PK, FK,
---              NOT NULL, UNIQUE, CHECK) en orden de dependencia.
+--              NOT NULL, UNIQUE, CHECK) en orden de dependencia 
+--              para respetar la integridad referencial.
 -- ============================================================
 
 -- Precaución: ejecutar en una base de datos vacía o de prueba.
 -- Para recrear desde cero, eliminar tablas en orden inverso
 -- antes de ejecutar.
 
+-- Comprobación segura: Solo crea la base de datos si no existe previamente
 IF NOT EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'CafeDeBarrioBD')
 BEGIN
     CREATE DATABASE CafeDeBarrioBD;
 END
 GO
 
+-- Establece el contexto para ejecutar los siguientes comandos en la BD recién creada
 USE CafeDeBarrioBD;
 GO
 
 -- ============================================================
--- NIVEL 0 — Tablas sin dependencias externas
+-- NIVEL 0 — Tablas sin dependencias externas (Catálogos base)
+-- Estas tablas no tienen llaves foráneas y deben crearse primero.
 -- ============================================================
 
 -- 1. CategoriaCafe
 --    Agrupa los productos por tipo (Cafés, Bebidas, Comida…)
+--    Usa IDENTITY(1,1) para generar IDs autoincrementales.
 CREATE TABLE CategoriaCafe (
     categoria_id    INT           IDENTITY(1,1) NOT NULL,
     codigo          NVARCHAR(10)  NOT NULL,
     nombre          NVARCHAR(100) NOT NULL,
     descripcion     NVARCHAR(300) NULL,
-    activa          BIT           NOT NULL  DEFAULT 1,
+    activa          BIT           NOT NULL  DEFAULT 1, -- Por defecto la categoría está activa
     CONSTRAINT PK_CategoriaCafe PRIMARY KEY (categoria_id),
-    CONSTRAINT UQ_CategoriaCafe_Codigo UNIQUE (codigo)
+    CONSTRAINT UQ_CategoriaCafe_Codigo UNIQUE (codigo) -- Evita códigos duplicados
 );
 GO
 
@@ -71,7 +78,7 @@ CREATE TABLE MetodoPago (
     metodo_pago_id INT           IDENTITY(1,1) NOT NULL,
     nombre         NVARCHAR(100) NOT NULL,
     activo         BIT           NOT NULL  DEFAULT 1,
-    EsEfectivo     BIT           NOT NULL  DEFAULT 0,
+    EsEfectivo     BIT           NOT NULL  DEFAULT 0, -- Útil para los cuadres de caja
     CONSTRAINT PK_MetodoPago PRIMARY KEY (metodo_pago_id)
 );
 GO
@@ -85,12 +92,13 @@ CREATE TABLE OpcionEnvio (
     tarifa          DECIMAL(18,2) NOT NULL,
     activa          BIT           NOT NULL  DEFAULT 1,
     CONSTRAINT PK_OpcionEnvio PRIMARY KEY (opcion_envio_id),
-    CONSTRAINT CK_OpcionEnvio_Tarifa CHECK (tarifa >= 0)
+    CONSTRAINT CK_OpcionEnvio_Tarifa CHECK (tarifa >= 0) -- Asegura que la tarifa no sea negativa
 );
 GO
 
 -- ============================================================
 -- NIVEL 1 — Dependen de tablas de Nivel 0
+-- Estas tablas contienen llaves foráneas apuntando al Nivel 0.
 -- ============================================================
 
 -- 6. ConfiguracionNegocio
@@ -106,8 +114,8 @@ CREATE TABLE ConfiguracionNegocio (
     CONSTRAINT PK_ConfiguracionNegocio PRIMARY KEY (ConfiguracionNegocioId),
     CONSTRAINT FK_ConfiguracionNegocio_Sede
         FOREIGN KEY (SedeId) REFERENCES Sede(sede_id)
-        ON DELETE NO ACTION,
-    -- Solo una configuración activa por sede
+        ON DELETE NO ACTION, -- Evita eliminar la sede si tiene configuraciones
+    -- Restricciones CHECK para validar porcentajes lógicos
     CONSTRAINT CK_ConfiguracionNegocio_TasaIGV CHECK (TasaIGV > 0 AND TasaIGV < 1),
     CONSTRAINT CK_ConfiguracionNegocio_TasaIPM CHECK (TasaIPM >= 0 AND TasaIPM < 1)
 );
@@ -139,7 +147,7 @@ CREATE TABLE Cliente (
     CONSTRAINT PK_Cliente PRIMARY KEY (cliente_id),
     CONSTRAINT FK_Cliente_TipoCliente
         FOREIGN KEY (tipo_cliente_id) REFERENCES TipoCliente(tipo_cliente_id)
-        ON DELETE CASCADE,
+        ON DELETE CASCADE, -- Si se borra el tipo, se borran sus clientes (comportamiento en cascada)
     CONSTRAINT UQ_Cliente_Email UNIQUE (email)
 );
 GO
@@ -164,7 +172,7 @@ CREATE TABLE Producto (
     activo               BIT           NOT NULL  DEFAULT 1,
     created_at           DATETIME2     NOT NULL,
     updated_at           DATETIME2     NULL,
-    -- RowVersion: token de concurrencia optimista (EF Core lo gestiona)
+    -- RowVersion: token de concurrencia optimista (EF Core lo gestiona para evitar sobrescrituras de varios usuarios)
     RowVersion           ROWVERSION    NOT NULL,
     CONSTRAINT PK_Producto PRIMARY KEY (producto_id),
     CONSTRAINT FK_Producto_CategoriaCafe
@@ -181,10 +189,10 @@ CREATE TABLE Operador (
     OperadorId       INT           IDENTITY(1,1) NOT NULL,
     SedeId           INT           NOT NULL,
     Nombre           NVARCHAR(100) NOT NULL,
-    PinHash          NVARCHAR(256) NOT NULL,
+    PinHash          NVARCHAR(256) NOT NULL, -- Almacena el hash del PIN, nunca el PIN en texto plano
     Activo           BIT           NOT NULL  DEFAULT 1,
     Eliminado        BIT           NOT NULL  DEFAULT 0,
-    FailedPinAttempts INT          NOT NULL  DEFAULT 0,
+    FailedPinAttempts INT          NOT NULL  DEFAULT 0, -- Bloqueo de seguridad por intentos fallidos
     IsLockedOut      BIT           NOT NULL  DEFAULT 0,
     LockedUntilUtc   DATETIME2     NULL,
     CreatedAt        DATETIME2     NOT NULL,
@@ -230,7 +238,7 @@ CREATE TABLE Turno (
     CONSTRAINT FK_Turno_Operador
         FOREIGN KEY (OperadorId) REFERENCES Operador(OperadorId)
         ON DELETE NO ACTION,
-    CONSTRAINT CK_Turno_Estado CHECK (Estado IN ('Abierto', 'Cerrado'))
+    CONSTRAINT CK_Turno_Estado CHECK (Estado IN ('Abierto', 'Cerrado')) -- Control de dominio de valores
 );
 GO
 
@@ -239,7 +247,7 @@ GO
 -- ============================================================
 
 -- 11. MovimientoCaja
---     Retiros o ingresos de efectivo durante un turno
+--     Retiros o ingresos de efectivo durante un turno (eg. pago proveedores, sencilleo)
 --     TipoMovimiento: 'Entrada' | 'Salida'
 CREATE TABLE MovimientoCaja (
     MovimientoCajaId INT           IDENTITY(1,1) NOT NULL,
@@ -255,14 +263,14 @@ CREATE TABLE MovimientoCaja (
         FOREIGN KEY (TurnoId) REFERENCES Turno(TurnoId)
         ON DELETE NO ACTION,
     CONSTRAINT CK_MovimientoCaja_Tipo   CHECK (TipoMovimiento IN ('Entrada', 'Salida')),
-    CONSTRAINT CK_MovimientoCaja_Monto  CHECK (Monto > 0)
+    CONSTRAINT CK_MovimientoCaja_Monto  CHECK (Monto > 0) -- Asegura que los movimientos sean importes válidos
 );
 GO
 
 -- 12. Transaccion
---     Venta registrada en el POS.
+--     Venta registrada en el POS (Cabecera de la venta).
 --     Modelo IGV extractivo: precio es IGV-inclusivo.
---     subtotal = ROUND(total / 1.18, 2)  →  base imponible
+--     subtotal = ROUND(total / 1.18, 2)  →  base imponible (asumiendo 18% IGV)
 --     impuesto = ROUND(total - subtotal, 2)
 CREATE TABLE Transaccion (
     transaccion_id           INT           IDENTITY(1,1) NOT NULL,
@@ -286,7 +294,7 @@ CREATE TABLE Transaccion (
     tipo_documento           NVARCHAR(20)  NULL,
     numero_documento         NVARCHAR(20)  NULL,
     razon_social             NVARCHAR(150) NULL,
-    SunatEstado              NVARCHAR(50)  NOT NULL  DEFAULT 'Pendiente',
+    SunatEstado              NVARCHAR(50)  NOT NULL  DEFAULT 'Pendiente', -- Para integración con facturación electrónica
     SunatError               NVARCHAR(MAX) NULL,
     SunatNumeroSerie         NVARCHAR(50)  NULL,
     SunatIntentos            INT           NOT NULL  DEFAULT 0,
@@ -296,7 +304,7 @@ CREATE TABLE Transaccion (
     CONSTRAINT PK_Transaccion PRIMARY KEY (transaccion_id),
     CONSTRAINT FK_Transaccion_Cliente
         FOREIGN KEY (cliente_id) REFERENCES Cliente(cliente_id)
-        ON DELETE SET NULL,
+        ON DELETE SET NULL, -- Si se borra el cliente, la venta queda anónima pero no se borra
     CONSTRAINT FK_Transaccion_Sede
         FOREIGN KEY (sede_id) REFERENCES Sede(sede_id)
         ON DELETE CASCADE,
@@ -314,7 +322,7 @@ CREATE TABLE Transaccion (
     CONSTRAINT FK_Transaccion_Operador
         FOREIGN KEY (operador_id) REFERENCES Operador(OperadorId)
         ON DELETE NO ACTION,
-    -- Integridad financiera: subtotal y total deben ser positivos
+    -- Integridad financiera: validaciones a nivel de base de datos para no permitir subtotales/totales negativos
     CONSTRAINT CK_Transaccion_Subtotal_Positivo CHECK (subtotal >= 0),
     CONSTRAINT CK_Transaccion_Total_Positivo    CHECK (total >= 0),
     -- total debe cubrir al menos la base + impuesto (puede tener propina/envío)
@@ -322,7 +330,7 @@ CREATE TABLE Transaccion (
 );
 GO
 
--- Índice compuesto para reportes por sede y rango de fechas
+-- Índice compuesto para acelerar reportes filtrados por sede y rango de fechas
 CREATE INDEX IX_Transaccion_SedeId_Fecha ON Transaccion(sede_id, fecha);
 GO
 CREATE INDEX IX_Transacciones_Fecha ON Transaccion(fecha);
@@ -334,6 +342,7 @@ GO
 
 -- 13. DetalleTransaccion
 --     Líneas de venta (tabla puente N:M entre Transaccion y Producto).
+--     Registra exactamente qué productos y en qué cantidad se vendieron.
 --     subtotal_linea = ROUND((precio / 1.18) * cantidad, 2)  →  base pre-IGV
 CREATE TABLE DetalleTransaccion (
     detalle_id      INT           IDENTITY(1,1) NOT NULL,
@@ -347,7 +356,7 @@ CREATE TABLE DetalleTransaccion (
     CONSTRAINT PK_DetalleTransaccion PRIMARY KEY (detalle_id),
     CONSTRAINT FK_DetalleTransaccion_Transaccion
         FOREIGN KEY (transaccion_id) REFERENCES Transaccion(transaccion_id)
-        ON DELETE CASCADE,
+        ON DELETE CASCADE, -- Si se anula/borra la transacción, se borran sus detalles
     CONSTRAINT FK_DetalleTransaccion_Producto
         FOREIGN KEY (producto_id) REFERENCES Producto(producto_id)
         ON DELETE CASCADE,
@@ -358,7 +367,8 @@ CREATE TABLE DetalleTransaccion (
 GO
 
 -- 14. Anulacion
---     Reversa de una transacción; relación 1:1 con Transaccion.
+--     Reversa de una transacción (notas de crédito / anulaciones de tickets).
+--     Relación 1:1 con Transaccion.
 --     TipoAnulacion: 'DevolucionTotal' | 'DevolucionParcial' | 'Cancelacion'
 CREATE TABLE Anulacion (
     AnulacionId           INT           IDENTITY(1,1) NOT NULL,
@@ -371,11 +381,11 @@ CREATE TABLE Anulacion (
     OperadorSolicitanteId INT           NOT NULL,
     AutorizadorId         INT           NOT NULL,
     FechaHora             DATETIME2     NOT NULL,
-    ImpactoInventario     BIT           NOT NULL  DEFAULT 1,
+    ImpactoInventario     BIT           NOT NULL  DEFAULT 1, -- Indica si los productos regresan al stock
     CreatedAt             DATETIME2     NOT NULL,
     UpdatedAt             DATETIME2     NULL,
     CONSTRAINT PK_Anulacion PRIMARY KEY (AnulacionId),
-    -- Una transacción solo puede anularse una vez (1:1)
+    -- Una transacción solo puede anularse una vez (relación 1:1)
     CONSTRAINT UQ_Anulacion_TransaccionId UNIQUE (TransaccionId),
     CONSTRAINT FK_Anulacion_Transaccion
         FOREIGN KEY (TransaccionId) REFERENCES Transaccion(transaccion_id)
@@ -387,7 +397,7 @@ CREATE TABLE Anulacion (
         FOREIGN KEY (AutorizadorId) REFERENCES Operador(OperadorId)
         ON DELETE NO ACTION,
     CONSTRAINT CK_Anulacion_MontoDevuelto
-        CHECK (MontoDevuelto >= 0 AND MontoDevuelto <= MontoOriginal),
+        CHECK (MontoDevuelto >= 0 AND MontoDevuelto <= MontoOriginal), -- Impide devolver más del cobro original
     CONSTRAINT CK_Anulacion_Tipo
         CHECK (TipoAnulacion IN ('DevolucionTotal', 'DevolucionParcial', 'Cancelacion'))
 );

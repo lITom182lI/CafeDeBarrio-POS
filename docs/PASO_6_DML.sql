@@ -1,12 +1,13 @@
 -- ============================================================
--- PASO 6 — IMPLEMENTACIÓN DML
+-- PASO 6 — IMPLEMENTACIÓN DML (Data Manipulation Language)
 -- Sistema: Café de Barrio POS
 -- Motor:   Microsoft SQL Server (T-SQL)
 -- Alumnos: Pablo Joel Castillo Flores, Justhin Christofher Huisa Valle, Jeremy Geraldo Armas Camones, Geradth Humberto Gaitan Gonzales, Allison Isabel Cordova Diaz
 -- Fecha:   2026-06-15
--- Descripción: Datos de prueba representativos del negocio.
---              ≥ 15 registros por tabla principal.
--- NOTA: Ejecutar después de PASO_6_DDL.sql
+-- Descripción: Script DML para la inserción de datos iniciales.
+--              Puebla las tablas creadas en el DDL con datos de
+--              prueba representativos del negocio (≥ 15 registros por tabla principal).
+-- NOTA: Ejecutar EXCLUSIVAMENTE después de haber ejecutado con éxito PASO_6_DDL.sql.
 -- ============================================================
 
 USE CafeDeBarrioBD;
@@ -14,9 +15,11 @@ GO
 
 -- ============================================================
 -- NIVEL 0 — Sin dependencias externas
+-- Se insertan primero porque otras tablas dependerán de estos registros.
 -- ============================================================
 
 -- 1. CategoriaCafe (6 registros)
+--    Categorías básicas de los productos del menú.
 INSERT INTO CategoriaCafe (codigo, nombre, descripcion, activa) VALUES
 ('CAF', 'Cafés Especiales',  'Cafés de origen single estate y mezclas premium', 1),
 ('BEB', 'Bebidas Frías',     'Frappés, limonadas y tisanas heladas',             1),
@@ -27,6 +30,7 @@ INSERT INTO CategoriaCafe (codigo, nombre, descripcion, activa) VALUES
 GO
 
 -- 2. TipoCliente (3 registros)
+--    Perfiles de clientes para aplicar promociones o fidelización.
 INSERT INTO TipoCliente (nombre, descripcion) VALUES
 ('Regular',   'Cliente ocasional sin beneficios acumulados'),
 ('Frecuente', 'Cliente con historial de compras repetidas; accede a promociones'),
@@ -34,6 +38,7 @@ INSERT INTO TipoCliente (nombre, descripcion) VALUES
 GO
 
 -- 3. Sede (3 registros)
+--    Sucursales físicas del café.
 INSERT INTO Sede (nombre, direccion, distrito, ciudad, telefono, es_principal, activa, fecha_apertura) VALUES
 ('Café de Barrio Miraflores', 'Av. Principal 123',  'Miraflores', 'Lima', '01-234-5678', 1, 1, '2026-01-01'),
 ('Café de Barrio San Isidro', 'Av. Rivera Navarrete 456', 'San Isidro', 'Lima', '01-234-5679', 0, 1, '2026-03-01'),
@@ -41,6 +46,7 @@ INSERT INTO Sede (nombre, direccion, distrito, ciudad, telefono, es_principal, a
 GO
 
 -- 4. MetodoPago (6 registros)
+--    Métodos configurados en la caja registradora.
 INSERT INTO MetodoPago (nombre, activo, EsEfectivo) VALUES
 ('Efectivo',          1, 1),
 ('Tarjeta Débito',    1, 0),
@@ -51,6 +57,7 @@ INSERT INTO MetodoPago (nombre, activo, EsEfectivo) VALUES
 GO
 
 -- 5. OpcionEnvio (4 registros)
+--    Opciones logísticas de entrega con tarifas asociadas.
 INSERT INTO OpcionEnvio (nombre, descripcion, tarifa, activa) VALUES
 ('Recojo en Tienda',   'El cliente retira en la sucursal sin costo adicional', 0.00, 1),
 ('Delivery Express',   'Entrega en menos de 30 minutos dentro del distrito',   5.00, 1),
@@ -63,14 +70,15 @@ GO
 -- ============================================================
 
 -- 6. ConfiguracionNegocio (3 registros, uno por sede)
---    TasaIGV=0.1600 (16%) + TasaIPM=0.0200 (2%) = 18% total
+--    TasaIGV=0.1600 (16%) + TasaIPM=0.0200 (2%) = 18% total (Impuestos de Perú)
 INSERT INTO ConfiguracionNegocio (SedeId, TasaIGV, TasaIPM, FechaVigencia, Activo) VALUES
 (1, 0.1600, 0.0200, '2026-01-01T00:00:00', 1),
 (2, 0.1600, 0.0200, '2026-03-01T00:00:00', 1),
 (3, 0.1600, 0.0200, '2026-05-01T00:00:00', 1);
 GO
 
--- 7. Cliente (16 registros: 1 mostrador + 15 clientes reales)
+-- 7. Cliente (16 registros: 1 mostrador genérico + 15 clientes reales)
+--    El ID '1' se usa para ventas rápidas que no requieren identificar al comprador.
 INSERT INTO Cliente (tipo_cliente_id, nombre, apellido, email, codigo_cliente, tipo_documento, numero_documento, telefono, distrito, ciudad, fecha_registro, activo) VALUES
 (1, 'Mostrador',  '',           'mostrador@cafedebarrio.local', NULL,  NULL,  NULL,         NULL,          'Miraflores', 'Lima', '2026-01-01', 1),
 (1, 'Ana',        'García',     'ana.garcia@gmail.com',         'C001','DNI', '12345678',   '987-654-321', 'Miraflores', 'Lima', '2026-01-15', 1),
@@ -91,6 +99,7 @@ INSERT INTO Cliente (tipo_cliente_id, nombre, apellido, email, codigo_cliente, t
 GO
 
 -- 8. Producto (16 registros — precios IGV-inclusivos)
+--    Se asocian con categoria_id definido previamente en CategoriaCafe.
 INSERT INTO Producto (categoria_id, nombre, descripcion, costo, precio, cantidad_disponible, stock_minimo, unidad_medida, seguimiento_inventario, es_mayorista, activo, created_at) VALUES
 -- Bebidas Frías (categoria_id=2)
 (2, 'Espresso Doble Clásico',    'Espresso intenso de doble carga, concentrado y aromático.',   3.50,  7.00, 80, 20, 'Unidades', 1, 0, 1, '2026-01-01T08:00:00'),
@@ -114,7 +123,8 @@ INSERT INTO Producto (categoria_id, nombre, descripcion, costo, precio, cantidad
 GO
 
 -- 9. Operador (15 registros)
---    PinHash: en producción se usa Argon2; aquí se indica el hash correspondiente a PIN='123456'
+--    Empleados con acceso al sistema.
+--    PinHash: en producción se usa Argon2; aquí se indica el hash correspondiente a un PIN estándar de prueba (ej. '123456')
 INSERT INTO Operador (SedeId, Nombre, PinHash, Activo, Eliminado, FailedPinAttempts, IsLockedOut, CreatedAt) VALUES
 (1, 'María Condori',    '$argon2id$v=19$m=65536,t=3$PLACEHOLDER_HASH_01', 1, 0, 0, 0, '2026-01-01T08:00:00'),
 (1, 'Juan Quispe',      '$argon2id$v=19$m=65536,t=3$PLACEHOLDER_HASH_02', 1, 0, 0, 0, '2026-01-01T08:00:00'),
@@ -138,6 +148,7 @@ GO
 -- ============================================================
 
 -- 10. Turno (15 registros: 14 cerrados + 1 abierto)
+--     Un turno asocia un Operador a una Sede con montos de cuadre de caja.
 INSERT INTO Turno (SedeId, OperadorId, FechaApertura, FechaCierre, MontoApertura, MontoEfectivoCierto, TotalEfectivoSistema, TotalVentasEfectivo, TotalAnulacionesEfectivo, TotalMovimientosEntrada, TotalMovimientosSalida, SaldoEsperado, Diferencia, Estado, CreatedAt) VALUES
 (1, 1, '2026-05-17T08:00:00', '2026-05-17T16:00:00', 100.00, 487.50, 487.50, 387.50, 0.00, 0.00, 0.00, 487.50, 0.00, 'Cerrado', '2026-05-17T08:00:00'),
 (1, 2, '2026-05-18T08:00:00', '2026-05-18T16:00:00', 100.00, 520.00, 520.00, 420.00, 6.50, 0.00, 0.00, 513.50, 6.50, 'Cerrado', '2026-05-18T08:00:00'),
@@ -153,7 +164,7 @@ INSERT INTO Turno (SedeId, OperadorId, FechaApertura, FechaCierre, MontoApertura
 (1, 4, '2026-06-11T08:00:00', '2026-06-11T16:00:00', 100.00, 534.50, 534.50, 434.50, 0.00, 0.00, 0.00, 534.50, 0.00, 'Cerrado', '2026-06-11T08:00:00'),
 (2, 8, '2026-06-12T09:00:00', '2026-06-12T17:00:00', 150.00, 720.00, 720.00, 570.00, 22.00, 0.00, 0.00, 698.00, 22.00, 'Cerrado', '2026-06-12T09:00:00'),
 (1, 5, '2026-06-13T08:00:00', '2026-06-13T16:00:00', 100.00, 398.50, 398.50, 298.50, 0.00, 0.00, 0.00, 398.50, 0.00, 'Cerrado', '2026-06-13T08:00:00'),
--- Turno 15: Actualmente abierto (sin cierre)
+-- Turno 15: Actualmente abierto (sin fecha ni cálculos de cierre)
 (1, 1, '2026-06-15T08:00:00', NULL,                  100.00, NULL,   NULL,   0.00,   0.00, 0.00, 0.00, 100.00, NULL, 'Abierto', '2026-06-15T08:00:00');
 GO
 
@@ -162,7 +173,8 @@ GO
 -- ============================================================
 
 -- 11. MovimientoCaja (15 registros)
---     Entradas: apertura refuerzo, pagos proveedor; Salidas: vuelto, gastos
+--     Registra los ajustes en la gaveta de efectivo independientes a las ventas.
+--     Entradas: apertura, refuerzo, pagos de terceros a caja. Salidas: vuelto, gastos operativos.
 INSERT INTO MovimientoCaja (TurnoId, TipoMovimiento, Motivo, Monto, FechaHora, CreatedAt) VALUES
 (1, 'Salida',  'Compra de insumos cafetería',            50.00, '2026-05-17T10:30:00', '2026-05-17T10:30:00'),
 (2, 'Salida',  'Vuelto de billete S/100',                 6.50, '2026-05-18T11:00:00', '2026-05-18T11:00:00'),
@@ -183,9 +195,10 @@ GO
 
 -- ============================================================
 -- NIVEL 4 — Transaccion (modelo IGV extractivo)
--- Fórmulas:
---   subtotal  = ROUND(total / 1.18, 2)
---   impuesto  = ROUND(total - subtotal, 2)
+-- Representa la cabecera de las boletas/facturas generadas.
+-- Fórmulas utilizadas:
+--   subtotal  = ROUND(total / 1.18, 2)  -- Monto sin IGV
+--   impuesto  = ROUND(total - subtotal, 2) -- Monto del IGV
 -- ============================================================
 
 -- 12. Transaccion (20 registros)
@@ -234,6 +247,7 @@ GO
 
 -- ============================================================
 -- NIVEL 5 — DetalleTransaccion
+-- Detalle línea a línea de los productos vendidos en cada transacción.
 -- subtotal_linea = ROUND((precio_unitario / 1.18) * cantidad, 2)
 -- ============================================================
 
@@ -265,7 +279,7 @@ INSERT INTO DetalleTransaccion (transaccion_id, producto_id, cantidad, precio_un
 (12,11, 1, 12.50, 10.59, '2026-05-23T14:00:00'),
 -- T13: Affogato x2 → (11.00/1.18)*2=18.6440→18.64
 (13,12, 2, 11.00, 18.64, '2026-05-24T09:15:00'),
--- T14: Espresso x1 + Brownie x1 (2 líneas)
+-- T14: Espresso x1 + Brownie x1 (2 líneas de detalle para 1 boleta)
 (14, 1, 1,  7.00,  5.93, '2026-05-24T11:30:00'),
 (14,13, 1,  7.00,  5.93, '2026-05-24T11:30:00'),
 -- T15: Té Helado x2 → (6.00/1.18)*2=10.1694→10.17
@@ -284,6 +298,7 @@ GO
 
 -- ============================================================
 -- NIVEL 6 — Anulacion (referencia 1:1 con Transaccion)
+-- Registra las devoluciones y cancelaciones de ventas previas.
 -- ============================================================
 
 -- 14. Anulacion (10 registros: anulaciones de T1 a T10)
@@ -317,5 +332,5 @@ GO
 --   Transaccion:        20
 --   DetalleTransaccion: 22
 --   Anulacion:          10
--- Total registros:     154
+-- Total registros insertados: 154
 -- ============================================================
